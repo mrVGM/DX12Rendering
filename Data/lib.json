@@ -1,0 +1,8 @@
+{
+  "files": {
+    "collada_grammar": {
+      "path": "collada_grammar.txt",
+      "type": "text_file"
+    }
+  }
+}
