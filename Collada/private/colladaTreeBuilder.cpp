@@ -1,4 +1,6 @@
-#include "colladaTreeBuilder.h"
+#include "ColladaTreeBuilder.h"
+#include "Collada.h"
+#include "ColladaReader.h"
 
 namespace 
 {

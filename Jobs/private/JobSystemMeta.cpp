@@ -1,7 +1,5 @@
 #include "JobSystemMeta.h"
 
-#include <iostream>
-
 namespace
 {
 	jobs::JobSystemMeta m_instance;

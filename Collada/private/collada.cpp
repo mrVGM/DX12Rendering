@@ -1,12 +1,12 @@
-#include "collada.h"
+#include "Collada.h"
 
-#include "collada.h"
+#include "Collada.h"
 #include "dataLib.h"
 #include "parserTable.h"
 #include "parser.h"
 #include "grammar.h"
 #include "codeSource.h"
-#include "colladaTreeBuilder.h"
+#include "ColladaTreeBuilder.h"
 
 #include <map>
 
