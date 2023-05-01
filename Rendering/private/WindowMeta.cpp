@@ -2,7 +2,7 @@
 
 namespace
 {
-	rendering::WindowMeta m_windowMeta;
+	rendering::WindowMeta m_meta;
 }
 
 rendering::WindowMeta::WindowMeta() :
@@ -12,5 +12,5 @@ rendering::WindowMeta::WindowMeta() :
 
 const rendering::WindowMeta& rendering::WindowMeta::GetInstance()
 {
-	return m_windowMeta;
+	return m_meta;
 }

@@ -14,7 +14,7 @@ add_library (Rendering
 	"private/DXDeviceMeta.cpp"
 	"public/Rendering.h"
 	"private/Rendering.cpp"
-)
+ "public/DXCommandQueue.h" "public/DXCommandQueueMeta.h" "private/DXCommandQueueMeta.cpp" "private/DXCommandQueue.cpp")
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")

@@ -2,7 +2,7 @@
 
 namespace
 {
-	rendering::DXDeviceMeta m_windowMeta;
+	rendering::DXDeviceMeta m_meta;
 }
 
 rendering::DXDeviceMeta::DXDeviceMeta() :
@@ -12,5 +12,5 @@ rendering::DXDeviceMeta::DXDeviceMeta() :
 
 const rendering::DXDeviceMeta& rendering::DXDeviceMeta::GetInstance()
 {
-	return m_windowMeta;
+	return m_meta;
 }
