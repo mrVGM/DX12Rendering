@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../private/rule.h"
-#include "../private/parserState.h"
+#include "rule.h"
+#include "parserState.h"
 
 #include <string>
 #include <vector>
