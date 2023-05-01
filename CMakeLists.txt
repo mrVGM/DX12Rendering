@@ -7,6 +7,10 @@ project ("DX12Rendering")
 
 add_definitions(-DUNICODE)
 
+IF(CMAKE_BUILD_TYPE MATCHES Debug)
+    add_definitions(-DDEBUG=1)
+ENDIF()
+
 # Include sub-projects.
 add_subdirectory ("Main")
 add_subdirectory ("Base")

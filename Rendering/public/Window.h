@@ -16,8 +16,8 @@ namespace rendering
 
 	public:
 		HWND m_hwnd = nullptr;
-		const UINT m_width = 1600;
-		const UINT m_height = 900;
+		const UINT m_width = 600;
+		const UINT m_height = 400;
 
 		Window();
 		virtual ~Window();
