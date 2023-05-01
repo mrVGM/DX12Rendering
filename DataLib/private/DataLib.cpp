@@ -133,3 +133,8 @@ data::DataLib& data::GetLibrary()
 {
 	return *dataLib;
 }
+
+const std::string& data::DataLib::GetRootDir() const
+{
+	return libDir;
+}

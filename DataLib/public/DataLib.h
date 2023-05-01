@@ -24,6 +24,8 @@ namespace data
 
 		void WriteBinFile(const char* id, const void *data, size_t size);
 		size_t ReadBinFile(const char* id, void *data, size_t size);
+
+		const std::string& GetRootDir() const;
 	};
 
 	bool Init(const char* dir);

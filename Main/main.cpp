@@ -2,6 +2,8 @@
 
 #include "Window.h"
 #include "DataLib.h"
+#include "ColladaReader.h"
+#include "symbol.h"
 
 #include <filesystem>
 #include <iostream>
@@ -35,6 +37,20 @@ int main(int args, const char** argv)
 	}
 
 	rendering::Window* wnd = new rendering::Window();
+
+	std::string cubePath = data::GetLibrary().GetRootDir() + "geo/cube.dae";
+
+	collada::ColladaReader& reader = collada::ColladaReader::GetInstance();
+
+	scripting::ISymbol* s = reader.ReadColladaFile(cubePath);
+
+	if (s)
+	{
+		std::list<collada::ColladaNode*> rootNodes;
+		std::list<collada::ColladaNode*> allNodes;
+		reader.ConstructColladaTree(s, rootNodes, allNodes);
+		bool t = true;
+	}
 
 	std::cin.get();
 
