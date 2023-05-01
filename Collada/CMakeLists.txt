@@ -5,10 +5,16 @@ add_library (Collada
 	"private/Collada.cpp"
 	"private/ColladaTreeBuilder.h"
 	"private/ColladaTreeBuilder.cpp"
-	"public/ColladaReaderMeta.h"
+	"private/ColladaReaderMeta.h"
 	"private/ColladaReaderMeta.cpp"
-	"public/ColladaReader.h"
+	"private/ColladaReader.h"
 	"private/ColladaReader.cpp"
+	"public/ColladaEntities.h"
+	"private/ColladaSceneBuilder.cpp"
+	"public/ColladaSceneMeta.h"
+	"private/ColladaSceneMeta.cpp"
+	"public/ColladaScene.h"
+	"private/ColladaScene.cpp"
 )
 
 target_include_directories(Collada INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

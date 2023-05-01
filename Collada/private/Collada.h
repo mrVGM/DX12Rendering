@@ -9,6 +9,7 @@
 namespace collada
 {
 	struct ColladaNode;
+	struct Scene;
 
 	struct IColladaReader
 	{
@@ -18,4 +19,6 @@ namespace collada
 
 	IColladaReader* GetReader();
 	void ReleaseColladaReader();
+
+	bool ConvertToScene(const std::list<collada::ColladaNode*>& nodes, Scene& scene);
 }

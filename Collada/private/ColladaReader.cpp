@@ -2,6 +2,7 @@
 
 #include "ColladaReaderMeta.h"
 #include "Collada.h"
+#include "ColladaEntities.h"
 
 namespace
 {

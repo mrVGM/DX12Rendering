@@ -10,17 +10,7 @@
 
 namespace collada
 {
-	struct ColladaNode
-	{
-		scripting::ISymbol* m_rootSymbol;
-
-		std::string m_tagName;
-		std::map<std::string, std::string> m_tagProps;
-
-		std::list<scripting::ISymbol*> m_data;
-
-		std::list<ColladaNode*> m_children;
-	};
+	struct ColladaNode;
 
 	class ColladaReader : public BaseObject
 	{

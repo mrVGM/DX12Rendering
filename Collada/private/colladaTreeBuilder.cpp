@@ -1,6 +1,6 @@
 #include "ColladaTreeBuilder.h"
 #include "Collada.h"
-#include "ColladaReader.h"
+#include "ColladaEntities.h"
 
 namespace 
 {
