@@ -167,3 +167,7 @@ rendering::DXSwapChain::DXSwapChain() :
         std::cerr << error << std::endl;
     }
 }
+
+rendering::DXSwapChain::~DXSwapChain()
+{
+}

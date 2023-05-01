@@ -68,3 +68,7 @@ rendering::DXDevice::DXDevice() :
         std::cerr << error;
     }
 }
+
+rendering::DXDevice::~DXDevice()
+{
+}

@@ -58,3 +58,7 @@ rendering::DXCommandQueue::DXCommandQueue() :
         std::cerr << error << std::endl;
     }
 }
+
+rendering::DXCommandQueue::~DXCommandQueue()
+{
+}

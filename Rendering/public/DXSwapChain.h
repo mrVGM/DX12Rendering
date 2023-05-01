@@ -30,6 +30,7 @@ namespace rendering
 		
 	public:
 		DXSwapChain();
+		virtual ~DXSwapChain();
 
 		bool Present(std::string& errorMessage);
 		void UpdateCurrentFrameIndex();

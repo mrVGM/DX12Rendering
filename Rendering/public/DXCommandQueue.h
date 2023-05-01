@@ -14,6 +14,7 @@ namespace rendering
 		bool Create(std::string& errorMessage);
 	public:
 		DXCommandQueue();
+		virtual ~DXCommandQueue();
 
 		ID3D12CommandQueue* GetCommandQueue();
 	};

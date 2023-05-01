@@ -20,6 +20,7 @@ namespace rendering
 
     public:
         DXDevice();
+        virtual ~DXDevice();
 
         ID3D12Device& GetDevice();
         IDXGIFactory4* GetFactory() const;
