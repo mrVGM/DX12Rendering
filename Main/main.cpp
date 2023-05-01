@@ -3,7 +3,7 @@
 #include "Window.h"
 #include "DataLib.h"
 #include "ColladaScene.h"
-#include "symbol.h"
+#include "Rendering.h"
 
 #include <filesystem>
 #include <iostream>
@@ -42,6 +42,8 @@ int main(int args, const char** argv)
 
 	collada::ColladaScene* scene = new collada::ColladaScene();
 	bool res = scene->Load(cubePath);
+
+	rendering::InitBaseObjects();
 
 	std::cin.get();
 

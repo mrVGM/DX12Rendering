@@ -1,13 +1,20 @@
 ﻿cmake_minimum_required (VERSION 3.8)
 
 add_library (Rendering
+	"private/d3dx12.h"
 	"public/Window.h"
 	"private/Window.cpp"
 	"public/WindowMeta.h"
 	"private/WindowMeta.cpp"
 	"private/WindowUpdateJobSystemMeta.h"
 	"private/WindowUpdateJobSystemMeta.cpp"
-  )
+	"public/DXDevice.h"
+	"private/DXDevice.cpp"
+	"public/DXDeviceMeta.h"
+	"private/DXDeviceMeta.cpp"
+	"public/Rendering.h"
+	"private/Rendering.cpp"
+)
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
