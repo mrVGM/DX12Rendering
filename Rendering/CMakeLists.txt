@@ -28,7 +28,7 @@ add_library (Rendering
 	"private/DXFence.cpp"
 	"public/WaitFence.h"
 	"private/WaitFence.cpp"
-)
+ "public/DXRendererMeta.h" "private/DXRendererMeta.cpp" "public/DXRenderer.h" "private/DXRenderer.cpp")
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
