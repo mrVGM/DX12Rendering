@@ -6,6 +6,7 @@
 #include "DXRenderer.h"
 
 #include "MainJobSystemMeta.h"
+#include "LoadJobSystemMeta.h"
 #include "JobSystem.h"
 #include "Job.h"
 
@@ -20,11 +21,13 @@ void rendering::InitBaseObjects()
 	new DXCommandQueue();
 	new DXSwapChain();
 	DXRenderer* renderer = new DXRenderer();
+	new jobs::JobSystem(LoadJobSystemMeta::GetInstance(), 5);
+	new jobs::JobSystem(MainJobSystemMeta::GetInstance(), 1);
 
 	rendering::utils::CacheObjects();
 	std::cout << "Base Rendering Objects created!" << std::endl;
 
-	jobs::JobSystem* mainJobSystem = new jobs::JobSystem(MainJobSystemMeta::GetInstance(), 1);
+	jobs::JobSystem* mainJobSystem = rendering::utils::GetMainJobSystem();
 	class StartExclusiveAccessJob : public jobs::Job
 	{
 	private:

@@ -50,6 +50,14 @@ add_library (Rendering
 	"private/RenderPass.cpp"
 	"public/MainJobSystemMeta.h"
 	"private/MainJobSystemMeta.cpp"
+	"public/DXHeap.h"
+	"private/DXHeap.cpp"
+	"public/DXHeapMeta.h"
+	"private/DXHeapMeta.cpp"
+	"private/LoadJobSystemMeta.h"
+	"private/LoadJobSystemMeta.cpp"
+	"public/TemporaryBaseObject.h"
+	"private/TemporaryBaseObject.cpp"
 )
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

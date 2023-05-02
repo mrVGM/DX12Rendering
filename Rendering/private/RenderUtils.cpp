@@ -9,6 +9,7 @@
 #include "DXSwapChainMeta.h"
 #include "DXCommandQueueMeta.h"
 #include "MainJobSystemMeta.h"
+#include "LoadJobSystemMeta.h"
 
 namespace
 {
@@ -17,6 +18,7 @@ namespace
 	rendering::DXSwapChain* m_swapChain = nullptr;
 	rendering::DXCommandQueue* m_commandQueue = nullptr;
 	jobs::JobSystem* m_mainJobSystem = nullptr;
+	jobs::JobSystem* m_loadJobSystem = nullptr;
 }
 
 rendering::Window* rendering::utils::GetWindow()
@@ -79,6 +81,18 @@ jobs::JobSystem* rendering::utils::GetMainJobSystem()
 	return m_mainJobSystem;
 }
 
+jobs::JobSystem* rendering::utils::GetLoadJobSystem()
+{
+	if (m_loadJobSystem)
+	{
+		return m_loadJobSystem;
+	}
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+	BaseObject* obj = container.GetObjectOfClass(LoadJobSystemMeta::GetInstance());
+	m_loadJobSystem = static_cast<jobs::JobSystem*>(obj);
+	return m_loadJobSystem;
+}
+
 void rendering::utils::CacheObjects()
 {
 	GetWindow();
@@ -86,4 +100,5 @@ void rendering::utils::CacheObjects()
 	GetSwapChain();
 	GetCommandQueue();
 	GetMainJobSystem();
+	GetLoadJobSystem();
 }

@@ -17,5 +17,6 @@ namespace rendering
 		rendering::DXSwapChain* GetSwapChain();
 		rendering::DXCommandQueue* GetCommandQueue();
 		jobs::JobSystem* GetMainJobSystem();
+		jobs::JobSystem* GetLoadJobSystem();
 	}
 }
