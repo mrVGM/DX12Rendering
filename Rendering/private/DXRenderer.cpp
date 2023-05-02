@@ -10,8 +10,8 @@
 #include "RenderJobSystemMeta.h"
 #include "DXFence.h"
 #include "RenderFenceMeta.h"
-#include "DXClearRTCL.h"
-#include "DXClearRTCLMeta.h"
+#include "RenderPass/DXClearRTRP.h"
+#include "RenderPass/DXClearRTRPMeta.h"
 #include "WaitFence.h"
 
 #include "Job.h"
@@ -44,16 +44,16 @@ namespace
 		return static_cast<rendering::DXFence*>(obj);
 	}
 
-	rendering::DXClearRTCL* GetClearRTCL()
+	rendering::DXClearRTRP* GetClearRTCL()
 	{
 		BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-		BaseObject* obj = container.GetObjectOfClass(rendering::DXClearRTCLMeta::GetInstance());
+		BaseObject* obj = container.GetObjectOfClass(rendering::DXClearRTRPMeta::GetInstance());
 		if (!obj)
 		{
-			obj = new rendering::DXClearRTCL();
+			obj = new rendering::DXClearRTRP();
 		}
 
-		return static_cast<rendering::DXClearRTCL*>(obj);
+		return static_cast<rendering::DXClearRTRP*>(obj);
 	}
 
 	class RenderJob : public jobs::Job
@@ -101,10 +101,10 @@ bool rendering::DXRenderer::Render(std::string& errorMessage)
 	DXSwapChain* swapChain = utils::GetSwapChain();
 	swapChain->UpdateCurrentFrameIndex();
 
-	DXClearRTCL* clearRT = GetClearRTCL();
+	DXClearRTRP* clearRT = GetClearRTCL();
 
 	std::string error;
-	bool res = clearRT->Populate(error);
+	bool res = clearRT->Prepare(error);
 	if (!res)
 	{
 		errorMessage = error;

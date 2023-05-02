@@ -1,6 +1,6 @@
-#include "DXClearRTCL.h"
+#include "RenderPass/DXClearRTRP.h"
 
-#include "DXClearRTCLMeta.h"
+#include "RenderPass/DXClearRTRPMeta.h"
 #include "RenderUtils.h"
 
 #include <iostream>
@@ -11,7 +11,7 @@ if (FAILED(hRes)) {\
     return false;\
 }
 
-bool rendering::DXClearRTCL::Create(std::string& errorMessage)
+bool rendering::DXClearRTRP::Create(std::string& errorMessage)
 {
     using Microsoft::WRL::ComPtr;
 
@@ -37,7 +37,7 @@ bool rendering::DXClearRTCL::Create(std::string& errorMessage)
     return true;
 }
 
-bool rendering::DXClearRTCL::Populate(std::string& errorMessage)
+bool rendering::DXClearRTRP::Prepare(std::string& errorMessage)
 {
     DXSwapChain* swapChain = rendering::utils::GetSwapChain();
     if (!swapChain)
@@ -80,7 +80,7 @@ bool rendering::DXClearRTCL::Populate(std::string& errorMessage)
     return true;
 }
 
-bool rendering::DXClearRTCL::Execute(std::string& errorMessage)
+bool rendering::DXClearRTRP::Execute(std::string& errorMessage)
 {
     DXCommandQueue* commandQueue = rendering::utils::GetCommandQueue();
     if (!commandQueue)
@@ -97,8 +97,8 @@ bool rendering::DXClearRTCL::Execute(std::string& errorMessage)
 
 #undef THROW_ERROR
 
-rendering::DXClearRTCL::DXClearRTCL() :
-    BaseObject(DXClearRTCLMeta::GetInstance())
+rendering::DXClearRTRP::DXClearRTRP() :
+    RenderPass(DXClearRTRPMeta::GetInstance())
 {
     std::string error;
     bool res = Create(error);
@@ -109,6 +109,6 @@ rendering::DXClearRTCL::DXClearRTCL() :
     }
 }
 
-rendering::DXClearRTCL::~DXClearRTCL()
+rendering::DXClearRTRP::~DXClearRTRP()
 {
 }

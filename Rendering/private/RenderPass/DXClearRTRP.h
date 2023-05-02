@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BaseObject.h"
+#include "RenderPass.h"
 
 #include "d3dx12.h"
 
@@ -10,7 +11,7 @@
 
 namespace rendering
 {
-	class DXClearRTCL : public BaseObject
+	class DXClearRTRP : public RenderPass
 	{
 		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocator;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_commandList;
@@ -18,10 +19,10 @@ namespace rendering
 
 		bool Create(std::string& errorMessage);
 	public:
-		DXClearRTCL();
-		virtual ~DXClearRTCL();
+		DXClearRTRP();
+		virtual ~DXClearRTRP();
 
-		bool Populate(std::string& errorMessage);
-		bool Execute(std::string& errorMessage);
+		bool Prepare(std::string& errorMessage) override;
+		bool Execute(std::string& errorMessage) override;
 	};
 }
