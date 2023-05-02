@@ -60,7 +60,13 @@ add_library (Rendering
 	"private/TemporaryBaseObject.cpp"
 	"public/DXBuffer.h"
 	"private/DXBuffer.cpp"
- "public/DXBufferMeta.h" "private/DXBufferMeta.cpp")
+	"public/DXBufferMeta.h"
+	"private/DXBufferMeta.cpp"
+	"public/DXCameraMeta.h"
+	"private/DXCameraMeta.cpp"
+	"public/DXCamera.h"
+	"private/DXCamera.cpp"
+ "public/DXCameraBufferMeta.h"  "private/DXCameraBufferMeta.cpp")
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")

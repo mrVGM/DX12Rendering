@@ -19,8 +19,8 @@ void rendering::DXBuffer::SetBufferStride(UINT64 stride)
 	m_stride = stride;
 }
 
-rendering::DXBuffer::DXBuffer() :
-	BaseObject(DXBufferMeta::GetInstance())
+rendering::DXBuffer::DXBuffer(const BaseObjectMeta& meta) :
+	BaseObject(meta)
 {
 }
 

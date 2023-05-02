@@ -7,6 +7,7 @@
 
 #include "MainJobSystemMeta.h"
 #include "LoadJobSystemMeta.h"
+#include "DXCameraBufferMeta.h"
 #include "JobSystem.h"
 #include "Job.h"
 
@@ -23,6 +24,9 @@ void rendering::InitBaseObjects()
 	DXRenderer* renderer = new DXRenderer();
 	new jobs::JobSystem(LoadJobSystemMeta::GetInstance(), 5);
 	new jobs::JobSystem(MainJobSystemMeta::GetInstance(), 1);
+
+	new rendering::DXCamera();
+	new rendering::DXBuffer(DXCameraBufferMeta::GetInstance());
 
 	rendering::utils::CacheObjects();
 	std::cout << "Base Rendering Objects created!" << std::endl;

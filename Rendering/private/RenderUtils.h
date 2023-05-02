@@ -4,6 +4,8 @@
 #include "DXSwapChain.h"
 #include "DXCommandQueue.h"
 #include "Window.h"
+#include "DXCamera.h"
+#include "DXBuffer.h"
 
 #include "JobSystem.h"
 
@@ -16,6 +18,8 @@ namespace rendering
 		rendering::DXDevice* GetDevice();
 		rendering::DXSwapChain* GetSwapChain();
 		rendering::DXCommandQueue* GetCommandQueue();
+		rendering::DXCamera* GetCamera();
+		rendering::DXBuffer* GetCameraBuffer();
 		jobs::JobSystem* GetMainJobSystem();
 		jobs::JobSystem* GetLoadJobSystem();
 	}

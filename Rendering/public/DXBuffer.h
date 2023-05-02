@@ -7,6 +7,8 @@
 #include <wrl.h>
 #include <string>
 
+class BaseObjectMeta;
+
 namespace rendering
 {
 	class DXHeap;
@@ -19,14 +21,13 @@ namespace rendering
 		UINT64 m_stride = -1;
 		Microsoft::WRL::ComPtr<ID3D12Resource> m_buffer;
 
-		
 	public:
 		ID3D12Resource* GetBuffer() const;
 		UINT64 GetBufferSize() const;
 		UINT64 GetStride() const;
 		UINT64 GetElementCount() const;
 
-		DXBuffer();
+		DXBuffer(const BaseObjectMeta& meta);
 		virtual ~DXBuffer();
 
 		bool CopyData(void* data, int dataSize, std::string& errorMessage);

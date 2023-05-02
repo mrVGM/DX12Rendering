@@ -10,6 +10,8 @@
 #include "DXCommandQueueMeta.h"
 #include "MainJobSystemMeta.h"
 #include "LoadJobSystemMeta.h"
+#include "DXCameraMeta.h"
+#include "DXCameraBufferMeta.h"
 
 namespace
 {
@@ -17,6 +19,8 @@ namespace
 	rendering::DXDevice* m_device = nullptr;
 	rendering::DXSwapChain* m_swapChain = nullptr;
 	rendering::DXCommandQueue* m_commandQueue = nullptr;
+	rendering::DXCamera* m_camera = nullptr;
+	rendering::DXBuffer* m_cameraBuffer = nullptr;
 	jobs::JobSystem* m_mainJobSystem = nullptr;
 	jobs::JobSystem* m_loadJobSystem = nullptr;
 }
@@ -93,6 +97,30 @@ jobs::JobSystem* rendering::utils::GetLoadJobSystem()
 	return m_loadJobSystem;
 }
 
+rendering::DXCamera* rendering::utils::GetCamera()
+{
+	if (m_camera)
+	{
+		return m_camera;
+	}
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+	BaseObject* obj = container.GetObjectOfClass(DXCameraMeta::GetInstance());
+	m_camera = static_cast<DXCamera*>(obj);
+	return m_camera;
+}
+
+rendering::DXBuffer* rendering::utils::GetCameraBuffer()
+{
+	if (m_cameraBuffer)
+	{
+		return m_cameraBuffer;
+	}
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+	BaseObject* obj = container.GetObjectOfClass(DXCameraBufferMeta::GetInstance());
+	m_cameraBuffer = static_cast<DXBuffer*>(obj);
+	return m_cameraBuffer;
+}
+
 void rendering::utils::CacheObjects()
 {
 	GetWindow();
@@ -101,4 +129,6 @@ void rendering::utils::CacheObjects()
 	GetCommandQueue();
 	GetMainJobSystem();
 	GetLoadJobSystem();
+	GetCamera();
+	GetCameraBuffer();
 }
