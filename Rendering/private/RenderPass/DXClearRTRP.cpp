@@ -7,19 +7,17 @@
 
 #define THROW_ERROR(hRes, error) \
 if (FAILED(hRes)) {\
-    errorMessage = error;\
-    return false;\
+    throw error;\
 }
 
-bool rendering::DXClearRTRP::Create(std::string& errorMessage)
+void rendering::DXClearRTRP::Create()
 {
     using Microsoft::WRL::ComPtr;
 
     DXDevice* device = rendering::utils::GetDevice();
     if (!device)
     {
-        errorMessage = "No device found!";
-        return false;
+        throw "No device found!";
     }
 
     THROW_ERROR(
@@ -33,17 +31,14 @@ bool rendering::DXClearRTRP::Create(std::string& errorMessage)
     THROW_ERROR(
         m_commandList->Close(),
         "Can't close command List!")
-
-    return true;
 }
 
-bool rendering::DXClearRTRP::Prepare(std::string& errorMessage)
+void rendering::DXClearRTRP::Prepare()
 {
     DXSwapChain* swapChain = rendering::utils::GetSwapChain();
     if (!swapChain)
     {
-        errorMessage = "No Swap Chain found!";
-        return false;
+        throw "No Swap Chain found!";
     }
 
     // Command list allocators can only be reset when the associated 
@@ -76,23 +71,18 @@ bool rendering::DXClearRTRP::Prepare(std::string& errorMessage)
     THROW_ERROR(
         m_commandList->Close(),
         "Can't close Command List!")
-
-    return true;
 }
 
-bool rendering::DXClearRTRP::Execute(std::string& errorMessage)
+void rendering::DXClearRTRP::Execute()
 {
     DXCommandQueue* commandQueue = rendering::utils::GetCommandQueue();
     if (!commandQueue)
     {
-        errorMessage = "No Command Queue found!";
-        return false;
+        throw "No Command Queue found!";
     }
 
     ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
     commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-
-    return true;
 }
 
 #undef THROW_ERROR
@@ -100,13 +90,7 @@ bool rendering::DXClearRTRP::Execute(std::string& errorMessage)
 rendering::DXClearRTRP::DXClearRTRP() :
     RenderPass(DXClearRTRPMeta::GetInstance())
 {
-    std::string error;
-    bool res = Create(error);
-
-    if (!res)
-    {
-        std::cerr << error << std::endl;
-    }
+    Create();
 }
 
 rendering::DXClearRTRP::~DXClearRTRP()

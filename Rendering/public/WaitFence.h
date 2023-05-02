@@ -13,6 +13,6 @@ namespace rendering
 		DXFence& m_fence;
 	public:
 		WaitFence(DXFence& fence);
-		bool Wait(UINT64 signal, std::string& errorMessage);
+		void Wait(UINT64 signal);
 	};
 }

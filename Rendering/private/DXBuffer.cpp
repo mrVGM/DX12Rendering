@@ -28,7 +28,7 @@ rendering::DXBuffer::~DXBuffer()
 {
 }
 
-bool rendering::DXBuffer::CopyData(void* data, int dataSize, std::string& errorMessage)
+void rendering::DXBuffer::CopyData(void* data, int dataSize)
 {
 	CD3DX12_RANGE readRange(0, 0);
 
@@ -37,21 +37,15 @@ bool rendering::DXBuffer::CopyData(void* data, int dataSize, std::string& errorM
 	HRESULT hRes = m_buffer->Map(0, &readRange, &dst);
 	if (FAILED(hRes))
 	{
-		errorMessage = "Can't map Vertex Buffer!";
-		return false;
+		throw "Can't map Vertex Buffer!";
 	}
 
 	memcpy(dst, data, dataSize);
 	m_buffer->Unmap(0, nullptr);
-
-	return true;
 }
 
 
-bool rendering::DXBuffer::Place(
-	DXHeap* heap,
-	UINT64 heapOffset,
-	std::string& errorMessage)
+void rendering::DXBuffer::Place(DXHeap* heap, UINT64 heapOffset)
 {
 	DXDevice* device = rendering::utils::GetDevice();
 	D3D12_HEAP_TYPE heapType = heap->GetDescription().Properties.Type;
@@ -69,13 +63,10 @@ bool rendering::DXBuffer::Place(
 	HRESULT hRes = device->GetDevice().CreatePlacedResource(heap->GetHeap(), heapOffset, &m_bufferDescription, initialState, nullptr, IID_PPV_ARGS(&m_buffer));
 	if (FAILED(hRes))
 	{
-		errorMessage = "Can't place buffer in the heap!";
-		return false;
+		throw "Can't place buffer in the heap!";
 	}
 
 	m_heap = heap;
-
-	return true;
 }
 
 ID3D12Resource* rendering::DXBuffer::GetBuffer() const

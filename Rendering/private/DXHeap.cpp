@@ -9,11 +9,10 @@
 #include "TemporaryBaseObject.h"
 #include "Job.h"
 
-bool rendering::DXHeap::MakeResident(std::string& errorMessage, jobs::Job* done)
+void rendering::DXHeap::MakeResident(jobs::Job* done)
 {
 	if (m_resident) {
-		errorMessage = "The heap is already Resident!";
-		return false;
+		throw "The heap is already Resident!";
 	}
 
 	struct JobContext
@@ -51,13 +50,8 @@ bool rendering::DXHeap::MakeResident(std::string& errorMessage, jobs::Job* done)
 			}
 
 			WaitFence waitFence(*fence);
-			std::string error;
-			bool res = waitFence.Wait(signal, error);
+			waitFence.Wait(signal);
 
-			if (!res)
-			{
-				throw error;
-			}
 			m_jobContext.m_heap->m_resident = true;
 
 			delete m_jobContext.m_fenceTempObject;
@@ -91,36 +85,29 @@ bool rendering::DXHeap::MakeResident(std::string& errorMessage, jobs::Job* done)
 	jobContext.m_fenceTempObject = new TemporaryBaseObject();
 
 	jobContext.m_fenceTempObject->CreateObject(new CreateFenceJob(jobContext));
-
-	return true;
 }
 
-bool rendering::DXHeap::Evict(std::string& errorMessage)
+void rendering::DXHeap::Evict()
 {
 	if (!m_resident) {
-		errorMessage = "The heap is not Resident yet!";
-		return false;
+		throw "The heap is not Resident yet!";
 	}
 
 	DXDevice* device = rendering::utils::GetDevice();
 	ID3D12Device3* device3;
 	HRESULT hr = device->GetDevice().QueryInterface(IID_PPV_ARGS(&device3));
 	if (FAILED(hr)) {
-		errorMessage = "Can't Query ID3D12Device3!";
-		return false;
+		throw "Can't Query ID3D12Device3!";
 	}
 
 	ID3D12Pageable* const tmp = m_heap.Get();
 	hr = device3->Evict(1, &tmp);
 	if (FAILED(hr))
 	{
-		errorMessage = "Can't Evict the Heap!";
-		return false;
+		throw "Can't Evict the Heap!";
 	}
 	
 	m_resident = false;
-
-	return true;
 }
 
 ID3D12Heap* rendering::DXHeap::GetHeap() const
@@ -147,12 +134,7 @@ rendering::DXHeap::DXHeap() :
 rendering::DXHeap::~DXHeap()
 {
 	if (m_resident) {
-		std::string error;
-		bool res = Evict(error);
-		if (!res)
-		{
-			throw error;
-		}
+		Evict();
 	}
 }
 
@@ -171,17 +153,14 @@ void rendering::DXHeap::SetHeapFlags(D3D12_HEAP_FLAGS flags)
 	m_heapDescription.Flags = m_heapDescription.Flags | flags;
 }
 
-bool rendering::DXHeap::Create(std::string& errorMessage)
+void rendering::DXHeap::Create()
 {
 	DXDevice* device = rendering::utils::GetDevice();
 	HRESULT hr = device->GetDevice().CreateHeap(&m_heapDescription, IID_PPV_ARGS(&m_heap));
 	if (FAILED(hr))
 	{
-		errorMessage = "Can't create Heap!";
-		return false;
+		throw "Can't create Heap!";
 	}
-
-	return true;
 }
 
 const D3D12_HEAP_DESC& rendering::DXHeap::GetDescription() const

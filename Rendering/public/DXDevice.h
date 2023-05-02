@@ -16,7 +16,7 @@ namespace rendering
         Microsoft::WRL::ComPtr<IDXGIFactory4> m_factory;
         Microsoft::WRL::ComPtr<ID3D12Device> m_device;
 
-        bool Create(std::string& errorMessage);
+        void Create();
 
     public:
         DXDevice();

@@ -6,12 +6,11 @@
 
 #define THROW_ERROR(hRes, error) \
 if (FAILED(hRes)) {\
-    errorMessage = error;\
-    return false;\
+    throw error;\
 }
 
 
-bool rendering::DXDevice::Create(std::string& errorMessage)
+void rendering::DXDevice::Create()
 {
     using Microsoft::WRL::ComPtr;
 
@@ -41,8 +40,6 @@ bool rendering::DXDevice::Create(std::string& errorMessage)
             IID_PPV_ARGS(&m_device)
         ), "Can't Create device");
     }
-
-    return true;
 }
 
 #undef THROW_ERROR
@@ -60,13 +57,7 @@ IDXGIFactory4* rendering::DXDevice::GetFactory() const
 rendering::DXDevice::DXDevice() :
     BaseObject(DXDeviceMeta::GetInstance())
 {
-    std::string error;
-    bool res = Create(error);
-
-    if (!res)
-    {
-        std::cerr << error;
-    }
+    Create();
 }
 
 rendering::DXDevice::~DXDevice()

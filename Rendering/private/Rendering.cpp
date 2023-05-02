@@ -66,6 +66,5 @@ void rendering::InitBaseObjects()
 	};
 
 	DXCamera* cam = utils::GetCamera();
-	std::string error;
-	cam->InitBuffer(error, new InitCamBuffJob(*renderer));
+	cam->InitBuffer(new InitCamBuffJob(*renderer));
 }

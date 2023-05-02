@@ -17,12 +17,12 @@ namespace rendering
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_commandList;
 
 
-		bool Create(std::string& errorMessage);
+		void Create();
 	public:
 		DXClearRTRP();
 		virtual ~DXClearRTRP();
 
-		bool Prepare(std::string& errorMessage) override;
-		bool Execute(std::string& errorMessage) override;
+		void Prepare() override;
+		void Execute() override;
 	};
 }

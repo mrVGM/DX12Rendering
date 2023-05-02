@@ -102,19 +102,15 @@ rendering::DXCamera::~DXCamera()
 {
 }
 
-bool rendering::DXCamera::InitBuffer(std::string& errorMessage, jobs::Job* done)
+void rendering::DXCamera::InitBuffer(jobs::Job* done)
 {
 	DXHeap* heap = new DXHeap();
 
 	heap->SetHeapSize(256);
 	heap->SetHeapType(D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD);
 	heap->SetHeapFlags(D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS);
-	bool res = heap->Create(errorMessage);
-	if (!res)
-	{
-		return false;
-	}
-
+	heap->Create();
+	
 	struct JobContext
 	{
 		jobs::Job* m_done = nullptr;
@@ -137,22 +133,12 @@ bool rendering::DXCamera::InitBuffer(std::string& errorMessage, jobs::Job* done)
 			camBuffer->SetBufferStride(256);
 
 			std::string error;
-			bool res = camBuffer->Place(m_jobContext.m_heap, 0, error);
-			if (!res)
-			{
-				throw error;
-			}
+			camBuffer->Place(m_jobContext.m_heap, 0);
 
 			jobs::JobSystem* mainJobSystem = rendering::utils::GetMainJobSystem();
 			mainJobSystem->ScheduleJob(m_jobContext.m_done);
 		}
 	};
 
-	res = heap->MakeResident(errorMessage, new InitBufferJob(JobContext{ done, heap }));
-	if (!res)
-	{
-		return false;
-	}
-
-	return true;
+	heap->MakeResident(new InitBufferJob(JobContext{ done, heap }));
 }

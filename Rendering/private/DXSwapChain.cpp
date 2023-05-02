@@ -8,32 +8,28 @@
 
 #define THROW_ERROR(hRes, error) \
 if (FAILED(hRes)) {\
-    errorMessage = error;\
-    return false;\
+    throw error;\
 }
 
-bool rendering::DXSwapChain::Create(std::string& errorMessage)
+void rendering::DXSwapChain::Create()
 {
     using Microsoft::WRL::ComPtr;
 
     Window* window = utils::GetWindow();
     if (!window)
     {
-        errorMessage = "No Window found!";
-        return false;
+        throw "No Window found!";
     }
 
     DXDevice* device = utils::GetDevice();
     if (!device)
     {
-        errorMessage = "No Device found!";
-        return false;
+        throw "No Device found!";
     }
     DXCommandQueue* commandQueue = utils::GetCommandQueue();
     if (!commandQueue)
     {
-        errorMessage = "No Command Queue found!";
-        return false;
+        throw "No Command Queue found!";
     }
 
     int width = window->m_width;
@@ -101,16 +97,12 @@ bool rendering::DXSwapChain::Create(std::string& errorMessage)
             rtvHandle.Offset(1, m_rtvDescriptorSize);
         }
     }
-
-    return true;
 }
 
-bool rendering::DXSwapChain::Present(std::string& errorMessage)
+void rendering::DXSwapChain::Present()
 {
     THROW_ERROR(m_swapChain->Present(1, 0),
         "Can't present Swap Chain!")
-
-    return true;
 }
 
 void rendering::DXSwapChain::UpdateCurrentFrameIndex()
@@ -134,13 +126,7 @@ ID3D12Resource* rendering::DXSwapChain::GetCurrentRenderTarget() const
 rendering::DXSwapChain::DXSwapChain() :
     BaseObject(DXSwapChainMeta::GetInstance())
 {
-    std::string error;
-    bool res = Create(error);
-
-    if (!res)
-    {
-        std::cerr << error << std::endl;
-    }
+    Create();
 }
 
 rendering::DXSwapChain::~DXSwapChain()

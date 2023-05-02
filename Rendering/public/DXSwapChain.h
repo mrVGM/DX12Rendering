@@ -25,14 +25,14 @@ namespace rendering
 		UINT m_rtvDescriptorSize;
 		Microsoft::WRL::ComPtr<ID3D12Resource> m_renderTargets[FrameCount];
 
-		bool Create(std::string& errorMessage);
+		void Create();
 
 		
 	public:
 		DXSwapChain();
 		virtual ~DXSwapChain();
 
-		bool Present(std::string& errorMessage);
+		void Present();
 		void UpdateCurrentFrameIndex();
 
 		CD3DX12_CPU_DESCRIPTOR_HANDLE GetCurrentRTVDescriptor() const;

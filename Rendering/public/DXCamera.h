@@ -37,7 +37,7 @@ namespace rendering
 
 	public:
 		DXCamera();
-		bool InitBuffer(std::string& errorMessage, jobs::Job* done);
+		void InitBuffer(jobs::Job* done);
 		virtual ~DXCamera();
 	};
 }

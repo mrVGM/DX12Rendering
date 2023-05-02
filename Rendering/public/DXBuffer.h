@@ -30,11 +30,8 @@ namespace rendering
 		DXBuffer(const BaseObjectMeta& meta);
 		virtual ~DXBuffer();
 
-		bool CopyData(void* data, int dataSize, std::string& errorMessage);
-		bool Place(
-			DXHeap* heap,
-			UINT64 heapOffset,
-			std::string& errorMessage);
+		void CopyData(void* data, int dataSize);
+		void Place(DXHeap* heap, UINT64 heapOffset);
 
 		void SetBufferSizeAndFlags(UINT64 size, D3D12_RESOURCE_FLAGS flags);
 		void SetBufferStride(UINT64 size);

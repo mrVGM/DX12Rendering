@@ -8,19 +8,17 @@
 
 #define THROW_ERROR(hRes, error) \
 if (FAILED(hRes)) {\
-    errorMessage = error;\
-    return false;\
+    throw error;\
 }
 
-bool rendering::DXCommandQueue::Create(std::string& errorMessage)
+void rendering::DXCommandQueue::Create()
 {
     using Microsoft::WRL::ComPtr;
 
     DXDevice* dxDevice = rendering::utils::GetDevice();
     if (!dxDevice)
     {
-        errorMessage = "No device found!";
-        return false;
+        throw "No device found!";
     }
 
 
@@ -32,8 +30,6 @@ bool rendering::DXCommandQueue::Create(std::string& errorMessage)
     THROW_ERROR(
         dxDevice->GetDevice().CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_commandQueue)),
         "Can't create Command QUEUE!")
-
-    return true;
 }
 
 ID3D12CommandQueue* rendering::DXCommandQueue::GetCommandQueue()
@@ -46,13 +42,7 @@ ID3D12CommandQueue* rendering::DXCommandQueue::GetCommandQueue()
 rendering::DXCommandQueue::DXCommandQueue() :
     BaseObject(DXCommandQueueMeta::GetInstance())
 {
-    std::string error;
-    bool res = Create(error);
-
-    if (!res)
-    {
-        std::cerr << error << std::endl;
-    }
+    Create();
 }
 
 rendering::DXCommandQueue::~DXCommandQueue()

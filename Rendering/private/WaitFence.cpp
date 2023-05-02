@@ -7,22 +7,19 @@ rendering::WaitFence::WaitFence(DXFence& fence) :
 {
 }
 
-bool rendering::WaitFence::Wait(UINT64 signal, std::string& errorMessage)
+void rendering::WaitFence::Wait(UINT64 signal)
 {
     HANDLE h = CreateEvent(nullptr, FALSE, FALSE, nullptr);
     if (h == nullptr)
     {
-        errorMessage = "Can't create Fence Event!";
-        return false;
+        throw "Can't create Fence Event!";
     }
 
     HRESULT hRes = m_fence.GetFence()->SetEventOnCompletion(signal, h);
     if (FAILED(hRes))
     {
-        errorMessage = "Can't Add Event to Fence!";
-        return false;
+        throw "Can't Add Event to Fence!";
     }
 
     DWORD res = WaitForSingleObject(h, INFINITE);
-    return true;
 }

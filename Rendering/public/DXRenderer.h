@@ -15,7 +15,7 @@ namespace rendering
 		DXRenderer();
 		virtual ~DXRenderer();
 
-		bool Render(std::string& errorMessage);
+		void Render();
 		void RenderFrame();
 		void StartRendering();
 	};

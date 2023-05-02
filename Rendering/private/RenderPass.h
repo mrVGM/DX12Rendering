@@ -12,8 +12,8 @@ namespace rendering
 	{
 	private:
 	public:
-		virtual bool Prepare(std::string& error) = 0;
-		virtual bool Execute(std::string& error) = 0;
+		virtual void Prepare() = 0;
+		virtual void Execute() = 0;
 
 		RenderPass(const BaseObjectMeta& meta);
 		virtual ~RenderPass();

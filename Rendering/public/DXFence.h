@@ -15,7 +15,7 @@ namespace rendering
 	private:
 		int m_eventCounter = 0;
 		Microsoft::WRL::ComPtr<ID3D12Fence> m_fence;
-		bool Create(std::string& errorMessage);
+		void Create();
 	public:
 		ID3D12Fence* GetFence() const;
 

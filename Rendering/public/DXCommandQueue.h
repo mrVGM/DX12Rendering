@@ -11,7 +11,7 @@ namespace rendering
 	class DXCommandQueue : public BaseObject
 	{
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue> m_commandQueue;
-		bool Create(std::string& errorMessage);
+		void Create();
 	public:
 		DXCommandQueue();
 		virtual ~DXCommandQueue();

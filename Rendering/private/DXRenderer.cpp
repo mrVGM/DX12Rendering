@@ -87,13 +87,7 @@ namespace
 
 		void Do() override
 		{	
-			std::string error;
-			bool res = m_renderer.Render(error);
-			if (!res)
-			{
-				std::cerr << error << std::endl;
-				return;
-			}
+			m_renderer.Render();
 
 			m_renderer.RenderFrame();
 		}
@@ -115,49 +109,28 @@ rendering::DXRenderer::~DXRenderer()
 {
 }
 
-bool rendering::DXRenderer::Render(std::string& errorMessage)
+void rendering::DXRenderer::Render()
 {
 	DXSwapChain* swapChain = utils::GetSwapChain();
 	swapChain->UpdateCurrentFrameIndex();
 
 	DXClearRTRP* clearRT = GetClearRTRP();
 
-	std::string error;
-	bool res = clearRT->Prepare(error);
-	if (!res)
-	{
-		errorMessage = error;
-		return false;
-	}
+	clearRT->Prepare();
 
 	DXFence* fence = GetRenderFence();
 	WaitFence waitFence(*fence);
 
-	res = clearRT->Execute(error);
-	if (!res)
-	{
-		errorMessage = error;
-		return false;
-	}
+	clearRT->Execute();
+	
 	DXCommandQueue* commandQueue = utils::GetCommandQueue();
 	commandQueue->GetCommandQueue()->Signal(fence->GetFence(), m_counter);
 
-	res = waitFence.Wait(m_counter, error);
-	if (!res)
-	{
-		errorMessage = error;
-		return false;
-	}
+	waitFence.Wait(m_counter);
 
-	res = swapChain->Present(error);
-	if (!res)
-	{
-		errorMessage = error;
-		return false;
-	}
+	swapChain->Present();
 
 	++m_counter;
-	return true;
 }
 
 void rendering::DXRenderer::RenderFrame()
