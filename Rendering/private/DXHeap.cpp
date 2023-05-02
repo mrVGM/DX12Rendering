@@ -58,6 +58,7 @@ bool rendering::DXHeap::MakeResident(std::string& errorMessage, jobs::Job* done)
 			{
 				throw error;
 			}
+			m_jobContext.m_heap->m_resident = true;
 
 			delete m_jobContext.m_fenceTempObject;
 			
@@ -110,7 +111,7 @@ bool rendering::DXHeap::Evict(std::string& errorMessage)
 	}
 
 	ID3D12Pageable* const tmp = m_heap.Get();
-	hr = m_device3->Evict(1, &tmp);
+	hr = device3->Evict(1, &tmp);
 	if (FAILED(hr))
 	{
 		errorMessage = "Can't Evict the Heap!";
@@ -181,4 +182,9 @@ bool rendering::DXHeap::Create(std::string& errorMessage)
 	}
 
 	return true;
+}
+
+const D3D12_HEAP_DESC& rendering::DXHeap::GetDescription() const
+{
+	return m_heapDescription;
 }

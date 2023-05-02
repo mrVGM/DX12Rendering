@@ -58,7 +58,9 @@ add_library (Rendering
 	"private/LoadJobSystemMeta.cpp"
 	"public/TemporaryBaseObject.h"
 	"private/TemporaryBaseObject.cpp"
-)
+	"public/DXBuffer.h"
+	"private/DXBuffer.cpp"
+ "public/DXBufferMeta.h" "private/DXBufferMeta.cpp")
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
