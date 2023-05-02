@@ -32,6 +32,8 @@ void BaseObjectContainer::Shutdown()
 
 std::set<BaseObject*>& BaseObjectContainer::GetAllObjectsOfExactClass(const BaseObjectMeta& meta)
 {
+	CheckAccess();
+
 	auto it = m_objects.find(&meta);
 
 	if (it == m_objects.end())
@@ -45,6 +47,7 @@ std::set<BaseObject*>& BaseObjectContainer::GetAllObjectsOfExactClass(const Base
 
 void BaseObjectContainer::RegisterObject(BaseObject& object)
 {
+	CheckAccess();
 	const BaseObjectMeta& meta = object.GetMeta();
 	std::set<BaseObject*>& objects = GetAllObjectsOfExactClass(meta);
 
@@ -53,6 +56,7 @@ void BaseObjectContainer::RegisterObject(BaseObject& object)
 
 void BaseObjectContainer::UnregisterObject(BaseObject& object)
 {
+	CheckAccess();
 	const BaseObjectMeta& meta = object.GetMeta();
 	std::set<BaseObject*>& objects = GetAllObjectsOfExactClass(meta);
 
@@ -61,6 +65,7 @@ void BaseObjectContainer::UnregisterObject(BaseObject& object)
 
 void BaseObjectContainer::GetAllObjectsOfClass(const BaseObjectMeta& meta, std::list<BaseObject*>& objects)
 {
+	CheckAccess();
 	const std::list<const BaseObjectMeta*>& allMetas = BaseObjectMetaContainer::GetInstance().GetAllMetas();
 
 	for (auto metaIt = allMetas.begin(); metaIt != allMetas.end(); ++metaIt)
@@ -81,6 +86,7 @@ void BaseObjectContainer::GetAllObjectsOfClass(const BaseObjectMeta& meta, std::
 
 BaseObject* BaseObjectContainer::GetObjectOfClass(const BaseObjectMeta& meta)
 {
+	CheckAccess();
 	for (auto it = m_objects.begin(); it != m_objects.end(); ++it)
 	{
 		const BaseObjectMeta& curMeta = *it->first;
@@ -112,5 +118,29 @@ BaseObjectContainer::~BaseObjectContainer()
 		{
 			delete* objectIt;
 		}
+	}
+}
+
+void BaseObjectContainer::StartExclusiveThreadAccess()
+{
+	m_exclusiveThreadID = std::this_thread::get_id();
+}
+
+void BaseObjectContainer::StopExclusiveThreadAccess()
+{
+	m_exclusiveThreadID = std::thread::id();
+}
+
+void BaseObjectContainer::CheckAccess()
+{
+	static std::thread::id noThreadID;
+	if (m_exclusiveThreadID == noThreadID)
+	{
+		return;
+	}
+
+	if (m_exclusiveThreadID != std::this_thread::get_id())
+	{
+		throw "Illegal Thread Access!";
 	}
 }

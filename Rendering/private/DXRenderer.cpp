@@ -20,8 +20,16 @@
 
 namespace
 {
+	rendering::DXFence* m_renderFence = nullptr;
+	jobs::JobSystem* m_renderJobSystem = nullptr;
+	rendering::DXClearRTRP* m_clearRTRP = nullptr;
+
 	jobs::JobSystem* GetRenderJobSystem()
 	{
+		if (m_renderJobSystem)
+		{
+			return m_renderJobSystem;
+		}
 		BaseObjectContainer& container = BaseObjectContainer::GetInstance();
 		BaseObject* obj = container.GetObjectOfClass(rendering::RenderJobSystemMeta::GetInstance());
 		if (!obj)
@@ -29,11 +37,16 @@ namespace
 			obj = new jobs::JobSystem(rendering::RenderJobSystemMeta::GetInstance(), 1);
 		}
 
-		return static_cast<jobs::JobSystem*>(obj);
+		m_renderJobSystem = static_cast<jobs::JobSystem*>(obj);
+		return m_renderJobSystem;
 	}
 
 	rendering::DXFence* GetRenderFence()
 	{
+		if (m_renderFence)
+		{
+			return m_renderFence;
+		}
 		BaseObjectContainer& container = BaseObjectContainer::GetInstance();
 		BaseObject* obj = container.GetObjectOfClass(rendering::RenderFenceMeta::GetInstance());
 		if (!obj)
@@ -41,11 +54,16 @@ namespace
 			obj = new rendering::DXFence(rendering::RenderFenceMeta::GetInstance());
 		}
 
-		return static_cast<rendering::DXFence*>(obj);
+		m_renderFence = static_cast<rendering::DXFence*>(obj);
+		return m_renderFence;
 	}
 
-	rendering::DXClearRTRP* GetClearRTCL()
+	rendering::DXClearRTRP* GetClearRTRP()
 	{
+		if (m_clearRTRP)
+		{
+			return m_clearRTRP;
+		}
 		BaseObjectContainer& container = BaseObjectContainer::GetInstance();
 		BaseObject* obj = container.GetObjectOfClass(rendering::DXClearRTRPMeta::GetInstance());
 		if (!obj)
@@ -53,7 +71,8 @@ namespace
 			obj = new rendering::DXClearRTRP();
 		}
 
-		return static_cast<rendering::DXClearRTRP*>(obj);
+		m_clearRTRP = static_cast<rendering::DXClearRTRP*>(obj);
+		return m_clearRTRP;
 	}
 
 	class RenderJob : public jobs::Job
@@ -101,7 +120,7 @@ bool rendering::DXRenderer::Render(std::string& errorMessage)
 	DXSwapChain* swapChain = utils::GetSwapChain();
 	swapChain->UpdateCurrentFrameIndex();
 
-	DXClearRTRP* clearRT = GetClearRTCL();
+	DXClearRTRP* clearRT = GetClearRTRP();
 
 	std::string error;
 	bool res = clearRT->Prepare(error);
@@ -149,5 +168,24 @@ void rendering::DXRenderer::RenderFrame()
 
 void rendering::DXRenderer::StartRendering()
 {
-	RenderFrame();
+	class StartRenderJob : public jobs::Job
+	{
+	private:
+		DXRenderer& m_renderer;
+	public:
+		StartRenderJob(DXRenderer& renderer) :
+			m_renderer(renderer)
+		{
+		}
+		void Do()
+		{
+			GetRenderJobSystem();
+			GetRenderFence();
+			GetClearRTRP();
+
+			m_renderer.RenderFrame();
+		}
+	};
+
+	rendering::utils::GetMainJobSystem()->ScheduleJob(new StartRenderJob(*this));
 }

@@ -48,6 +48,8 @@ add_library (Rendering
 	"private/RenderPassMeta.cpp"
 	"private/RenderPass.h"
 	"private/RenderPass.cpp"
+	"public/MainJobSystemMeta.h"
+	"private/MainJobSystemMeta.cpp"
 )
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
