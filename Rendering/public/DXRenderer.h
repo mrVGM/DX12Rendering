@@ -17,5 +17,6 @@ namespace rendering
 
 		bool Render(std::string& errorMessage);
 		void RenderFrame();
+		void StartRendering();
 	};
 }

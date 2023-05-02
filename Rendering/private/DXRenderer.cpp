@@ -146,3 +146,8 @@ void rendering::DXRenderer::RenderFrame()
 	jobs::JobSystem* renderJobSystem = GetRenderJobSystem();
 	renderJobSystem->ScheduleJob(new RenderJob(*this, m_counter));
 }
+
+void rendering::DXRenderer::StartRendering()
+{
+	RenderFrame();
+}

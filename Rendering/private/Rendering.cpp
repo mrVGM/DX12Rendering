@@ -17,5 +17,5 @@ void rendering::InitBaseObjects()
 	std::cout << "Base Rendering Objects created!" << std::endl;
 
 	DXRenderer* renderer = new DXRenderer();
-	renderer->RenderFrame();
+	renderer->StartRendering();
 }
