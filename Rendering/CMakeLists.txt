@@ -36,6 +36,10 @@ add_library (Rendering
 	"public/DXClearRTCLMeta.h"
 	"private/DXClearRTCLMeta.cpp"
 	"private/DXClearRTCL.cpp"
+	"private/RenderJobSystemMeta.h"
+	"private/RenderJobSystemMeta.cpp"
+	"private/RenderFenceMeta.h"
+	"private/RenderFenceMeta.cpp"
 )
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

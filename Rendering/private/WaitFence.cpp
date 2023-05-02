@@ -23,6 +23,6 @@ bool rendering::WaitFence::Wait(UINT64 signal, std::string& errorMessage)
         return false;
     }
 
-    WaitForSingleObject(h, INFINITE);
+    DWORD res = WaitForSingleObject(h, INFINITE);
     return true;
 }

@@ -4,6 +4,8 @@
 #include "DXCommandQueue.h"
 #include "DXSwapChain.h"
 
+#include "DXRenderer.h"
+
 #include <iostream>
 
 void rendering::InitBaseObjects()
@@ -13,4 +15,7 @@ void rendering::InitBaseObjects()
 	new DXSwapChain();
 
 	std::cout << "Base Rendering Objects created!" << std::endl;
+
+	DXRenderer* renderer = new DXRenderer();
+	renderer->RenderFrame();
 }
