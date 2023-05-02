@@ -40,6 +40,8 @@ add_library (Rendering
 	"private/RenderJobSystemMeta.cpp"
 	"private/RenderFenceMeta.h"
 	"private/RenderFenceMeta.cpp"
+	"private/RenderUtils.h"
+	"private/RenderUtils.cpp"
 )
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

@@ -1,10 +1,8 @@
 #include "DXCommandQueue.h"
 
-#include "BaseObjectContainer.h"
-
 #include "DXCommandQueueMeta.h"
-#include "DXDeviceMeta.h"
-#include "DXDevice.h"
+
+#include "RenderUtils.h"
 
 #include <iostream>
 
@@ -18,15 +16,13 @@ bool rendering::DXCommandQueue::Create(std::string& errorMessage)
 {
     using Microsoft::WRL::ComPtr;
 
-    BaseObject* obj = BaseObjectContainer::GetInstance().GetObjectOfClass(DXDeviceMeta::GetInstance());
-
-    if (!obj)
+    DXDevice* dxDevice = rendering::utils::GetDevice();
+    if (!dxDevice)
     {
         errorMessage = "No device found!";
         return false;
     }
 
-    DXDevice* dxDevice = static_cast<DXDevice*>(obj);
 
     // Describe and create the command queue.
     D3D12_COMMAND_QUEUE_DESC queueDesc = {};

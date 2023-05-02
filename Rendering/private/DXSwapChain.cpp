@@ -1,14 +1,8 @@
 #include "DXSwapChain.h"
 
-#include "BaseObjectContainer.h"
-
 #include "DXSwapChainMeta.h"
-#include "DXDevice.h"
-#include "DXDeviceMeta.h"
-#include "Window.h"
-#include "WindowMeta.h"
-#include "DXCommandQueue.h"
-#include "DXCommandQueueMeta.h"
+
+#include "RenderUtils.h"
 
 #include <iostream>
 
@@ -22,43 +16,24 @@ bool rendering::DXSwapChain::Create(std::string& errorMessage)
 {
     using Microsoft::WRL::ComPtr;
 
-    BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-
-    Window* window = nullptr;
-    DXDevice* device = nullptr;
-    DXCommandQueue* commandQueue = nullptr;
-
+    Window* window = utils::GetWindow();
+    if (!window)
     {
-        BaseObject* obj = container.GetObjectOfClass(WindowMeta::GetInstance());
-        if (!obj)
-        {
-            errorMessage = "No Window found!";
-            return false;
-        }
-
-        window = static_cast<Window*>(obj);
+        errorMessage = "No Window found!";
+        return false;
     }
 
+    DXDevice* device = utils::GetDevice();
+    if (!device)
     {
-        BaseObject* obj = container.GetObjectOfClass(DXDeviceMeta::GetInstance());
-        if (!obj)
-        {
-            errorMessage = "No Device found!";
-            return false;
-        }
-
-        device = static_cast<DXDevice*>(obj);
+        errorMessage = "No Device found!";
+        return false;
     }
-
+    DXCommandQueue* commandQueue = utils::GetCommandQueue();
+    if (!commandQueue)
     {
-        BaseObject* obj = container.GetObjectOfClass(DXCommandQueueMeta::GetInstance());
-        if (!obj)
-        {
-            errorMessage = "No Command Queue found!";
-            return false;
-        }
-
-        commandQueue = static_cast<DXCommandQueue*>(obj);
+        errorMessage = "No Command Queue found!";
+        return false;
     }
 
     int width = window->m_width;

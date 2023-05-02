@@ -4,6 +4,8 @@
 
 #include "BaseObjectContainer.h"
 
+#include "RenderUtils.h"
+
 #include "JobSystem.h"
 #include "RenderJobSystemMeta.h"
 #include "DXFence.h"
@@ -11,12 +13,6 @@
 #include "DXClearRTCL.h"
 #include "DXClearRTCLMeta.h"
 #include "WaitFence.h"
-
-#include "DXSwapChain.h"
-#include "DXSwapChainMeta.h"
-
-#include "DXCommandQueue.h"
-#include "DXCommandQueueMeta.h"
 
 #include "Job.h"
 
@@ -60,22 +56,6 @@ namespace
 		return static_cast<rendering::DXClearRTCL*>(obj);
 	}
 
-	rendering::DXSwapChain* GetSwapChain()
-	{
-		BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-		BaseObject* obj = container.GetObjectOfClass(rendering::DXSwapChainMeta::GetInstance());
-		return static_cast<rendering::DXSwapChain*>(obj);
-	}
-
-	rendering::DXCommandQueue* GetCommandQueue()
-	{
-		BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-		BaseObject* obj = container.GetObjectOfClass(rendering::DXCommandQueueMeta::GetInstance());
-		return static_cast<rendering::DXCommandQueue*>(obj);
-	}
-
-
-	UINT64 signal = 0;
 	class RenderJob : public jobs::Job
 	{
 	private:
@@ -118,7 +98,7 @@ rendering::DXRenderer::~DXRenderer()
 
 bool rendering::DXRenderer::Render(std::string& errorMessage)
 {
-	DXSwapChain* swapChain = GetSwapChain();
+	DXSwapChain* swapChain = utils::GetSwapChain();
 	swapChain->UpdateCurrentFrameIndex();
 
 	DXClearRTCL* clearRT = GetClearRTCL();
@@ -140,7 +120,7 @@ bool rendering::DXRenderer::Render(std::string& errorMessage)
 		errorMessage = error;
 		return false;
 	}
-	DXCommandQueue* commandQueue = GetCommandQueue();
+	DXCommandQueue* commandQueue = utils::GetCommandQueue();
 	commandQueue->GetCommandQueue()->Signal(fence->GetFence(), m_counter);
 
 	res = waitFence.Wait(m_counter, error);

@@ -1,42 +1,9 @@
 #include "DXClearRTCL.h"
 
 #include "DXClearRTCLMeta.h"
-
-#include "BaseObjectContainer.h"
-#include "DXDevice.h"
-#include "DXDeviceMeta.h"
-#include "DXSwapChain.h"
-#include "DXSwapChainMeta.h"
-#include "DXCommandQueue.h"
-#include "DXCommandQueueMeta.h"
-#include "DXFence.h"
-#include "DXFenceMeta.h"
+#include "RenderUtils.h"
 
 #include <iostream>
-
-namespace
-{
-    rendering::DXDevice* GetDevice()
-    {
-        BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-        BaseObject* obj = container.GetObjectOfClass(rendering::DXDeviceMeta::GetInstance());
-        return static_cast<rendering::DXDevice*>(obj);
-    }
-
-    rendering::DXSwapChain* GetSwapChain()
-    {
-        BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-        BaseObject* obj = container.GetObjectOfClass(rendering::DXSwapChainMeta::GetInstance());
-        return static_cast<rendering::DXSwapChain*>(obj);
-    }
-
-    rendering::DXCommandQueue* GetCommandQueue()
-    {
-        BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-        BaseObject* obj = container.GetObjectOfClass(rendering::DXCommandQueueMeta::GetInstance());
-        return static_cast<rendering::DXCommandQueue*>(obj);
-    }
-}
 
 #define THROW_ERROR(hRes, error) \
 if (FAILED(hRes)) {\
@@ -48,7 +15,7 @@ bool rendering::DXClearRTCL::Create(std::string& errorMessage)
 {
     using Microsoft::WRL::ComPtr;
 
-    DXDevice* device = GetDevice();
+    DXDevice* device = rendering::utils::GetDevice();
     if (!device)
     {
         errorMessage = "No device found!";
@@ -72,7 +39,7 @@ bool rendering::DXClearRTCL::Create(std::string& errorMessage)
 
 bool rendering::DXClearRTCL::Populate(std::string& errorMessage)
 {
-    DXSwapChain* swapChain = GetSwapChain();
+    DXSwapChain* swapChain = rendering::utils::GetSwapChain();
     if (!swapChain)
     {
         errorMessage = "No Swap Chain found!";
@@ -115,7 +82,7 @@ bool rendering::DXClearRTCL::Populate(std::string& errorMessage)
 
 bool rendering::DXClearRTCL::Execute(std::string& errorMessage)
 {
-    DXCommandQueue* commandQueue = GetCommandQueue();
+    DXCommandQueue* commandQueue = rendering::utils::GetCommandQueue();
     if (!commandQueue)
     {
         errorMessage = "No Command Queue found!";
