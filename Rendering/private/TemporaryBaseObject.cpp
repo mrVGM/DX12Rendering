@@ -17,18 +17,18 @@ rendering::TemporaryBaseObject::~TemporaryBaseObject()
 	class DestroyBaseObject : public jobs::Job
 	{
 	private:
-		TemporaryBaseObject& m_temporaryBaseObject;
+		BaseObject* m_baseObject = nullptr;
 	public:
-		DestroyBaseObject(TemporaryBaseObject& tempObject) :
-			m_temporaryBaseObject(tempObject)
+		DestroyBaseObject(BaseObject* baseObject) :
+			m_baseObject(baseObject)
 		{
 		}
 		void Do() override
 		{
-			delete m_temporaryBaseObject.m_object;
+			delete m_baseObject;
 		}
 	};
 
 	jobs::JobSystem* mainJobSystem = rendering::utils::GetMainJobSystem();
-	mainJobSystem->ScheduleJob(new DestroyBaseObject(*this));
+	mainJobSystem->ScheduleJob(new DestroyBaseObject(m_object));
 }

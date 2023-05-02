@@ -73,6 +73,8 @@ bool rendering::DXBuffer::Place(
 		return false;
 	}
 
+	m_heap = heap;
+
 	return true;
 }
 

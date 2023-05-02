@@ -49,5 +49,23 @@ void rendering::InitBaseObjects()
 		}
 	};
 
-	mainJobSystem->ScheduleJob(new StartExclusiveAccessJob(*renderer));
+	class InitCamBuffJob : public jobs::Job
+	{
+	private:
+		DXRenderer& m_renderer;
+	public:
+		InitCamBuffJob(DXRenderer& renderer) :
+			m_renderer(renderer)
+		{
+		}
+		void Do() override
+		{
+			jobs::JobSystem* mainJobSystem = utils::GetMainJobSystem();
+			mainJobSystem->ScheduleJob(new StartExclusiveAccessJob(m_renderer));
+		}
+	};
+
+	DXCamera* cam = utils::GetCamera();
+	std::string error;
+	cam->InitBuffer(error, new InitCamBuffJob(*renderer));
 }

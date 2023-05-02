@@ -16,14 +16,14 @@ namespace rendering
 		bool m_resident = false;
 
 		Microsoft::WRL::ComPtr<ID3D12Heap> m_heap;
-		bool MakeResident(std::string& errorMessage, jobs::Job* done);
 		bool Evict(std::string& errorMessage);
-		bool Create(std::string& errorMessage);
 	public:
 
 		DXHeap();
 		virtual ~DXHeap();
 
+		bool Create(std::string& errorMessage);
+		bool MakeResident(std::string& errorMessage, jobs::Job* done);
 		ID3D12Heap* GetHeap() const;
 		void SetHeapSize(UINT64 size);
 		void SetHeapType(D3D12_HEAP_TYPE type);

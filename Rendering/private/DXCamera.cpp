@@ -2,10 +2,11 @@
 
 #include "DXCameraMeta.h"
 
-#include "dxBuffer.h"
 #include "d3dx12.h"
-#include "dxRenderer.h"
-#include "window.h"
+#include "Job.h"
+#include "Window.h"
+#include "DXHeap.h"
+#include "DXBuffer.h"
 
 #include "RenderUtils.h"
 
@@ -99,4 +100,59 @@ rendering::DXCamera::DXCamera() :
 
 rendering::DXCamera::~DXCamera()
 {
+}
+
+bool rendering::DXCamera::InitBuffer(std::string& errorMessage, jobs::Job* done)
+{
+	DXHeap* heap = new DXHeap();
+
+	heap->SetHeapSize(256);
+	heap->SetHeapType(D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD);
+	heap->SetHeapFlags(D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS);
+	bool res = heap->Create(errorMessage);
+	if (!res)
+	{
+		return false;
+	}
+
+	struct JobContext
+	{
+		jobs::Job* m_done = nullptr;
+		DXHeap* m_heap = nullptr;
+	};
+
+	class InitBufferJob : public jobs::Job
+	{
+	private:
+		JobContext m_jobContext;
+	public:
+		InitBufferJob(JobContext jobContext) :
+			m_jobContext(jobContext)
+		{
+		}
+		void Do() override
+		{
+			DXBuffer* camBuffer = rendering::utils::GetCameraBuffer();
+			camBuffer->SetBufferSizeAndFlags(256, D3D12_RESOURCE_FLAG_NONE);
+			camBuffer->SetBufferStride(256);
+
+			std::string error;
+			bool res = camBuffer->Place(m_jobContext.m_heap, 0, error);
+			if (!res)
+			{
+				throw error;
+			}
+
+			jobs::JobSystem* mainJobSystem = rendering::utils::GetMainJobSystem();
+			mainJobSystem->ScheduleJob(m_jobContext.m_done);
+		}
+	};
+
+	res = heap->MakeResident(errorMessage, new InitBufferJob(JobContext{ done, heap }));
+	if (!res)
+	{
+		return false;
+	}
+
+	return true;
 }

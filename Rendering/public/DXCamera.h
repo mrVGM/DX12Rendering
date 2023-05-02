@@ -2,8 +2,11 @@
 
 #include "BaseObject.h"
 
+#include "Job.h"
+
 #include <d3d12.h>
 #include <DirectXMath.h>
+#include <string>
 
 namespace rendering
 {
@@ -34,6 +37,7 @@ namespace rendering
 
 	public:
 		DXCamera();
+		bool InitBuffer(std::string& errorMessage, jobs::Job* done);
 		virtual ~DXCamera();
 	};
 }
