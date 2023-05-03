@@ -82,7 +82,8 @@ add_library (Rendering
 	"public/DXMaterialMeta.h"
 	"private/DXMaterialMeta.cpp"
 	"private/DXMaterial.cpp"
-)
+	"public/DXCopyCommandQueue.h"
+	"private/DXCopyCommandQueue.cpp" "public/DXCopyCommandQueueMeta.h" "private/DXCopyCommandQueueMeta.cpp")
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")

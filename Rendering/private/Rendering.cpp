@@ -2,6 +2,7 @@
 
 #include "DXDevice.h"
 #include "DXCommandQueue.h"
+#include "DXCopyCommandQueue.h"
 #include "DXSwapChain.h"
 #include "DXRenderer.h"
 
@@ -20,6 +21,7 @@ void rendering::InitBaseObjects()
 {
 	new DXDevice();
 	new DXCommandQueue();
+	new DXCopyCommandQueue();
 	new DXSwapChain();
 	DXRenderer* renderer = new DXRenderer();
 	new jobs::JobSystem(LoadJobSystemMeta::GetInstance(), 5);

@@ -8,6 +8,7 @@
 #include "DXDeviceMeta.h"
 #include "DXSwapChainMeta.h"
 #include "DXCommandQueueMeta.h"
+#include "DXCopyCommandQueueMeta.h"
 #include "MainJobSystemMeta.h"
 #include "LoadJobSystemMeta.h"
 #include "DXCameraMeta.h"
@@ -19,6 +20,7 @@ namespace
 	rendering::DXDevice* m_device = nullptr;
 	rendering::DXSwapChain* m_swapChain = nullptr;
 	rendering::DXCommandQueue* m_commandQueue = nullptr;
+	rendering::DXCopyCommandQueue* m_copyCommandQueue = nullptr;
 	rendering::DXCamera* m_camera = nullptr;
 	rendering::DXBuffer* m_cameraBuffer = nullptr;
 	jobs::JobSystem* m_mainJobSystem = nullptr;
@@ -71,6 +73,18 @@ rendering::DXCommandQueue* rendering::utils::GetCommandQueue()
 	BaseObject* obj = container.GetObjectOfClass(DXCommandQueueMeta::GetInstance());
 	m_commandQueue = static_cast<rendering::DXCommandQueue*>(obj);
 	return m_commandQueue;
+}
+
+rendering::DXCopyCommandQueue* rendering::utils::GetCopyCommandQueue()
+{
+	if (m_commandQueue)
+	{
+		return m_copyCommandQueue;
+	}
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+	BaseObject* obj = container.GetObjectOfClass(DXCopyCommandQueueMeta::GetInstance());
+	m_copyCommandQueue = static_cast<rendering::DXCopyCommandQueue*>(obj);
+	return m_copyCommandQueue;
 }
 
 jobs::JobSystem* rendering::utils::GetMainJobSystem()
