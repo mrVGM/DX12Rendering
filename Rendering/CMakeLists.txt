@@ -74,7 +74,15 @@ add_library (Rendering
 	"private/DXShaderMeta.cpp"
 	"private/DXVertexShaderMeta.h"
 	"private/DXVertexShaderMeta.cpp"
- "private/DXPixelShaderMeta.h" "private/DXPixelShaderMeta.cpp" "private/DXComputeShaderMeta.h" "private/DXComputeShaderMeta.cpp")
+	"private/DXPixelShaderMeta.h"
+	"private/DXPixelShaderMeta.cpp"
+	"private/DXComputeShaderMeta.h"
+	"private/DXComputeShaderMeta.cpp"
+	"public/DXMaterial.h"
+	"public/DXMaterialMeta.h"
+	"private/DXMaterialMeta.cpp"
+	"private/DXMaterial.cpp"
+)
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
