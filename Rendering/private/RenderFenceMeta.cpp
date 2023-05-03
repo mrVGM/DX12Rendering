@@ -8,7 +8,7 @@ namespace
 }
 
 rendering::RenderFenceMeta::RenderFenceMeta() :
-	BaseObjectMeta(DXFenceMeta::GetInstance())
+	BaseObjectMeta(&DXFenceMeta::GetInstance())
 {
 }
 

@@ -66,12 +66,20 @@ add_library (Rendering
 	"private/DXCameraMeta.cpp"
 	"public/DXCamera.h"
 	"private/DXCamera.cpp"
- "public/DXCameraBufferMeta.h"  "private/DXCameraBufferMeta.cpp")
+	"public/DXCameraBufferMeta.h"
+	"private/DXCameraBufferMeta.cpp"
+	"public/DXShader.h"
+	"private/DXShader.cpp"
+	"public/DXShaderMeta.h"
+	"private/DXShaderMeta.cpp"
+	"private/DXVertexShaderMeta.h"
+	"private/DXVertexShaderMeta.cpp"
+ "private/DXPixelShaderMeta.h" "private/DXPixelShaderMeta.cpp" "private/DXComputeShaderMeta.h" "private/DXComputeShaderMeta.cpp")
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(Rendering INTERFACE PUBLIC Jobs)
+target_link_libraries(Rendering INTERFACE PUBLIC Jobs DataLib)
 
 target_link_libraries(Rendering PRIVATE "d3d12.lib" "dxgi.lib" "d3dcompiler.lib" "dxguid.lib")
 

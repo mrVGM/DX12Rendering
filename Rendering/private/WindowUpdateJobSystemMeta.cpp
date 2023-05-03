@@ -8,7 +8,7 @@ namespace
 }
 
 rendering::WindowUpdateJobSystemMeta::WindowUpdateJobSystemMeta() :
-	BaseObjectMeta(jobs::JobSystemMeta::GetInstance())
+	BaseObjectMeta(&jobs::JobSystemMeta::GetInstance())
 {
 }
 

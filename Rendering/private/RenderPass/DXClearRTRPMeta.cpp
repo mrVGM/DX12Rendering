@@ -8,7 +8,7 @@ namespace
 }
 
 rendering::DXClearRTRPMeta::DXClearRTRPMeta() :
-	BaseObjectMeta(RenderPassMeta::GetInstance())
+	BaseObjectMeta(&RenderPassMeta::GetInstance())
 {
 }
 

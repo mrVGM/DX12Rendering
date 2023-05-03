@@ -8,7 +8,7 @@ namespace
 }
 
 rendering::MainJobSystemMeta::MainJobSystemMeta() :
-	BaseObjectMeta(jobs::JobSystemMeta::GetInstance())
+	BaseObjectMeta(&jobs::JobSystemMeta::GetInstance())
 {
 }
 
