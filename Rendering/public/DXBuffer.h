@@ -2,6 +2,8 @@
 
 #include "BaseObject.h"
 
+#include "Job.h"
+
 #include "d3dx12.h"
 
 #include <wrl.h>
@@ -31,6 +33,12 @@ namespace rendering
 		virtual ~DXBuffer();
 
 		void CopyData(void* data, int dataSize);
+		void CopyBuffer(
+			rendering::DXBuffer& destination,
+			D3D12_RESOURCE_STATES myState,
+			D3D12_RESOURCE_STATES destinationState,
+			jobs::Job* done) const;
+
 		void Place(DXHeap* heap, UINT64 heapOffset);
 
 		void SetBufferSizeAndFlags(UINT64 size, D3D12_RESOURCE_FLAGS flags);

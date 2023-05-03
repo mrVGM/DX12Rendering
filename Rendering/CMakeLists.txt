@@ -32,9 +32,9 @@ add_library (Rendering
 	"private/DXRendererMeta.cpp"
 	"public/DXRenderer.h"
 	"private/DXRenderer.cpp"
-	"private/RenderPass/DXClearRTRP.h"
+	"private/ResourceUtils/DXCopyBuffers.h"
 	"private/RenderPass/DXClearRTRP.cpp"
-	"private/RenderPass/DXClearRTRPMeta.h"
+	"private/ResourceUtils/DXCopyBuffersMeta.h"
 	"private/RenderPass/DXClearRTRPMeta.cpp"
 	"private/RenderPassMeta.cpp"
 	"private/RenderPass.cpp"
@@ -83,7 +83,14 @@ add_library (Rendering
 	"private/DXMaterialMeta.cpp"
 	"private/DXMaterial.cpp"
 	"public/DXCopyCommandQueue.h"
-	"private/DXCopyCommandQueue.cpp" "public/DXCopyCommandQueueMeta.h" "private/DXCopyCommandQueueMeta.cpp")
+	"private/DXCopyCommandQueue.cpp"
+	"public/DXCopyCommandQueueMeta.h"
+	"private/DXCopyCommandQueueMeta.cpp"
+	"private/ResourceUtils/DXCopyBuffers.h"
+	"private/ResourceUtils/DXCopyBuffers.cpp"
+	"private/ResourceUtils/DXCopyBuffersMeta.h"
+	"private/ResourceUtils/DXCopyBuffersMeta.cpp"
+)
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")

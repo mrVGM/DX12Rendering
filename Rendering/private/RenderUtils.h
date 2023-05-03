@@ -7,6 +7,7 @@
 #include "Window.h"
 #include "DXCamera.h"
 #include "DXBuffer.h"
+#include "ResourceUtils/DXCopyBuffers.h"
 
 #include "JobSystem.h"
 
@@ -24,5 +25,6 @@ namespace rendering
 		rendering::DXBuffer* GetCameraBuffer();
 		jobs::JobSystem* GetMainJobSystem();
 		jobs::JobSystem* GetLoadJobSystem();
+		rendering::DXCopyBuffers* GetCopyBuffers();
 	}
 }

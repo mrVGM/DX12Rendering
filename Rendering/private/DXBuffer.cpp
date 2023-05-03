@@ -5,6 +5,8 @@
 
 #include "DXHeap.h"
 
+#include "ResourceUtils/DXCopyBuffers.h"
+
 #include <list>
 
 
@@ -87,4 +89,16 @@ UINT64 rendering::DXBuffer::GetStride() const
 UINT64 rendering::DXBuffer::GetElementCount() const
 {
 	return m_size / m_stride;
+}
+
+
+void rendering::DXBuffer::CopyBuffer(
+	rendering::DXBuffer& destination,
+	D3D12_RESOURCE_STATES myState,
+	D3D12_RESOURCE_STATES destinationState,
+	jobs::Job* done) const
+{
+	DXCopyBuffers* copyBuffers = utils::GetCopyBuffers();
+
+	copyBuffers->Execute(destination, destinationState, *this, myState, done);
 }
