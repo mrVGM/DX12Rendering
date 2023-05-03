@@ -35,8 +35,7 @@ namespace jobs
 		ThreadStateNotify m_stateNotify;
 		std::vector<Thread*> m_threads;
 
-		void IncrementFreeThreadsCounter(int increment);		
-		void TryStartJobSafe();
+		void IncrementFreeThreadsCounter(int increment);
 		void TryStartJob();
 	public:
 		JobSystem(const BaseObjectMeta& meta, int numThreads);

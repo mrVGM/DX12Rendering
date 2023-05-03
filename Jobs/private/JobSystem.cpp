@@ -53,26 +53,19 @@ void jobs::JobSystem::IncrementFreeThreadsCounter(int increment)
 {
 	m_threadScheduleMutex.lock();
 	m_freeThreads += increment;
-	m_threadScheduleMutex.unlock();
 
 	if (m_freeThreads > 0)
 	{
 		TryStartJob();
 	}
+	m_threadScheduleMutex.unlock();
 }
 
 void jobs::JobSystem::ScheduleJob(Job* job)
 {
 	m_threadScheduleMutex.lock();
 	m_jobsToDo.push(job);
-	m_threadScheduleMutex.unlock();
 
-	TryStartJob();
-}
-
-void jobs::JobSystem::TryStartJobSafe()
-{
-	m_threadScheduleMutex.lock();
 	TryStartJob();
 	m_threadScheduleMutex.unlock();
 }
