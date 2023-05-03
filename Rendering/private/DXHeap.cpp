@@ -7,9 +7,9 @@
 
 #include "RenderUtils.h"
 #include "TemporaryBaseObject.h"
-#include "Job.h"
 
-void rendering::DXHeap::MakeResident(jobs::Job* done)
+
+void rendering::DXHeap::MakeResident(jobs::Job* done, jobs::JobSystem* jobSystem)
 {
 	if (m_resident) {
 		throw "The heap is already Resident!";

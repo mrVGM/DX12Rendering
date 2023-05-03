@@ -77,7 +77,7 @@ void rendering::InitBaseObjects()
 	};
 
 	DXCamera* cam = utils::GetCamera();
-	cam->InitBuffer(new InitCamBuffJob(*renderer));
+	cam->InitBuffer(new InitCamBuffJob(*renderer), utils::GetMainJobSystem());
 
 
 	class LoadColladaSceneJob : public jobs::Job

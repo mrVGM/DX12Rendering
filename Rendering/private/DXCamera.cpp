@@ -102,7 +102,7 @@ rendering::DXCamera::~DXCamera()
 {
 }
 
-void rendering::DXCamera::InitBuffer(jobs::Job* done)
+void rendering::DXCamera::InitBuffer(jobs::Job* done, jobs::JobSystem* jobSystem)
 {
 	DXHeap* heap = new DXHeap();
 
@@ -114,6 +114,7 @@ void rendering::DXCamera::InitBuffer(jobs::Job* done)
 	struct JobContext
 	{
 		jobs::Job* m_done = nullptr;
+		jobs::JobSystem* m_jobSystem;
 		DXHeap* m_heap = nullptr;
 	};
 
@@ -135,10 +136,9 @@ void rendering::DXCamera::InitBuffer(jobs::Job* done)
 			std::string error;
 			camBuffer->Place(m_jobContext.m_heap, 0);
 
-			jobs::JobSystem* mainJobSystem = rendering::utils::GetMainJobSystem();
-			mainJobSystem->ScheduleJob(m_jobContext.m_done);
+			m_jobContext.m_jobSystem->ScheduleJob(m_jobContext.m_done);
 		}
 	};
 
-	heap->MakeResident(new InitBufferJob(JobContext{ done, heap }));
+	heap->MakeResident(new InitBufferJob(JobContext{ done, jobSystem, heap }), utils::GetLoadJobSystem());
 }

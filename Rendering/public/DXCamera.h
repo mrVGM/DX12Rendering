@@ -3,6 +3,7 @@
 #include "BaseObject.h"
 
 #include "Job.h"
+#include "JobSystem.h"
 
 #include <d3d12.h>
 #include <DirectXMath.h>
@@ -37,7 +38,7 @@ namespace rendering
 
 	public:
 		DXCamera();
-		void InitBuffer(jobs::Job* done);
+		void InitBuffer(jobs::Job* done, jobs::JobSystem* jobSystem);
 		virtual ~DXCamera();
 	};
 }
