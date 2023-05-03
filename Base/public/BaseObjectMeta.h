@@ -12,8 +12,10 @@ private:
 
 protected:
 	BaseObjectMeta(const BaseObjectMeta* parentClass);
-	BaseObjectMeta(const BaseObjectMeta& other) = delete;
 
 public:
+	BaseObjectMeta(const BaseObjectMeta& other) = delete;
+	BaseObjectMeta& operator=(const BaseObjectMeta& other) = delete;
+
 	bool IsChildOf(const BaseObjectMeta& other) const;
 };
