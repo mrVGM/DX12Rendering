@@ -96,5 +96,5 @@ void rendering::InitBaseObjects()
 	DXScene* scene = utils::GetScene();
 
 	std::string cubePath = data::GetLibrary().GetRootDir() + "geo/cube.dae";
-	scene->LoadColladaScene(cubePath, new LoadColladaSceneJob());
+	scene->LoadColladaScene(cubePath, new LoadColladaSceneJob(), utils::GetLoadJobSystem());
 }

@@ -4,6 +4,7 @@
 
 #include "ColladaScene.h"
 #include "Job.h"
+#include "JobSystem.h"
 
 #include <list>
 #include <string>
@@ -21,6 +22,6 @@ namespace rendering
 		DXScene();
 		virtual ~DXScene();
 
-		void LoadColladaScene(const std::string& filePath, jobs::Job* done);
+		void LoadColladaScene(const std::string& filePath, jobs::Job* done, jobs::JobSystem* jobSystem);
 	};
 }

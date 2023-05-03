@@ -13,7 +13,7 @@ rendering::DXScene::~DXScene()
 {
 }
 
-void rendering::DXScene::LoadColladaScene(const std::string& filePath, jobs::Job* done)
+void rendering::DXScene::LoadColladaScene(const std::string& filePath, jobs::Job* done, jobs::JobSystem* jobSystem)
 {
 	struct JobContext
 	{
@@ -21,6 +21,7 @@ void rendering::DXScene::LoadColladaScene(const std::string& filePath, jobs::Job
 		std::string m_filePath;
 		collada::ColladaScene* m_scene = nullptr;
 		jobs::Job* m_done = nullptr;
+		jobs::JobSystem* m_jobSystem = nullptr;
 	};
 
 	class PostLoadColladaSceneJob : public jobs::Job
@@ -37,8 +38,7 @@ void rendering::DXScene::LoadColladaScene(const std::string& filePath, jobs::Job
 		{
 			m_context.m_dxScene->m_colladaScenes.push_back(m_context.m_scene);
 
-			jobs::JobSystem* loadSystem = utils::GetLoadJobSystem();
-			loadSystem->ScheduleJob(m_context.m_done);
+			m_context.m_jobSystem->ScheduleJob(m_context.m_done);
 		}
 	};
 
@@ -80,7 +80,7 @@ void rendering::DXScene::LoadColladaScene(const std::string& filePath, jobs::Job
 		}
 	};
 
-	JobContext ctx{ this, filePath, nullptr, done };
+	JobContext ctx{ this, filePath, nullptr, done, jobSystem };
 
 	jobs::JobSystem* mainSystem = utils::GetMainJobSystem();
 	mainSystem->ScheduleJob(new CreateColladaSceneJob(ctx));
