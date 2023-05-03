@@ -14,6 +14,7 @@
 #include "DXCameraMeta.h"
 #include "DXCameraBufferMeta.h"
 #include "ResourceUtils/DXCopyBuffersMeta.h"
+#include "DXSceneMeta.h"
 
 namespace
 {
@@ -28,6 +29,8 @@ namespace
 	jobs::JobSystem* m_loadJobSystem = nullptr;
 
 	rendering::DXCopyBuffers* m_copyBuffers = nullptr;
+
+	rendering::DXScene* m_scene = nullptr;
 }
 
 rendering::Window* rendering::utils::GetWindow()
@@ -150,6 +153,18 @@ rendering::DXCopyBuffers* rendering::utils::GetCopyBuffers()
 	return m_copyBuffers;
 }
 
+rendering::DXScene* rendering::utils::GetScene()
+{
+	if (m_scene)
+	{
+		return m_scene;
+	}
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+	BaseObject* obj = container.GetObjectOfClass(DXSceneMeta::GetInstance());
+	m_scene = static_cast<DXScene*>(obj);
+	return m_scene;
+}
+
 void rendering::utils::CacheObjects()
 {
 	GetWindow();
@@ -163,4 +178,6 @@ void rendering::utils::CacheObjects()
 	GetCameraBuffer();
 
 	GetCopyBuffers();
+
+	GetScene();
 }

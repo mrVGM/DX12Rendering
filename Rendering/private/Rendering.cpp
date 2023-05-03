@@ -1,5 +1,6 @@
 #include "Rendering.h"
 
+#include "Window.h"
 #include "DXDevice.h"
 #include "DXCommandQueue.h"
 #include "DXCopyCommandQueue.h"
@@ -12,13 +13,19 @@
 #include "JobSystem.h"
 #include "Job.h"
 
-#include "BaseObjectContainer.h"
+#include "DXScene.h"
+
 #include "RenderUtils.h"
+
+#include "BaseObjectContainer.h"
+
+#include "DataLib.h"
 
 #include <iostream>
 
 void rendering::InitBaseObjects()
 {
+	new rendering::Window();
 	new DXDevice();
 	new DXCommandQueue();
 	new DXCopyCommandQueue();
@@ -29,6 +36,8 @@ void rendering::InitBaseObjects()
 
 	new rendering::DXCamera();
 	new rendering::DXBuffer(DXCameraBufferMeta::GetInstance());
+
+	new DXScene();
 
 	rendering::utils::CacheObjects();
 	std::cout << "Base Rendering Objects created!" << std::endl;
@@ -69,4 +78,23 @@ void rendering::InitBaseObjects()
 
 	DXCamera* cam = utils::GetCamera();
 	cam->InitBuffer(new InitCamBuffJob(*renderer));
+
+
+	class LoadColladaSceneJob : public jobs::Job
+	{
+	private:
+	public:
+		LoadColladaSceneJob()
+		{
+		}
+		void Do() override
+		{
+			bool t = true;
+		}
+	};
+
+	DXScene* scene = utils::GetScene();
+
+	std::string cubePath = data::GetLibrary().GetRootDir() + "geo/cube.dae";
+	scene->LoadColladaScene(cubePath, new LoadColladaSceneJob());
 }

@@ -90,12 +90,15 @@ add_library (Rendering
 	"private/ResourceUtils/DXCopyBuffers.cpp"
 	"private/ResourceUtils/DXCopyBuffersMeta.h"
 	"private/ResourceUtils/DXCopyBuffersMeta.cpp"
-)
+	"public/DXScene.h"
+	"private/DXScene.cpp"
+	"public/DXSceneMeta.h"
+	"private/DXSceneMeta.cpp")
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(Rendering INTERFACE PUBLIC Jobs DataLib)
+target_link_libraries(Rendering INTERFACE PUBLIC Jobs DataLib Collada)
 
 target_link_libraries(Rendering PRIVATE "d3d12.lib" "dxgi.lib" "d3dcompiler.lib" "dxguid.lib")
 

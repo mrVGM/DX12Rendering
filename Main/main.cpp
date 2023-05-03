@@ -36,13 +36,6 @@ int main(int args, const char** argv)
 		std::cout << "Invalid Path to Data Directory!" << std::endl;
 	}
 
-	rendering::Window* wnd = new rendering::Window();
-
-	std::string cubePath = data::GetLibrary().GetRootDir() + "geo/cube.dae";
-
-	collada::ColladaScene* scene = new collada::ColladaScene();
-	bool res = scene->Load(cubePath);
-
 	rendering::InitBaseObjects();
 
 	std::cin.get();
