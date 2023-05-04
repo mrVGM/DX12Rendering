@@ -92,7 +92,7 @@ void rendering::InitBaseObjects()
 		}
 		void Do() override
 		{
-			m_scene.LoadColladaSceneVertexBuffers(0, new LoadSceneBuffersJob(), utils::GetMainJobSystem());
+			bool t = true;
 		}
 	};
 
