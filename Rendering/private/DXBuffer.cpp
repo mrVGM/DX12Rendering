@@ -123,3 +123,8 @@ void rendering::DXBuffer::Unmap()
 {
 	m_buffer->Unmap(0, nullptr);
 }
+
+rendering::DXHeap* rendering::DXBuffer::GetResidentHeap() const
+{
+	return m_heap;
+}

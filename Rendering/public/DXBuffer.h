@@ -48,5 +48,7 @@ namespace rendering
 
 		void* Map();
 		void Unmap();
+
+		DXHeap* GetResidentHeap() const;
 	};
 }

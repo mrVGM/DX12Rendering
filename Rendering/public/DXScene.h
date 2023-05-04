@@ -6,22 +6,32 @@
 #include "Job.h"
 #include "JobSystem.h"
 
-#include <list>
+#include <vector>
 #include <string>
+#include <map>
 
 class BaseObjectMeta;
 
 namespace rendering
 {
+	class DXBuffer;
 	class DXScene : public BaseObject
 	{
+	public:
+		struct SceneResources
+		{
+			std::map<std::string, DXBuffer*> m_vertexBuffers;
+		};
+
 	private:
-		std::list<collada::ColladaScene*> m_colladaScenes;
+		std::vector<collada::ColladaScene*> m_colladaScenes;
+		std::vector<SceneResources> m_sceneResources;
 
 	public:
 		DXScene();
 		virtual ~DXScene();
 
 		void LoadColladaScene(const std::string& filePath, jobs::Job* done, jobs::JobSystem* jobSystem);
+		void LoadVertexBuffers(int sceneIndex, jobs::Job* done, jobs::JobSystem* jobSystem);
 	};
 }
