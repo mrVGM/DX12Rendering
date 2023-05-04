@@ -96,9 +96,30 @@ void rendering::DXBuffer::CopyBuffer(
 	rendering::DXBuffer& destination,
 	D3D12_RESOURCE_STATES myState,
 	D3D12_RESOURCE_STATES destinationState,
-	jobs::Job* done) const
+	jobs::Job* done,
+	jobs::JobSystem* jobSystem) const
 {
 	DXCopyBuffers* copyBuffers = utils::GetCopyBuffers();
 
-	copyBuffers->Execute(destination, destinationState, *this, myState, done);
+	copyBuffers->Execute(destination, destinationState, *this, myState, done, jobSystem);
+}
+
+void* rendering::DXBuffer::Map()
+{
+	CD3DX12_RANGE readRange(0, 0);
+
+	void* dst = nullptr;
+
+	HRESULT hRes = m_buffer->Map(0, &readRange, &dst);
+	if (FAILED(hRes))
+	{
+		throw "Can't map Vertex Buffer!";
+	}
+
+	return dst;
+}
+
+void rendering::DXBuffer::Unmap()
+{
+	m_buffer->Unmap(0, nullptr);
 }

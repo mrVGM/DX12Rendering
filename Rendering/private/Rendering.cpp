@@ -13,6 +13,8 @@
 #include "JobSystem.h"
 #include "Job.h"
 
+#include "ResourceUtils/DXCopyBuffers.h"
+
 #include "DXScene.h"
 
 #include "RenderUtils.h"
@@ -37,6 +39,7 @@ void rendering::InitBaseObjects()
 	new rendering::DXCamera();
 	new rendering::DXBuffer(DXCameraBufferMeta::GetInstance());
 
+	new DXCopyBuffers();
 	new DXScene();
 
 	rendering::utils::CacheObjects();
@@ -89,7 +92,7 @@ void rendering::InitBaseObjects()
 		}
 		void Do() override
 		{
-			bool t = true;
+			m_scene.LoadColladaSceneVertexBuffers(0, new LoadSceneBuffersJob(), utils::GetMainJobSystem());
 		}
 	};
 

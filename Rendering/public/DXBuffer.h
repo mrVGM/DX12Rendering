@@ -3,6 +3,7 @@
 #include "BaseObject.h"
 
 #include "Job.h"
+#include "JobSystem.h"
 
 #include "d3dx12.h"
 
@@ -37,11 +38,15 @@ namespace rendering
 			rendering::DXBuffer& destination,
 			D3D12_RESOURCE_STATES myState,
 			D3D12_RESOURCE_STATES destinationState,
-			jobs::Job* done) const;
+			jobs::Job* done,
+			jobs::JobSystem* jobSystem) const;
 
 		void Place(DXHeap* heap, UINT64 heapOffset);
 
 		void SetBufferSizeAndFlags(UINT64 size, D3D12_RESOURCE_FLAGS flags);
 		void SetBufferStride(UINT64 size);
+
+		void* Map();
+		void Unmap();
 	};
 }

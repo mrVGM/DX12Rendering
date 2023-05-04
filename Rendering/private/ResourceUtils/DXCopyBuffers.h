@@ -3,6 +3,7 @@
 #include "BaseObject.h"
 
 #include "Job.h"
+#include "JobSystem.h"
 
 #include <d3d12.h>
 #include <wrl.h>
@@ -26,7 +27,8 @@ namespace rendering
 			D3D12_RESOURCE_STATES dstInitialState,
 			const DXBuffer& src,
 			D3D12_RESOURCE_STATES srcInitialState,
-			jobs::Job* done
+			jobs::Job* done,
+			jobs::JobSystem* jobSystem
 		);
 	};
 }

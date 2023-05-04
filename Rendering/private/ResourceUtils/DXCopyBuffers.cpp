@@ -54,8 +54,8 @@ void rendering::DXCopyBuffers::Execute(
     D3D12_RESOURCE_STATES dstInitialState,
     const DXBuffer& src,
     D3D12_RESOURCE_STATES srcInitialState,
-    jobs::Job* done
-)
+    jobs::Job* done,
+    jobs::JobSystem* jobSystem)
 {
     THROW_ERROR(
         m_commandAllocator->Reset(),
@@ -102,6 +102,7 @@ void rendering::DXCopyBuffers::Execute(
     {
         TemporaryBaseObject* m_tempFence = nullptr;
         jobs::Job* m_done = nullptr;
+        jobs::JobSystem* m_jobSystem = nullptr;
     };
 
     TemporaryBaseObject* tempFence = new TemporaryBaseObject();
@@ -125,8 +126,7 @@ void rendering::DXCopyBuffers::Execute(
 
             delete m_jobContext.m_tempFence;
 
-            jobs::JobSystem* loadSystem = utils::GetLoadJobSystem();
-            loadSystem->ScheduleJob(m_jobContext.m_done);
+            m_jobContext.m_jobSystem->ScheduleJob(m_jobContext.m_done);
         }
     };
 
@@ -149,7 +149,7 @@ void rendering::DXCopyBuffers::Execute(
         }
     };
     
-    JobContext ctx { new TemporaryBaseObject(), done };
+    JobContext ctx { new TemporaryBaseObject(), done, jobSystem };
 
     jobs::JobSystem* mainSystem = utils::GetMainJobSystem();
     mainSystem->ScheduleJob(new CreateFenceJob(ctx));
