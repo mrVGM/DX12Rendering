@@ -1,7 +1,5 @@
 #pragma once
 
-#include "BaseObject.h"
-
 namespace jobs
 {
 	class Job

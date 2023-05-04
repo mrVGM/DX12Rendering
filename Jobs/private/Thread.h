@@ -2,36 +2,35 @@
 
 #include <thread>
 #include <semaphore>
-#include <mutex>
 
 namespace jobs
 {
 	class Job;
-	class ThreadStateNotify;
+	class JobSystem;
 
 	class Thread
 	{
 	private:
-		std::binary_semaphore* m_semaphore = nullptr;
+		bool m_busy = false;
+		std::binary_semaphore m_semaphore{ 1 };
 		std::thread* m_thread = nullptr;
-		bool m_free = true;
+
 		bool m_stopped = false;
-		Job* m_curJob = nullptr;
+		jobs::JobSystem& m_jobSystem;
 	public:
-		ThreadStateNotify& m_stateNotify;
-
-		Thread(ThreadStateNotify& notify);
-		void Start();
-		std::binary_semaphore& GetSemaphore();
-		bool IsStopped() const;
-		bool IsFree() const;
-		void SetIsFree(bool free);
-
-		void SetJob(Job& job);
-		Job* AcquireJob();
-		
-		void Stop();
-
+		Thread(JobSystem& jobSystem);
 		~Thread();
+
+		void Start();
+		void Boot();
+		void Stop();
+		bool ShouldStop();
+
+		jobs::Job* GetJob();
+
+		bool IsBusy() const;
+		void SetBusy(bool busy);
+		std::binary_semaphore& GetSemaphore();
+		jobs::JobSystem& GetJobSystem();
 	};
 }

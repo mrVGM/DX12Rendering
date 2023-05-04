@@ -1,105 +1,62 @@
 #include "JobSystem.h"
 
+#include "Job.h"
+
 #include "JobSystemMeta.h"
 #include "Thread.h"
 
 jobs::JobSystem::JobSystem(const BaseObjectMeta& meta, int numThreads) :
-	BaseObject(meta),
-	m_stateNotify(*this),
-	m_numThreads(numThreads)
-{	
-	for (int i = 0; i < m_numThreads; ++i)
+	BaseObject(meta)
+{
+	for (int i = 0; i < numThreads; ++i)
 	{
-		m_threads.push_back(new Thread(m_stateNotify));
-	}
-
-	for (int i = 0; i < m_numThreads; ++i)
-	{
-		m_threads[i]->Start();
+		m_threads.push_back(new Thread(*this));
 	}
 }
 
 jobs::JobSystem::~JobSystem()
 {
-	while (!m_jobsToDo.empty())
-	{
-		Job* job = m_jobsToDo.front();
-		delete job;
-		m_jobsToDo.pop();
-	}
-
 	for (auto it = m_threads.begin(); it != m_threads.end(); ++it)
 	{
-		delete *it;
+		delete (*it);
 	}
-}
 
-jobs::ThreadStateNotify::ThreadStateNotify(JobSystem& jobSystem) :
-	m_jobSystem(jobSystem)
-{
-}
-
-void jobs::ThreadStateNotify::HasBecomeBusy(jobs::Thread& thread)
-{
-	m_jobSystem.IncrementFreeThreadsCounter(-1);
-}
-
-void jobs::ThreadStateNotify::HasBecomeFree(jobs::Thread& thread)
-{
-	m_jobSystem.IncrementFreeThreadsCounter(1);
-}
-
-void jobs::JobSystem::IncrementFreeThreadsCounter(int increment)
-{
-	m_threadScheduleMutex.lock();
-	m_freeThreads += increment;
-
-	if (m_freeThreads > 0)
+	while (!m_jobQueue.empty())
 	{
-		TryStartJob();
+		Job* cur = m_jobQueue.front();
+		m_jobQueue.pop();
+		delete cur;
 	}
-	m_threadScheduleMutex.unlock();
 }
 
 void jobs::JobSystem::ScheduleJob(Job* job)
 {
-	m_threadScheduleMutex.lock();
-	m_jobsToDo.push(job);
-
-	TryStartJob();
-	m_threadScheduleMutex.unlock();
-}
-
-void jobs::JobSystem::TryStartJob()
-{
-	if (m_freeThreads == 0)
-	{
-		return;
-	}
-	if (m_jobsToDo.empty())
-	{
-		return;
-	}
-
-	Thread* thread = nullptr;
+	m_mutex.lock();
+	m_jobQueue.push(job);
+	m_mutex.unlock();
 
 	for (auto it = m_threads.begin(); it != m_threads.end(); ++it)
 	{
-		Thread* tmp = *it;
-		if (tmp->IsFree())
+		if ((*it)->IsBusy())
 		{
-			thread = tmp;
-			break;
+			continue;
 		}
-	}
 
-	if (!thread)
-	{
+		(*it)->Boot();
 		return;
 	}
-	Job* job = m_jobsToDo.front();
-	m_jobsToDo.pop();
+}
 
-	thread->SetJob(*job);
-	thread->GetSemaphore().release();
+jobs::Job* jobs::JobSystem::AcquireJob()
+{
+	Job* job = nullptr;
+	m_mutex.lock();
+	if (!m_jobQueue.empty())
+	{
+		job = m_jobQueue.front();
+		m_jobQueue.pop();
+	}
+	m_mutex.unlock();
+
+	return job;
 }
