@@ -91,12 +91,12 @@ void rendering::InitBaseObjects()
 
 	CTX ctx{ scene };
 
-	class LoadBuffers : public jobs::Job
+	class SceneLoaded : public jobs::Job
 	{
 	private:
 		CTX m_ctx;
 	public:
-		LoadBuffers(const CTX& ctx) :
+		SceneLoaded(const CTX& ctx) :
 			m_ctx(ctx)
 		{
 		}
@@ -106,22 +106,6 @@ void rendering::InitBaseObjects()
 		}
 	};
 
-	class LoadColladaSceneJob : public jobs::Job
-	{
-	private:
-		CTX m_ctx;
-	public:
-		LoadColladaSceneJob(const CTX& ctx) :
-			m_ctx(ctx)
-		{
-		}
-		void Do() override
-		{
-			m_ctx.scene->LoadVertexBuffers(0, new LoadBuffers(m_ctx), utils::GetLoadJobSystem());
-		}
-	};
-
-
 	std::string cubePath = data::GetLibrary().GetRootDir() + "geo/cube.dae";
-	scene->LoadColladaScene(cubePath, new LoadColladaSceneJob(ctx), utils::GetLoadJobSystem());
+	scene->LoadColladaScene(cubePath, new SceneLoaded(ctx), utils::GetLoadJobSystem());
 }

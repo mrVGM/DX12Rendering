@@ -382,10 +382,12 @@ void rendering::DXScene::LoadColladaScene(const std::string& filePath, jobs::Job
 
 		void Do() override
 		{
+			int index = m_context.m_dxScene->m_colladaScenes.size();
+
 			m_context.m_dxScene->m_colladaScenes.push_back(m_context.m_scene);
 			m_context.m_dxScene->m_sceneResources.push_back(SceneResources());
 
-			m_context.m_jobSystem->ScheduleJob(m_context.m_done);
+			m_context.m_dxScene->LoadVertexBuffers(index, m_context.m_done, m_context.m_jobSystem);
 		}
 	};
 
