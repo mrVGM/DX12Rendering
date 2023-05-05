@@ -264,6 +264,67 @@ namespace
 		CreateBuffer(false, size, stride, *(ctx->m_buffer), new CreateDefaultBuffer(*ctx));
 	}
 
+	template<typename T>
+	void CreateCPUBuffer(const std::list<T>& data, rendering::DXBuffer*& buffer, jobs::Job* done)
+	{
+		using namespace rendering;
+		struct Context
+		{
+			const std::list<T>* m_data;
+			DXBuffer** m_buffer = nullptr;
+			DXBuffer* m_uploadBuffer = nullptr;
+			jobs::Job* m_done = nullptr;
+		};
+
+		UINT64 stride = sizeof(T);
+		UINT64 size = data.size() * stride;
+
+		Context ctx;
+		{
+			ctx.m_data = &data;
+			ctx.m_buffer = &buffer;
+			*(ctx.m_buffer) = nullptr;
+
+			ctx.m_uploadBuffer = nullptr;
+			ctx.m_done = done;
+		}
+
+		class UploadBufferReady : public jobs::Job
+		{
+		private:
+			Context& m_ctx;
+		public:
+			UploadBufferReady(Context& ctx) :
+				m_ctx(ctx)
+			{
+			}
+
+			void Do() override
+			{
+				*m_ctx.m_buffer = m_ctx.m_uploadBuffer;
+				utils::RunSync(m_ctx.m_done);
+			}
+		};
+
+		class CreateUploadBuffer : public jobs::Job
+		{
+		private:
+			Context m_ctx;
+		public:
+			CreateUploadBuffer(const Context& ctx) :
+				m_ctx(ctx)
+			{
+			}
+
+			void Do() override
+			{
+				UploadDataToBuffer<T>(*m_ctx.m_data, *m_ctx.m_uploadBuffer, new UploadBufferReady(m_ctx));
+			}
+		};
+
+		CreateBuffer(true, size, stride, ctx->m_uploadBuffer, new CreateUploadBuffer(ctx));
+	}
+
 	void LoadSceneVertexBuffer(const std::string& name, const collada::Geometry& geometry, rendering::DXScene::SceneResources& resources, jobs::Job* done)
 	{
 		using namespace rendering;
@@ -278,6 +339,15 @@ namespace
 		resources.m_indexBuffers[name] = nullptr;
 		DXBuffer*& buff = resources.m_indexBuffers[name];
 		CreateDefaultBuffer<int>(geometry.m_indices, buff, done);
+	}
+
+	void LoadInstanceBuffer(const std::string& name, const collada::InstanceBuffer& instanceBuffer, rendering::DXScene::SceneResources& resources, jobs::Job* done)
+	{
+		using namespace rendering;
+		resources.m_instanceBuffers[name] = nullptr;
+		DXBuffer*& buff = resources.m_instanceBuffers[name];
+
+		CreateDefaultBuffer<collada::GeometryInstanceData>(instanceBuffer.m_data, buff, done);
 	}
 }
 
@@ -358,7 +428,7 @@ void rendering::DXScene::LoadVertexBuffers(int sceneIndex, jobs::Job* done)
 
 	Context* ctx = new Context();
 	ctx->m_scene = this;
-	ctx->m_left = 2 * scene.m_geometries.size();
+	ctx->m_left = 2 * scene.m_geometries.size() + scene.m_instanceBuffers.size();
 	ctx->m_done = done;
 
 	class Loaded : public jobs::Job
@@ -388,5 +458,10 @@ void rendering::DXScene::LoadVertexBuffers(int sceneIndex, jobs::Job* done)
 	{
 		LoadSceneVertexBuffer(it->first, it->second, m_sceneResources[sceneIndex], new Loaded(*ctx));
 		LoadSceneIndexBuffer(it->first, it->second, m_sceneResources[sceneIndex], new Loaded(*ctx));
+	}
+
+	for (auto it = scene.m_instanceBuffers.begin(); it != scene.m_instanceBuffers.end(); ++it)
+	{
+		LoadInstanceBuffer(it->first, it->second, m_sceneResources[sceneIndex], new Loaded(*ctx));
 	}
 }

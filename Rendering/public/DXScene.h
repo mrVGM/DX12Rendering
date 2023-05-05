@@ -22,6 +22,7 @@ namespace rendering
 		{
 			std::map<std::string, DXBuffer*> m_vertexBuffers;
 			std::map<std::string, DXBuffer*> m_indexBuffers;
+			std::map<std::string, DXBuffer*> m_instanceBuffers;
 		};
 
 	private:
