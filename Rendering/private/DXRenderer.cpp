@@ -7,7 +7,6 @@
 #include "RenderUtils.h"
 
 #include "JobSystem.h"
-#include "RenderJobSystemMeta.h"
 #include "DXFence.h"
 #include "RenderFenceMeta.h"
 #include "RenderPass/DXClearRTRP.h"
@@ -23,23 +22,6 @@ namespace
 	rendering::DXFence* m_renderFence = nullptr;
 	jobs::JobSystem* m_renderJobSystem = nullptr;
 	rendering::DXClearRTRP* m_clearRTRP = nullptr;
-
-	jobs::JobSystem* GetRenderJobSystem()
-	{
-		if (m_renderJobSystem)
-		{
-			return m_renderJobSystem;
-		}
-		BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-		BaseObject* obj = container.GetObjectOfClass(rendering::RenderJobSystemMeta::GetInstance());
-		if (!obj)
-		{
-			obj = new jobs::JobSystem(rendering::RenderJobSystemMeta::GetInstance(), 1);
-		}
-
-		m_renderJobSystem = static_cast<jobs::JobSystem*>(obj);
-		return m_renderJobSystem;
-	}
 
 	rendering::DXFence* GetRenderFence()
 	{
@@ -135,30 +117,12 @@ void rendering::DXRenderer::Render()
 
 void rendering::DXRenderer::RenderFrame()
 {
-	jobs::JobSystem* renderJobSystem = GetRenderJobSystem();
-	renderJobSystem->ScheduleJob(new RenderJob(*this, m_counter));
+	utils::RunSync(new RenderJob(*this, m_counter));
 }
 
 void rendering::DXRenderer::StartRendering()
 {
-	class StartRenderJob : public jobs::Job
-	{
-	private:
-		DXRenderer& m_renderer;
-	public:
-		StartRenderJob(DXRenderer& renderer) :
-			m_renderer(renderer)
-		{
-		}
-		void Do()
-		{
-			GetRenderJobSystem();
-			GetRenderFence();
-			GetClearRTRP();
-
-			m_renderer.RenderFrame();
-		}
-	};
-
-	rendering::utils::RunSync(new StartRenderJob(*this));
+	GetRenderFence();
+	GetClearRTRP();
+	RenderFrame();
 }

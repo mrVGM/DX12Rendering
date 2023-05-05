@@ -38,8 +38,8 @@ add_library (Rendering
 	"private/RenderPass/DXClearRTRPMeta.cpp"
 	"private/RenderPassMeta.cpp"
 	"private/RenderPass.cpp"
-	"private/RenderJobSystemMeta.h"
-	"private/RenderJobSystemMeta.cpp"
+	
+	
 	"private/RenderFenceMeta.h"
 	"private/RenderFenceMeta.cpp"
 	"private/RenderUtils.h"
