@@ -8,6 +8,9 @@
 #include "DXCamera.h"
 #include "DXBuffer.h"
 #include "DXScene.h"
+#include "DXShader.h"
+
+#include "Materials/DXUnlitMaterial.h"
 
 #include "ResourceUtils/DXCopyBuffers.h"
 
@@ -27,6 +30,11 @@ namespace rendering
 		rendering::DXBuffer* GetCameraBuffer();
 		rendering::DXScene* GetScene();
 		rendering::DXCopyBuffers* GetCopyBuffers();
+
+		rendering::DXShader* GetUnlitVertexShader();
+		rendering::DXShader* GetUnlitPixelShader();
+
+		rendering::DXUnlitMaterial* GetUnlitMaterial();
 
 		void RunSync(jobs::Job* job);
 		void RunAsync(jobs::Job* job);

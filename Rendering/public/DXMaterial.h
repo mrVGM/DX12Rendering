@@ -17,7 +17,7 @@ namespace rendering
 
 	class DXMaterial : public BaseObject
 	{
-	private:
+	protected:
 		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocator;
 		std::list<Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> > m_commandLists;
 

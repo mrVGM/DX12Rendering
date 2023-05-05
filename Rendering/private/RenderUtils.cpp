@@ -16,6 +16,13 @@
 #include "ResourceUtils/DXCopyBuffersMeta.h"
 #include "DXSceneMeta.h"
 
+#include "DXShader.h"
+#include "DXVertexShaderMeta.h"
+#include "DXPixelShaderMeta.h"
+
+#include "Materials/DXUnlitMaterial.h"
+#include "Materials/DXUnlitMaterialMeta.h"
+
 namespace
 {
 	rendering::Window* m_window = nullptr;
@@ -30,6 +37,11 @@ namespace
 
 	rendering::DXScene* m_scene = nullptr;
 	rendering::DXCopyBuffers* m_copyBuffers = nullptr;
+
+	rendering::DXShader* m_unlitPixelShader = nullptr;
+	rendering::DXShader* m_unlitVertexShader = nullptr;
+
+	rendering::DXUnlitMaterial* m_unlitMaterial = nullptr;
 
 
 	jobs::JobSystem* GetMainJobSystem()
@@ -167,6 +179,42 @@ rendering::DXCopyBuffers* rendering::utils::GetCopyBuffers()
 	return m_copyBuffers;
 }
 
+rendering::DXShader* rendering::utils::GetUnlitVertexShader()
+{
+	if (m_unlitVertexShader)
+	{
+		return m_unlitVertexShader;
+	}
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+	BaseObject* obj = container.GetObjectOfClass(DXVertexShaderMeta::GetInstance());
+	m_unlitVertexShader = static_cast<DXShader*>(obj);
+	return m_unlitVertexShader;
+}
+
+rendering::DXShader* rendering::utils::GetUnlitPixelShader()
+{
+	if (m_unlitPixelShader)
+	{
+		return m_unlitPixelShader;
+	}
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+	BaseObject* obj = container.GetObjectOfClass(DXPixelShaderMeta::GetInstance());
+	m_unlitPixelShader = static_cast<DXShader*>(obj);
+	return m_unlitPixelShader;
+}
+
+rendering::DXUnlitMaterial* rendering::utils::GetUnlitMaterial()
+{
+	if (m_unlitMaterial)
+	{
+		return m_unlitMaterial;
+	}
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+	BaseObject* obj = container.GetObjectOfClass(DXUnlitMaterialMeta::GetInstance());
+	m_unlitMaterial = static_cast<DXUnlitMaterial*>(obj);
+	return m_unlitMaterial;
+}
+
 void rendering::utils::RunSync(jobs::Job* job)
 {
 	GetMainJobSystem()->ScheduleJob(job);
@@ -209,6 +257,9 @@ void rendering::utils::CacheObjects()
 	GetLoadJobSystem();
 	GetCamera();
 	GetCameraBuffer();
+	GetUnlitVertexShader();
+	GetUnlitPixelShader();
+	GetUnlitMaterial();
 
 	GetScene();
 }

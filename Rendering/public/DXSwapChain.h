@@ -35,6 +35,9 @@ namespace rendering
 		void Present();
 		void UpdateCurrentFrameIndex();
 
+		const CD3DX12_VIEWPORT& GetViewport() const;
+		const CD3DX12_RECT& GetScissorRect() const;
+
 		CD3DX12_CPU_DESCRIPTOR_HANDLE GetCurrentRTVDescriptor() const;
 		ID3D12Resource* GetCurrentRenderTarget() const;
 	};

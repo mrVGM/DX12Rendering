@@ -31,7 +31,7 @@ void rendering::DXShader::LoadPrecompiledShader(const std::string& filePath)
     )
 }
 
-const ID3DBlob* rendering::DXShader::GetCompiledShader() const
+ID3DBlob* rendering::DXShader::GetCompiledShader() const
 {
 	return m_shader.Get();
 }

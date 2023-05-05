@@ -132,3 +132,13 @@ rendering::DXSwapChain::DXSwapChain() :
 rendering::DXSwapChain::~DXSwapChain()
 {
 }
+
+const CD3DX12_VIEWPORT& rendering::DXSwapChain::GetViewport() const
+{
+    return m_viewport;
+}
+
+const CD3DX12_RECT& rendering::DXSwapChain::GetScissorRect() const
+{
+    return m_scissorRect;
+}

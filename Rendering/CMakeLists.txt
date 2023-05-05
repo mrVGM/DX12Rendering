@@ -78,10 +78,12 @@ add_library (Rendering
 	"private/DXPixelShaderMeta.cpp"
 	"private/DXComputeShaderMeta.h"
 	"private/DXComputeShaderMeta.cpp"
+	"private/Materials/DXUnlitMaterial.h"
 	"public/DXMaterial.h"
+	"private/DXMaterial.cpp"
 	"public/DXMaterialMeta.h"
 	"private/DXMaterialMeta.cpp"
-	"private/DXMaterial.cpp"
+	"private/Materials/DXUnlitMaterial.cpp"
 	"public/DXCopyCommandQueue.h"
 	"private/DXCopyCommandQueue.cpp"
 	"public/DXCopyCommandQueueMeta.h"
@@ -93,7 +95,13 @@ add_library (Rendering
 	"public/DXScene.h"
 	"private/DXScene.cpp"
 	"public/DXSceneMeta.h"
-	"private/DXSceneMeta.cpp" "private/ResourceUtils/DXCopyFenceMeta.h"  "private/ResourceUtils/DXCopyFenceMeta.cpp")
+	"private/DXSceneMeta.cpp"
+	"private/Materials/DXUnlitMaterialMeta.h"
+	"private/ResourceUtils/DXCopyFenceMeta.cpp"
+	"private/Materials/DXUnlitMaterialMeta.cpp"
+	"private/Materials/DXUnlitMaterialMeta.h"
+	"private/Materials/DXUnlitMaterial.h"
+	"private/Materials/DXUnlitMaterial.cpp")
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")

@@ -21,6 +21,11 @@
 
 #include "BaseObjectContainer.h"
 
+#include "DXShader.h"
+#include "DXVertexShaderMeta.h"
+#include "DXPixelShaderMeta.h"
+
+
 #include "DataLib.h"
 
 #include <iostream>
@@ -41,6 +46,11 @@ void rendering::InitBaseObjects()
 
 	new DXCopyBuffers();
 	new DXScene();
+
+	DXShader* ps = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_unlit.fxc");
+	DXShader* vs = new DXShader(DXVertexShaderMeta::GetInstance(), "shaders/bin/vs_unlit.fxc");
+
+	new DXUnlitMaterial(*vs, *ps);
 
 	rendering::utils::CacheObjects();
 	std::cout << "Base Rendering Objects created!" << std::endl;

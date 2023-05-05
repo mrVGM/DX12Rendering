@@ -18,6 +18,6 @@ namespace rendering
 		DXShader(const BaseObjectMeta& meta, const std::string& filePath);
 		virtual ~DXShader();
 
-		const ID3DBlob* GetCompiledShader() const;
+		ID3DBlob* GetCompiledShader() const;
 	};
 }
