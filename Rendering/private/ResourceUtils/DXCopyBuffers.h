@@ -12,12 +12,18 @@
 namespace rendering
 {
 	class DXBuffer;
+
 	class DXCopyBuffers : public BaseObject
 	{
 		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocator;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_commandList;
 
 		void Create();
+		void ExecuteCommandList(
+			DXBuffer& dst,
+			const DXBuffer& src,
+			ID3D12Fence* fence,
+			UINT64 signal);
 	public:
 		DXCopyBuffers();
 		virtual ~DXCopyBuffers();

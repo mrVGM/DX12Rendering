@@ -199,8 +199,9 @@ namespace
 
 			void Do() override
 			{
-				delete m_ctx.m_uploadBuffer->GetResidentHeap();
+				DXHeap* heap = m_ctx.m_uploadBuffer->GetResidentHeap();
 				delete m_ctx.m_uploadBuffer;
+				delete heap;
 
 				m_ctx.m_jobSystem->ScheduleJob(m_ctx.m_done);
 

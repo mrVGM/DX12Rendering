@@ -49,11 +49,11 @@ rendering::DXCopyBuffers::~DXCopyBuffers()
 {
 }
 
-void rendering::DXCopyBuffers::Execute(
+void rendering::DXCopyBuffers::ExecuteCommandList(
     DXBuffer& dst,
     const DXBuffer& src,
-    jobs::Job* done,
-    jobs::JobSystem* jobSystem)
+    ID3D12Fence* fence,
+    UINT64 signal)
 {
     THROW_ERROR(
         m_commandAllocator->Reset(),
@@ -62,7 +62,7 @@ void rendering::DXCopyBuffers::Execute(
     THROW_ERROR(
         m_commandList->Reset(m_commandAllocator.Get(), nullptr),
         "Can't reset Command List!")
-    
+
     m_commandList->CopyResource(dst.GetBuffer(), src.GetBuffer());
 
     THROW_ERROR(
@@ -74,14 +74,31 @@ void rendering::DXCopyBuffers::Execute(
     ID3D12CommandList* copyCommandList[] = { m_commandList.Get() };
     commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(copyCommandList), copyCommandList);
 
+    if (fence)
+    {
+        commandQueue->GetCommandQueue()->Signal(fence, signal);
+    }
+}
+
+void rendering::DXCopyBuffers::Execute(
+    DXBuffer& dst,
+    const DXBuffer& src,
+    jobs::Job* done,
+    jobs::JobSystem* jobSystem)
+{
     struct JobContext
     {
+        DXCopyBuffers* m_dxCopyBuffers = nullptr;
+        DXBuffer* m_dst = nullptr;
+        const DXBuffer* m_src = nullptr;
+
         TemporaryBaseObject* m_tempFence = nullptr;
         jobs::Job* m_done = nullptr;
         jobs::JobSystem* m_jobSystem = nullptr;
     };
 
     TemporaryBaseObject* tempFence = new TemporaryBaseObject();
+    JobContext ctx{ this, &dst, &src, tempFence, done, jobSystem };
 
     class CopyJob : public jobs::Job
     {
@@ -96,9 +113,11 @@ void rendering::DXCopyBuffers::Execute(
         void Do() override
         {
             DXFence* fence = static_cast<DXFence*>(m_jobContext.m_tempFence->m_object);
-
+            UINT64 signal = 1;
+            m_jobContext.m_dxCopyBuffers->ExecuteCommandList(*m_jobContext.m_dst, *m_jobContext.m_src, fence->GetFence(), 1);
+            
             WaitFence waitFence(*fence);
-            waitFence.Wait(1);
+            waitFence.Wait(signal);
 
             delete m_jobContext.m_tempFence;
 
@@ -125,8 +144,6 @@ void rendering::DXCopyBuffers::Execute(
         }
     };
     
-    JobContext ctx { new TemporaryBaseObject(), done, jobSystem };
-
     jobs::JobSystem* mainSystem = utils::GetMainJobSystem();
     mainSystem->ScheduleJob(new CreateFenceJob(ctx));
 }
