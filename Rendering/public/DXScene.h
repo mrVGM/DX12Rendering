@@ -21,6 +21,7 @@ namespace rendering
 		struct SceneResources
 		{
 			std::map<std::string, DXBuffer*> m_vertexBuffers;
+			std::map<std::string, DXBuffer*> m_indexBuffers;
 		};
 
 	private:

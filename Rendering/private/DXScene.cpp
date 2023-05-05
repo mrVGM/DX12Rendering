@@ -109,13 +109,14 @@ namespace
 		utils::GetMainJobSystem()->ScheduleJob(new Create(*ctx));
 	}
 
-	void UploadDataToBuffer(const std::list<collada::Vertex>& data, rendering::DXBuffer& buffer, jobs::Job* done, jobs::JobSystem* jobSystem)
+	template<typename T>
+	void UploadDataToBuffer(const std::list<T>& data, rendering::DXBuffer& buffer, jobs::Job* done, jobs::JobSystem* jobSystem)
 	{
 		using namespace rendering;
 		struct Context
 		{
 			DXBuffer* m_buffer = nullptr;
-			const std::list<collada::Vertex>* m_data;
+			const std::list<T>* m_data;
 			jobs::Job* m_done = nullptr;
 			jobs::JobSystem* m_jobSystem = nullptr;
 		};
@@ -134,7 +135,7 @@ namespace
 			{
 				void* dst = m_ctx.m_buffer->Map();
 
-				collada::Vertex* cur = static_cast<collada::Vertex*>(dst);
+				T* cur = static_cast<T*>(dst);
 				for (auto it = m_ctx.m_data->begin(); it != m_ctx.m_data->end(); ++it)
 				{
 					*cur = *it;
@@ -156,12 +157,13 @@ namespace
 		utils::GetLoadJobSystem()->ScheduleJob(new UploadData(ctx));
 	}
 
-	void CreateVertexBuffer(const std::list<collada::Vertex>& data, rendering::DXBuffer*& buffer, jobs::Job* done, jobs::JobSystem* jobSystem)
+	template<typename T>
+	void CreateDefaultBuffer(const std::list<T>& data, rendering::DXBuffer*& buffer, jobs::Job* done, jobs::JobSystem* jobSystem)
 	{
 		using namespace rendering;
 		struct Context
 		{
-			const std::list<collada::Vertex>* m_data;
+			const std::list<T>* m_data;
 			DXBuffer** m_buffer = nullptr;
 			DXBuffer* m_uploadBuffer = nullptr;
 
@@ -172,7 +174,7 @@ namespace
 			bool m_defaultBufferReady = false;
 		};
 
-		UINT64 stride = sizeof(collada::Vertex);
+		UINT64 stride = sizeof(T);
 		UINT64 size = data.size() * stride;
 
 		Context* ctx = new Context();
@@ -280,7 +282,7 @@ namespace
 
 			void Do() override
 			{
-				UploadDataToBuffer(*m_ctx.m_data, *m_ctx.m_uploadBuffer, new UploadBufferReady(m_ctx), utils::GetMainJobSystem());
+				UploadDataToBuffer<T>(*m_ctx.m_data, *m_ctx.m_uploadBuffer, new UploadBufferReady(m_ctx), utils::GetMainJobSystem());
 			}
 		};
 		class CreateDefaultBuffer : public jobs::Job
@@ -305,7 +307,7 @@ namespace
 	}
 
 
-	void LoadSceneBuffer(const std::string& name, const collada::Geometry& geometry, rendering::DXScene::SceneResources& resources, jobs::Job* done, jobs::JobSystem* jobSystem)
+	void LoadSceneVertexBuffer(const std::string& name, const collada::Geometry& geometry, rendering::DXScene::SceneResources& resources, jobs::Job* done, jobs::JobSystem* jobSystem)
 	{
 		using namespace rendering;
 		struct Context
@@ -341,11 +343,54 @@ namespace
 			{
 				m_ctx.m_resources->m_vertexBuffers[m_ctx.m_name] = nullptr;
 				DXBuffer*& buff = m_ctx.m_resources->m_vertexBuffers[m_ctx.m_name];
-				CreateVertexBuffer(m_ctx.m_geo->m_vertices, buff, m_ctx.m_done, m_ctx.m_jobSystem);
+				CreateDefaultBuffer<collada::Vertex>(m_ctx.m_geo->m_vertices, buff, m_ctx.m_done, m_ctx.m_jobSystem);
 			}
 		};
 
 		utils::GetLoadJobSystem()->ScheduleJob(new CreateVB(ctx));
+	}
+
+	void LoadSceneIndexBuffer(const std::string& name, const collada::Geometry& geometry, rendering::DXScene::SceneResources& resources, jobs::Job* done, jobs::JobSystem* jobSystem)
+	{
+		using namespace rendering;
+		struct Context
+		{
+			std::string m_name;
+			rendering::DXScene::SceneResources* m_resources = nullptr;
+			const collada::Geometry* m_geo = nullptr;
+
+			DXBuffer* m_buffer = nullptr;
+
+			jobs::Job* m_done = nullptr;
+			jobs::JobSystem* m_jobSystem = nullptr;
+		};
+
+		Context ctx;
+		ctx.m_name = name;
+		ctx.m_resources = &resources;
+		ctx.m_geo = &geometry;
+		ctx.m_done = done;
+		ctx.m_jobSystem = jobSystem;
+
+		class CreateIB : public jobs::Job
+		{
+		private:
+			Context m_ctx;
+		public:
+			CreateIB(const Context& ctx) :
+				m_ctx(ctx)
+			{
+			}
+
+			void Do() override
+			{
+				m_ctx.m_resources->m_indexBuffers[m_ctx.m_name] = nullptr;
+				DXBuffer*& buff = m_ctx.m_resources->m_indexBuffers[m_ctx.m_name];
+				CreateDefaultBuffer<int>(m_ctx.m_geo->m_indices, buff, m_ctx.m_done, m_ctx.m_jobSystem);
+			}
+		};
+
+		utils::GetLoadJobSystem()->ScheduleJob(new CreateIB(ctx));
 	}
 }
 
@@ -450,7 +495,7 @@ void rendering::DXScene::LoadVertexBuffers(int sceneIndex, jobs::Job* done, jobs
 
 	Context* ctx = new Context();
 	ctx->m_scene = this;
-	ctx->m_left = scene.m_geometries.size();
+	ctx->m_left = 2 * scene.m_geometries.size();
 	ctx->m_done = done;
 	ctx->m_jobSystem = jobSystem;
 
@@ -479,6 +524,7 @@ void rendering::DXScene::LoadVertexBuffers(int sceneIndex, jobs::Job* done, jobs
 
 	for (auto it = scene.m_geometries.begin(); it != scene.m_geometries.end(); ++it)
 	{
-		LoadSceneBuffer(it->first, it->second, m_sceneResources[sceneIndex], new Loaded(*ctx), utils::GetMainJobSystem());
+		LoadSceneVertexBuffer(it->first, it->second, m_sceneResources[sceneIndex], new Loaded(*ctx), utils::GetMainJobSystem());
+		LoadSceneIndexBuffer(it->first, it->second, m_sceneResources[sceneIndex], new Loaded(*ctx), utils::GetMainJobSystem());
 	}
 }
