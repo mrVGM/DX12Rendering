@@ -9,6 +9,8 @@
 #include "DXBuffer.h"
 #include "DXScene.h"
 
+#include "ResourceUtils/DXCopyBuffers.h"
+
 #include "JobSystem.h"
 
 namespace rendering
@@ -23,8 +25,11 @@ namespace rendering
 		rendering::DXCopyCommandQueue* GetCopyCommandQueue();
 		rendering::DXCamera* GetCamera();
 		rendering::DXBuffer* GetCameraBuffer();
-		jobs::JobSystem* GetMainJobSystem();
-		jobs::JobSystem* GetLoadJobSystem();
 		rendering::DXScene* GetScene();
+		rendering::DXCopyBuffers* GetCopyBuffers();
+
+		void RunSync(jobs::Job* job);
+		void RunAsync(jobs::Job* job);
+		void DisposeBaseObject(BaseObject& baseObject);
 	}
 }

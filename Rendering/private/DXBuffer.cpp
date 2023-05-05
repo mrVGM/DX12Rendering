@@ -6,7 +6,6 @@
 #include "DXHeap.h"
 
 #include "ResourceUtils/DXCopyBuffers.h"
-#include "TemporaryBaseObject.h"
 
 #include <list>
 
@@ -95,76 +94,10 @@ UINT64 rendering::DXBuffer::GetElementCount() const
 
 void rendering::DXBuffer::CopyBuffer(
 	rendering::DXBuffer& destination,
-	jobs::Job* done,
-	jobs::JobSystem* jobSystem) const
+	jobs::Job* done) const
 {
-	struct Context
-	{
-		const DXBuffer* src = nullptr;
-		DXBuffer* dst = nullptr;
-		DXCopyBuffers* m_copyBuffers = nullptr;
-
-		jobs::Job* m_done;
-		jobs::JobSystem* m_jobSystem;
-	};
-
-	Context ctx;
-	ctx.src = this;
-	ctx.dst = &destination;
-	ctx.m_done = done;
-	ctx.m_jobSystem = jobSystem;
-
-	class Clear : public jobs::Job
-	{
-	private:
-		Context m_ctx;
-	public:
-		Clear(const Context& ctx) :
-			m_ctx(ctx)
-		{
-		}
-
-		void Do() override
-		{
-			delete m_ctx.m_copyBuffers;
-			m_ctx.m_jobSystem->ScheduleJob(m_ctx.m_done);
-		}
-	};
-
-	class CopyBuffers : public jobs::Job
-	{
-	private:
-		Context m_ctx;
-	public:
-		CopyBuffers(const Context& ctx) :
-			m_ctx(ctx)
-		{
-		}
-
-		void Do() override
-		{
-			m_ctx.m_copyBuffers->Execute(*m_ctx.dst, *m_ctx.src, new Clear(m_ctx), utils::GetMainJobSystem());
-		}
-	};
-
-	class CreateCopyBuffers : public jobs::Job
-	{
-	private:
-		Context m_ctx;
-	public:
-		CreateCopyBuffers(const Context& ctx) :
-			m_ctx(ctx)
-		{
-		}
-
-		void Do() override
-		{
-			m_ctx.m_copyBuffers = new DXCopyBuffers();
-			utils::GetLoadJobSystem()->ScheduleJob(new CopyBuffers(m_ctx));
-		}
-	};
-
-	utils::GetMainJobSystem()->ScheduleJob(new CreateCopyBuffers(ctx));
+	DXCopyBuffers* copyBuffers = utils::GetCopyBuffers();
+	copyBuffers->Execute(destination, *this, done);
 }
 
 void* rendering::DXBuffer::Map()

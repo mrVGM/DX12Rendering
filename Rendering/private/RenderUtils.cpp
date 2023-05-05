@@ -29,6 +29,34 @@ namespace
 	jobs::JobSystem* m_loadJobSystem = nullptr;
 
 	rendering::DXScene* m_scene = nullptr;
+	rendering::DXCopyBuffers* m_copyBuffers = nullptr;
+
+
+	jobs::JobSystem* GetMainJobSystem()
+	{
+		if (m_mainJobSystem)
+		{
+			return m_mainJobSystem;
+		}
+
+		BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+		BaseObject* obj = container.GetObjectOfClass(rendering::MainJobSystemMeta::GetInstance());
+		m_mainJobSystem = static_cast<jobs::JobSystem*>(obj);
+		return m_mainJobSystem;
+	}
+
+	jobs::JobSystem* GetLoadJobSystem()
+	{
+		if (m_loadJobSystem)
+		{
+			return m_loadJobSystem;
+		}
+
+		BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+		BaseObject* obj = container.GetObjectOfClass(rendering::LoadJobSystemMeta::GetInstance());
+		m_loadJobSystem = static_cast<jobs::JobSystem*>(obj);
+		return m_loadJobSystem;
+	}
 }
 
 rendering::Window* rendering::utils::GetWindow()
@@ -91,30 +119,6 @@ rendering::DXCopyCommandQueue* rendering::utils::GetCopyCommandQueue()
 	return m_copyCommandQueue;
 }
 
-jobs::JobSystem* rendering::utils::GetMainJobSystem()
-{
-	if (m_mainJobSystem)
-	{
-		return m_mainJobSystem;
-	}
-	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-	BaseObject* obj = container.GetObjectOfClass(MainJobSystemMeta::GetInstance());
-	m_mainJobSystem = static_cast<jobs::JobSystem*>(obj);
-	return m_mainJobSystem;
-}
-
-jobs::JobSystem* rendering::utils::GetLoadJobSystem()
-{
-	if (m_loadJobSystem)
-	{
-		return m_loadJobSystem;
-	}
-	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-	BaseObject* obj = container.GetObjectOfClass(LoadJobSystemMeta::GetInstance());
-	m_loadJobSystem = static_cast<jobs::JobSystem*>(obj);
-	return m_loadJobSystem;
-}
-
 rendering::DXCamera* rendering::utils::GetCamera()
 {
 	if (m_camera)
@@ -149,6 +153,49 @@ rendering::DXScene* rendering::utils::GetScene()
 	BaseObject* obj = container.GetObjectOfClass(DXSceneMeta::GetInstance());
 	m_scene = static_cast<DXScene*>(obj);
 	return m_scene;
+}
+
+rendering::DXCopyBuffers* rendering::utils::GetCopyBuffers()
+{
+	if (m_copyBuffers)
+	{
+		return m_copyBuffers;
+	}
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+	BaseObject* obj = container.GetObjectOfClass(DXCopyBuffersMeta::GetInstance());
+	m_copyBuffers = static_cast<DXCopyBuffers*>(obj);
+	return m_copyBuffers;
+}
+
+void rendering::utils::RunSync(jobs::Job* job)
+{
+	GetMainJobSystem()->ScheduleJob(job);
+}
+
+void rendering::utils::RunAsync(jobs::Job* job)
+{
+	GetLoadJobSystem()->ScheduleJob(job);
+}
+
+void rendering::utils::DisposeBaseObject(BaseObject& baseObject)
+{
+	class Dispose : public jobs::Job
+	{
+	private:
+		BaseObject& m_object;
+	public:
+		Dispose(BaseObject& object) :
+			m_object(object)
+		{
+		}
+
+		void Do() override
+		{
+			delete &m_object;
+		}
+	};
+
+	utils::RunSync(new Dispose(baseObject));
 }
 
 void rendering::utils::CacheObjects()

@@ -160,5 +160,5 @@ void rendering::DXRenderer::StartRendering()
 		}
 	};
 
-	rendering::utils::GetMainJobSystem()->ScheduleJob(new StartRenderJob(*this));
+	rendering::utils::RunSync(new StartRenderJob(*this));
 }

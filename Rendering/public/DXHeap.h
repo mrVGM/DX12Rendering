@@ -24,7 +24,7 @@ namespace rendering
 		virtual ~DXHeap();
 
 		void Create();
-		void MakeResident(jobs::Job* done, jobs::JobSystem* jobSystem);
+		void MakeResident(jobs::Job* done);
 		ID3D12Heap* GetHeap() const;
 		void SetHeapSize(UINT64 size);
 		void SetHeapType(D3D12_HEAP_TYPE type);

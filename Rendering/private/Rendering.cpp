@@ -45,7 +45,6 @@ void rendering::InitBaseObjects()
 	rendering::utils::CacheObjects();
 	std::cout << "Base Rendering Objects created!" << std::endl;
 
-	jobs::JobSystem* mainJobSystem = rendering::utils::GetMainJobSystem();
 	class StartExclusiveAccessJob : public jobs::Job
 	{
 	private:
@@ -74,13 +73,12 @@ void rendering::InitBaseObjects()
 		}
 		void Do() override
 		{
-			jobs::JobSystem* mainJobSystem = utils::GetMainJobSystem();
-			mainJobSystem->ScheduleJob(new StartExclusiveAccessJob(m_renderer));
+			utils::RunSync(new StartExclusiveAccessJob(m_renderer));
 		}
 	};
 
 	DXCamera* cam = utils::GetCamera();
-	cam->InitBuffer(new InitCamBuffJob(*renderer), utils::GetMainJobSystem());
+	cam->InitBuffer(new InitCamBuffJob(*renderer));
 
 
 	DXScene* scene = utils::GetScene();
@@ -102,10 +100,11 @@ void rendering::InitBaseObjects()
 		}
 		void Do() override
 		{
+			std::cout << "Yessss!" << std::endl;
 			bool t = true;
 		}
 	};
 
 	std::string cubePath = data::GetLibrary().GetRootDir() + "geo/cube.dae";
-	scene->LoadColladaScene(cubePath, new SceneLoaded(ctx), utils::GetLoadJobSystem());
+	scene->LoadColladaScene(cubePath, new SceneLoaded(ctx));
 }

@@ -6,10 +6,9 @@
 #include "WaitFence.h"
 
 #include "RenderUtils.h"
-#include "TemporaryBaseObject.h"
 
 
-void rendering::DXHeap::MakeResident(jobs::Job* done, jobs::JobSystem* jobSystem)
+void rendering::DXHeap::MakeResident(jobs::Job* done)
 {
 	if (m_resident) {
 		throw "The heap is already Resident!";
@@ -18,48 +17,32 @@ void rendering::DXHeap::MakeResident(jobs::Job* done, jobs::JobSystem* jobSystem
 	struct JobContext
 	{
 		DXHeap* m_heap = nullptr;
-		TemporaryBaseObject* m_fenceTempObject = nullptr;
+		DXFence* m_fence = nullptr;
 		jobs::Job* m_done = nullptr;
+		int m_signal = 0;
 	};
 
-	class MakeResidentJob : public jobs::Job
+	class WaitJob : public jobs::Job
 	{
 	private:
 		JobContext m_jobContext;
 	public:
-		MakeResidentJob(JobContext jobContext) :
+		WaitJob(JobContext jobContext) :
 			m_jobContext(jobContext)
 		{
 		}
+
 		void Do() override
 		{
-			DXDevice* device = rendering::utils::GetDevice();
-			ID3D12Device3* device3;
-			HRESULT hr = device->GetDevice().QueryInterface(IID_PPV_ARGS(&device3));
-			if (FAILED(hr))
-			{
-				throw "Can't Query ID3D12Device3!";
-			}
-			const UINT64 signal = 1;
-			ID3D12Pageable* tmp = m_jobContext.m_heap->GetHeap();
-			DXFence* fence = static_cast<DXFence*>(m_jobContext.m_fenceTempObject->m_object);
-			hr = device3->EnqueueMakeResident(D3D12_RESIDENCY_FLAGS::D3D12_RESIDENCY_FLAG_DENY_OVERBUDGET, 1, &tmp, fence->GetFence(), signal);
-			if (FAILED(hr))
-			{
-				throw "Can't make the heap resident!";
-			}
-
-			WaitFence waitFence(*fence);
-			waitFence.Wait(signal);
-
+			WaitFence waitFence(*m_jobContext.m_fence);
+			waitFence.Wait(m_jobContext.m_signal);
 			m_jobContext.m_heap->m_resident = true;
 
-			delete m_jobContext.m_fenceTempObject;
-			
-			jobs::JobSystem* loadJobSystem = rendering::utils::GetLoadJobSystem();
-			loadJobSystem->ScheduleJob(m_jobContext.m_done);
+			utils::RunSync(m_jobContext.m_done);
+			utils::DisposeBaseObject(*m_jobContext.m_fence);
 		}
 	};
+
 	class CreateFenceJob : public jobs::Job
 	{
 	private:
@@ -71,20 +54,34 @@ void rendering::DXHeap::MakeResident(jobs::Job* done, jobs::JobSystem* jobSystem
 		}
 		void Do() override
 		{
-			m_jobContext.m_fenceTempObject->m_object = new DXFence(DXFenceMeta::GetInstance());
+			m_jobContext.m_fence = new DXFence(DXFenceMeta::GetInstance());
 
-			MakeResidentJob* makeResident = new MakeResidentJob(m_jobContext);
-			jobs::JobSystem* loadJobSystem = rendering::utils::GetLoadJobSystem();
-			loadJobSystem->ScheduleJob(makeResident);
+			DXDevice* device = rendering::utils::GetDevice();
+			ID3D12Device3* device3;
+			HRESULT hr = device->GetDevice().QueryInterface(IID_PPV_ARGS(&device3));
+			if (FAILED(hr))
+			{
+				throw "Can't Query ID3D12Device3!";
+			}
+			const UINT64 signal = 1;
+			ID3D12Pageable* tmp = m_jobContext.m_heap->GetHeap();
+			DXFence* fence = static_cast<DXFence*>(m_jobContext.m_fence);
+			hr = device3->EnqueueMakeResident(D3D12_RESIDENCY_FLAGS::D3D12_RESIDENCY_FLAG_DENY_OVERBUDGET, 1, &tmp, fence->GetFence(), signal);
+			if (FAILED(hr))
+			{
+				throw "Can't make the heap resident!";
+			}
+
+			WaitJob* waitJob = new WaitJob(m_jobContext);
+			utils::RunAsync(waitJob);
 		}
 	};
 
 	JobContext jobContext;
 	jobContext.m_heap = this;
 	jobContext.m_done = done;
-	jobContext.m_fenceTempObject = new TemporaryBaseObject();
 
-	jobContext.m_fenceTempObject->CreateObject(new CreateFenceJob(jobContext));
+	utils::RunSync(new CreateFenceJob(jobContext));
 }
 
 void rendering::DXHeap::Evict()

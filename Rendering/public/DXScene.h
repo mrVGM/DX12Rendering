@@ -32,7 +32,7 @@ namespace rendering
 		DXScene();
 		virtual ~DXScene();
 
-		void LoadColladaScene(const std::string& filePath, jobs::Job* done, jobs::JobSystem* jobSystem);
-		void LoadVertexBuffers(int sceneIndex, jobs::Job* done, jobs::JobSystem* jobSystem);
+		void LoadColladaScene(const std::string& filePath, jobs::Job* done);
+		void LoadVertexBuffers(int sceneIndex, jobs::Job* done);
 	};
 }

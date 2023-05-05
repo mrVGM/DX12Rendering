@@ -56,8 +56,8 @@ add_library (Rendering
 	"private/DXHeapMeta.cpp"
 	"private/LoadJobSystemMeta.h"
 	"private/LoadJobSystemMeta.cpp"
-	"public/TemporaryBaseObject.h"
-	"private/TemporaryBaseObject.cpp"
+	
+	
 	"public/DXBuffer.h"
 	"private/DXBuffer.cpp"
 	"public/DXBufferMeta.h"
@@ -93,7 +93,7 @@ add_library (Rendering
 	"public/DXScene.h"
 	"private/DXScene.cpp"
 	"public/DXSceneMeta.h"
-	"private/DXSceneMeta.cpp")
+	"private/DXSceneMeta.cpp" "private/ResourceUtils/DXCopyFenceMeta.h"  "private/ResourceUtils/DXCopyFenceMeta.cpp")
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")

@@ -36,8 +36,7 @@ namespace rendering
 		void CopyData(void* data, int dataSize);
 		void CopyBuffer(
 			rendering::DXBuffer& destination,
-			jobs::Job* done,
-			jobs::JobSystem* jobSystem) const;
+			jobs::Job* done) const;
 
 		void Place(DXHeap* heap, UINT64 heapOffset);
 
