@@ -28,8 +28,6 @@ namespace
 	jobs::JobSystem* m_mainJobSystem = nullptr;
 	jobs::JobSystem* m_loadJobSystem = nullptr;
 
-	rendering::DXCopyBuffers* m_copyBuffers = nullptr;
-
 	rendering::DXScene* m_scene = nullptr;
 }
 
@@ -83,7 +81,7 @@ rendering::DXCommandQueue* rendering::utils::GetCommandQueue()
 
 rendering::DXCopyCommandQueue* rendering::utils::GetCopyCommandQueue()
 {
-	if (m_commandQueue)
+	if (m_copyCommandQueue)
 	{
 		return m_copyCommandQueue;
 	}
@@ -141,18 +139,6 @@ rendering::DXBuffer* rendering::utils::GetCameraBuffer()
 	return m_cameraBuffer;
 }
 
-rendering::DXCopyBuffers* rendering::utils::GetCopyBuffers()
-{
-	if (m_copyBuffers)
-	{
-		return m_copyBuffers;
-	}
-	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-	BaseObject* obj = container.GetObjectOfClass(DXCameraBufferMeta::GetInstance());
-	m_copyBuffers = static_cast<DXCopyBuffers*>(obj);
-	return m_copyBuffers;
-}
-
 rendering::DXScene* rendering::utils::GetScene()
 {
 	if (m_scene)
@@ -176,8 +162,6 @@ void rendering::utils::CacheObjects()
 	GetLoadJobSystem();
 	GetCamera();
 	GetCameraBuffer();
-
-	GetCopyBuffers();
 
 	GetScene();
 }

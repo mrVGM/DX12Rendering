@@ -24,9 +24,7 @@ namespace rendering
 
 		void Execute(
 			DXBuffer& dst,
-			D3D12_RESOURCE_STATES dstInitialState,
 			const DXBuffer& src,
-			D3D12_RESOURCE_STATES srcInitialState,
 			jobs::Job* done,
 			jobs::JobSystem* jobSystem
 		);

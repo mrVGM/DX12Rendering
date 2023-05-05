@@ -31,7 +31,7 @@ void rendering::DXCopyCommandQueue::Create()
     // Describe and create the command queue.
     D3D12_COMMAND_QUEUE_DESC queueDesc = {};
     queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-    queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+    queueDesc.Type = D3D12_COMMAND_LIST_TYPE_COPY;
 
     THROW_ERROR(
         dxDevice->GetDevice().CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_commandQueue)),

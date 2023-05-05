@@ -36,8 +36,6 @@ namespace rendering
 		void CopyData(void* data, int dataSize);
 		void CopyBuffer(
 			rendering::DXBuffer& destination,
-			D3D12_RESOURCE_STATES myState,
-			D3D12_RESOURCE_STATES destinationState,
 			jobs::Job* done,
 			jobs::JobSystem* jobSystem) const;
 

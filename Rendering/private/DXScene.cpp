@@ -20,7 +20,8 @@ namespace
 		struct Context
 		{
 
-			DXBuffer** m_buffer = nullptr;
+			DXBuffer** m_outBuffer = nullptr;
+			DXBuffer* m_buffer = nullptr;
 			DXHeap* m_heap = nullptr;
 
 			bool m_upload = false;
@@ -43,7 +44,9 @@ namespace
 
 			void Do() override
 			{
-				(*m_ctx.m_buffer)->Place(m_ctx.m_heap, 0);
+				m_ctx.m_buffer->Place(m_ctx.m_heap, 0);
+
+				*m_ctx.m_outBuffer = m_ctx.m_buffer;
 
 				m_ctx.m_jobSystem->ScheduleJob(m_ctx.m_done);
 				delete& m_ctx;
@@ -79,11 +82,11 @@ namespace
 
 			void Do() override
 			{
-				*m_ctx.m_buffer = new DXBuffer(DXBufferMeta::GetInstance());
+				m_ctx.m_buffer = new DXBuffer(DXBufferMeta::GetInstance());
 				m_ctx.m_heap = new DXHeap();
 
-				(*m_ctx.m_buffer)->SetBufferSizeAndFlags(m_ctx.m_size, D3D12_RESOURCE_FLAG_NONE);
-				(*m_ctx.m_buffer)->SetBufferStride(m_ctx.m_stride);
+				m_ctx.m_buffer->SetBufferSizeAndFlags(m_ctx.m_size, D3D12_RESOURCE_FLAG_NONE);
+				m_ctx.m_buffer->SetBufferStride(m_ctx.m_stride);
 
 				m_ctx.m_heap->SetHeapSize(m_ctx.m_size);
 				m_ctx.m_heap->SetHeapType(m_ctx.m_upload ? D3D12_HEAP_TYPE_UPLOAD : D3D12_HEAP_TYPE_DEFAULT);
@@ -94,7 +97,8 @@ namespace
 		};
 
 		Context* ctx = new Context();
-		ctx->m_buffer = &outBuffer;
+		ctx->m_buffer = nullptr;
+		ctx->m_outBuffer = &outBuffer;
 		ctx->m_heap = nullptr;
 		ctx->m_upload = upload;
 		ctx->m_stride = stride;
@@ -163,6 +167,9 @@ namespace
 
 			jobs::Job* m_done = nullptr;
 			jobs::JobSystem* m_jobSystem = nullptr;
+
+			bool m_uploadBufferReady = false;
+			bool m_defaultBufferReady = false;
 		};
 
 		UINT64 stride = sizeof(collada::Vertex);
@@ -213,12 +220,50 @@ namespace
 
 			void Do() override
 			{
-				m_ctx.m_uploadBuffer->CopyBuffer(
-					**(m_ctx.m_buffer),
-					D3D12_RESOURCE_STATE_GENERIC_READ,
-					D3D12_RESOURCE_STATE_PRESENT,
-					new Clear(m_ctx),
-					utils::GetMainJobSystem());
+				m_ctx.m_uploadBuffer->CopyBuffer(**(m_ctx.m_buffer), new Clear(m_ctx), utils::GetMainJobSystem());
+			}
+		};
+
+		class ExecuteCopy : public jobs::Job
+		{
+		private:
+			Context& m_ctx;
+		public:
+			ExecuteCopy(Context& ctx) :
+				m_ctx(ctx)
+			{
+			}
+
+			void Do() override
+			{
+				if (!m_ctx.m_defaultBufferReady)
+				{
+					return;
+				}
+
+				if (!m_ctx.m_uploadBufferReady)
+				{
+					return;
+				}
+
+				utils::GetLoadJobSystem()->ScheduleJob(new Copy(m_ctx));
+			}
+		};
+
+		class UploadBufferReady : public jobs::Job
+		{
+		private:
+			Context& m_ctx;
+		public:
+			UploadBufferReady(Context& ctx) :
+				m_ctx(ctx)
+			{
+			}
+
+			void Do() override
+			{
+				m_ctx.m_uploadBufferReady = true;
+				utils::GetMainJobSystem()->ScheduleJob(new ExecuteCopy(m_ctx));
 			}
 		};
 
@@ -234,12 +279,7 @@ namespace
 
 			void Do() override
 			{
-				if (!(*m_ctx.m_buffer))
-				{
-					return;
-				}
-
-				UploadDataToBuffer(*m_ctx.m_data, *m_ctx.m_uploadBuffer, new Copy(m_ctx), utils::GetLoadJobSystem());
+				UploadDataToBuffer(*m_ctx.m_data, *m_ctx.m_uploadBuffer, new UploadBufferReady(m_ctx), utils::GetMainJobSystem());
 			}
 		};
 		class CreateDefaultBuffer : public jobs::Job
@@ -254,17 +294,13 @@ namespace
 
 			void Do() override
 			{
-				if (!m_ctx.m_uploadBuffer)
-				{
-					return;
-				}
-
-				UploadDataToBuffer(*m_ctx.m_data, *m_ctx.m_uploadBuffer, new Copy(m_ctx), utils::GetLoadJobSystem());
+				m_ctx.m_defaultBufferReady = true;
+				utils::GetMainJobSystem()->ScheduleJob(new ExecuteCopy(m_ctx));
 			}
 		};
 
 		CreateBuffer(true, size, stride, ctx->m_uploadBuffer, new CreateUploadBuffer(*ctx), utils::GetLoadJobSystem());
-		CreateBuffer(false, size, stride, *(ctx->m_buffer), new CreateDefaultBuffer(*ctx), utils::GetLoadJobSystem());
+		CreateBuffer(false, size, stride, *(ctx->m_buffer), new CreateDefaultBuffer(*ctx), utils::GetMainJobSystem());
 	}
 
 

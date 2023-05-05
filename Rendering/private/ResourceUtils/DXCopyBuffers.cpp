@@ -51,9 +51,7 @@ rendering::DXCopyBuffers::~DXCopyBuffers()
 
 void rendering::DXCopyBuffers::Execute(
     DXBuffer& dst,
-    D3D12_RESOURCE_STATES dstInitialState,
     const DXBuffer& src,
-    D3D12_RESOURCE_STATES srcInitialState,
     jobs::Job* done,
     jobs::JobSystem* jobSystem)
 {
@@ -64,26 +62,8 @@ void rendering::DXCopyBuffers::Execute(
     THROW_ERROR(
         m_commandList->Reset(m_commandAllocator.Get(), nullptr),
         "Can't reset Command List!")
-
-    {
-        CD3DX12_RESOURCE_BARRIER barrier[] =
-        {
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(dst.GetBuffer(), dstInitialState, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST),
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(src.GetBuffer(), srcInitialState, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_SOURCE)
-        };
-        m_commandList->ResourceBarrier(_countof(barrier), barrier);
-    }
-
+    
     m_commandList->CopyResource(dst.GetBuffer(), src.GetBuffer());
-
-    {
-        CD3DX12_RESOURCE_BARRIER barrier[] =
-        {
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(dst.GetBuffer(), D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST, dstInitialState),
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(src.GetBuffer(), D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_SOURCE, srcInitialState)
-        };
-        m_commandList->ResourceBarrier(_countof(barrier), barrier);
-    }
 
     THROW_ERROR(
         m_commandList->Close(),
@@ -93,10 +73,6 @@ void rendering::DXCopyBuffers::Execute(
     DXCopyCommandQueue* commandQueue = rendering::utils::GetCopyCommandQueue();
     ID3D12CommandList* copyCommandList[] = { m_commandList.Get() };
     commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(copyCommandList), copyCommandList);
-
-    DXFence* fence = new DXFence(DXFenceMeta::GetInstance());
-    commandQueue->GetCommandQueue()->Signal(fence->GetFence(), 1);
-
 
     struct JobContext
     {
