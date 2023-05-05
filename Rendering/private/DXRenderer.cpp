@@ -147,7 +147,7 @@ void rendering::DXRenderer::RenderUnlit()
 		{
 			DXBuffer* vertBuf = it->second;
 			DXBuffer* indexBuf = curSceneResources.m_indexBuffers.find(it->first)->second;
-			DXBuffer* instanceBuf = curSceneResources.m_indexBuffers.find(it->first)->second;
+			DXBuffer* instanceBuf = curSceneResources.m_instanceBuffers.find(it->first)->second;
 
 			mat->GenerateCommandList(*vertBuf, *indexBuf, *instanceBuf);
 		}
