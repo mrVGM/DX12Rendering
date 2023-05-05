@@ -18,6 +18,7 @@ namespace rendering
 	class DXScene : public BaseObject
 	{
 	public:
+		int m_scenesLoaded = 0;
 		struct SceneResources
 		{
 			std::map<std::string, DXBuffer*> m_vertexBuffers;
@@ -26,10 +27,10 @@ namespace rendering
 		};
 
 	private:
+	public:
 		std::vector<collada::ColladaScene*> m_colladaScenes;
 		std::vector<SceneResources> m_sceneResources;
 
-	public:
 		DXScene();
 		virtual ~DXScene();
 

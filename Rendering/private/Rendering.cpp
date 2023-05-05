@@ -110,6 +110,7 @@ void rendering::InitBaseObjects()
 		}
 		void Do() override
 		{
+			m_ctx.scene->m_scenesLoaded = 1;
 			std::cout << "Yessss!" << std::endl;
 			bool t = true;
 		}

@@ -30,6 +30,9 @@ rendering::DXMaterial::~DXMaterial()
 void rendering::DXMaterial::ResetCommandLists()
 {
 	m_commandLists.clear();
+	THROW_ERROR(
+		m_commandAllocator->Reset(),
+		"Can't reset Command Allocator!")
 }
 
 const std::list<Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> >& rendering::DXMaterial::GetGeneratedCommandLists() const

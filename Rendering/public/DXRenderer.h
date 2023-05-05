@@ -4,6 +4,7 @@
 
 #include <d3d12.h>
 #include <string>
+#include <list>
 
 namespace rendering
 {
@@ -11,6 +12,7 @@ namespace rendering
 	{
 	private:
 		UINT64 m_counter = 1;
+		void RenderUnlit();
 	public:
 		DXRenderer();
 		virtual ~DXRenderer();

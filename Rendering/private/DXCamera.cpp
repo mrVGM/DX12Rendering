@@ -96,6 +96,9 @@ void rendering::DXCamera::UpdateCamBuffer()
 rendering::DXCamera::DXCamera() :
 	BaseObject(DXCameraMeta::GetInstance())
 {
+	using namespace DirectX;
+	m_position = XMVectorSet(0, 0, -5, 1);
+	m_target = XMVectorSet(0, 0, 0, 1);
 }
 
 rendering::DXCamera::~DXCamera()
@@ -113,6 +116,7 @@ void rendering::DXCamera::InitBuffer(jobs::Job* done)
 	
 	struct JobContext
 	{
+		DXCamera* m_cam = nullptr;
 		jobs::Job* m_done = nullptr;
 		DXHeap* m_heap = nullptr;
 	};
@@ -135,11 +139,13 @@ void rendering::DXCamera::InitBuffer(jobs::Job* done)
 			std::string error;
 			camBuffer->Place(m_jobContext.m_heap, 0);
 
+			m_jobContext.m_cam->UpdateCamBuffer();
+
 			utils::RunSync(m_jobContext.m_done);
 		}
 	};
 
-	JobContext jobContext{ done, heap };
+	JobContext jobContext{ this, done, heap };
 
 	heap->MakeResident(new InitBufferJob(jobContext));
 }

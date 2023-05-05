@@ -15,6 +15,8 @@
 
 #include "Job.h"
 
+#include <vector>
+
 #include <iostream>
 
 namespace
@@ -104,7 +106,9 @@ void rendering::DXRenderer::Render()
 	WaitFence waitFence(*fence);
 
 	clearRT->Execute();
-	
+
+	RenderUnlit();
+
 	DXCommandQueue* commandQueue = utils::GetCommandQueue();
 	commandQueue->GetCommandQueue()->Signal(fence->GetFence(), m_counter);
 
@@ -125,4 +129,36 @@ void rendering::DXRenderer::StartRendering()
 	GetRenderFence();
 	GetClearRTRP();
 	RenderFrame();
+}
+
+void rendering::DXRenderer::RenderUnlit()
+{
+	DXScene* scene = utils::GetScene();
+	DXMaterial* mat = utils::GetUnlitMaterial();
+
+	mat->ResetCommandLists();
+
+	for (int i = 0; i < scene->m_scenesLoaded; ++i)
+	{
+		const collada::ColladaScene& curColladaScene = *scene->m_colladaScenes[i];
+		const DXScene::SceneResources& curSceneResources = scene->m_sceneResources[i];
+
+		for (auto it = curSceneResources.m_vertexBuffers.begin(); it != curSceneResources.m_vertexBuffers.end(); ++it)
+		{
+			DXBuffer* vertBuf = it->second;
+			DXBuffer* indexBuf = curSceneResources.m_indexBuffers.find(it->first)->second;
+			DXBuffer* instanceBuf = curSceneResources.m_indexBuffers.find(it->first)->second;
+
+			mat->GenerateCommandList(*vertBuf, *indexBuf, *instanceBuf);
+		}
+	}
+
+	const std::list<Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> >& unlitLists = mat->GetGeneratedCommandLists();
+
+	DXCommandQueue* commandQueue = utils::GetCommandQueue();
+	for (auto it = unlitLists.begin(); it != unlitLists.end(); ++it)
+	{
+		ID3D12CommandList *const tmp[] = { it->Get() };
+		commandQueue->GetCommandQueue()->ExecuteCommandLists(1, tmp);
+	}
 }
