@@ -53,8 +53,8 @@ void rendering::InitBaseObjects()
 
 	new DXMaterialRepo();
 
-	DXShader* ps = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_unlit.fxc");
-	DXShader* vs = new DXShader(DXVertexShaderMeta::GetInstance(), "shaders/bin/vs_unlit.fxc");
+	DXShader* ps = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_error.fxc");
+	DXShader* vs = new DXShader(DXVertexShaderMeta::GetInstance(), "shaders/bin/vs_mainVS.fxc");
 
 	new DXUnlitMaterial(*vs, *ps);
 
