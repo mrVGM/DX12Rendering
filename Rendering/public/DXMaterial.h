@@ -29,7 +29,13 @@ namespace rendering
 		virtual ~DXMaterial();
 
 		void ResetCommandLists();
-		virtual void GenerateCommandList(const DXBuffer& vertexBuffer, const DXBuffer& indexBuffer, const DXBuffer& instanceBuffer) = 0;
+		virtual ID3D12CommandList* GenerateCommandList(
+			const DXBuffer& vertexBuffer,
+			const DXBuffer& indexBuffer,
+			const DXBuffer& instanceBuffer,
+			UINT startIndex,
+			UINT indexCount,
+			UINT instanceIndex) = 0;
 
 		const std::list<Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> >& GetGeneratedCommandLists() const;
 	};

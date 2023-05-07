@@ -3,7 +3,7 @@
 #include "RenderPass/DXUnlitRPMeta.h"
 #include "RenderUtils.h"
 
-#include <iostream>
+#include <set>
 
 #define THROW_ERROR(hRes, error) \
 if (FAILED(hRes)) {\
@@ -130,22 +130,54 @@ void rendering::DXUnlitRP::RenderUnlit()
 
     mat->ResetCommandLists();
 
+    DXMaterialRepo* repo = utils::GetMaterialRepo();
+    DXMaterial* errorMat = repo->GetMaterial("error");
+
+    std::list<ID3D12CommandList*> unlitLists;
     for (int i = 0; i < scene->m_scenesLoaded; ++i)
     {
-        const collada::ColladaScene& curColladaScene = *scene->m_colladaScenes[i];
+        collada::ColladaScene& curColladaScene = *scene->m_colladaScenes[i];
         const DXScene::SceneResources& curSceneResources = scene->m_sceneResources[i];
 
-        for (auto it = curSceneResources.m_vertexBuffers.begin(); it != curSceneResources.m_vertexBuffers.end(); ++it)
-        {
-            DXBuffer* vertBuf = it->second;
-            DXBuffer* indexBuf = curSceneResources.m_indexBuffers.find(it->first)->second;
-            DXBuffer* instanceBuf = curSceneResources.m_instanceBuffers.find(it->first)->second;
+        collada::Scene& s = curColladaScene.GetScene();
 
-            mat->GenerateCommandList(*vertBuf, *indexBuf, *instanceBuf);
+        for (auto it = s.m_objects.begin(); it != s.m_objects.end(); ++it)
+        {
+            collada::Object& obj = it->second;
+            collada::Geometry& geo = s.m_geometries[obj.m_geometry];
+            int instanceIndex = s.m_objectInstanceMap[it->first];
+            
+            while (obj.m_materialOverrides.size() < geo.m_materials.size())
+            {
+                obj.m_materialOverrides.push_back("");
+            }
+
+            auto matOverrideIt = obj.m_materialOverrides.begin();
+
+            for (auto it = geo.m_materials.begin(); it != geo.m_materials.end(); ++it)
+            {
+                DXMaterial* mat = repo->GetMaterial(*matOverrideIt);
+                ++matOverrideIt;
+
+                DXBuffer* vertBuf = curSceneResources.m_vertexBuffers.find(obj.m_geometry)->second;
+                DXBuffer* indexBuf = curSceneResources.m_indexBuffers.find(obj.m_geometry)->second;
+                DXBuffer* instanceBuf = curSceneResources.m_instanceBuffers.find(obj.m_geometry)->second;
+
+                if (mat)
+                {
+                    continue;
+                }
+                
+                unlitLists.push_back(errorMat->GenerateCommandList(
+                    *vertBuf,
+                    *indexBuf,
+                    *instanceBuf,
+                    (*it).indexOffset,
+                    (*it).indexCount,
+                    instanceIndex));
+            }
         }
     }
-
-    const std::list<Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> >& unlitLists = mat->GetGeneratedCommandLists();
 
     int numLists = unlitLists.size();
     if (m_numCommandLists < numLists)
@@ -158,7 +190,7 @@ void rendering::DXUnlitRP::RenderUnlit()
     int index = 0;
     for (auto it = unlitLists.begin(); it != unlitLists.end(); ++it)
     {
-        m_commandListsCache[index++] = it->Get();
+        m_commandListsCache[index++] = *it;
     }
 
     DXCommandQueue* commandQueue = utils::GetCommandQueue();

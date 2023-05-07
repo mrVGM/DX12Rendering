@@ -14,6 +14,12 @@ namespace rendering
 		DXUnlitMaterial(const DXShader& vertexShader, const DXShader& pixelShader);
 		virtual ~DXUnlitMaterial();
 
-		virtual void GenerateCommandList(const DXBuffer& vertexBuffer, const DXBuffer& indexBuffer, const DXBuffer& instanceBuffer) override;
+		virtual ID3D12CommandList* GenerateCommandList(
+			const DXBuffer& vertexBuffer,
+			const DXBuffer& indexBuffer,
+			const DXBuffer& instanceBuffer,
+			UINT startIndex,
+			UINT indexCount,
+			UINT instanceIndex) override;
 	};
 }

@@ -106,7 +106,13 @@ rendering::DXUnlitMaterial::~DXUnlitMaterial()
 {
 }
 
-void rendering::DXUnlitMaterial::GenerateCommandList(const DXBuffer& vertexBuffer, const DXBuffer& indexBuffer, const DXBuffer& instanceBuffer)
+ID3D12CommandList* rendering::DXUnlitMaterial::GenerateCommandList(
+    const DXBuffer& vertexBuffer,
+    const DXBuffer& indexBuffer,
+    const DXBuffer& instanceBuffer,
+    UINT startIndex,
+    UINT indexCount,
+    UINT instanceIndex)
 {
     DXDevice* device = utils::GetDevice();
     DXSwapChain* swapChain = utils::GetSwapChain();
@@ -151,22 +157,20 @@ void rendering::DXUnlitMaterial::GenerateCommandList(const DXBuffer& vertexBuffe
     commandList->IASetVertexBuffers(0, 2, vertexBufferViews);
     commandList->IASetIndexBuffer(&indexBufferView);
 
-    int numIndices = indexBuffer.GetBufferSize() / 4;
-
     int numInstances = instanceBuffer.GetBufferSize() / instanceBuffer.GetStride();
-
-    
     commandList->DrawIndexedInstanced(
-        numIndices,
+        indexCount,
         1,
+        startIndex,
         0,
-        0,
-        0
+        instanceIndex
     );
     
     THROW_ERROR(
         commandList->Close(),
         "Can't close Command List!")
+
+    return commandList.Get();
 }
 
 
