@@ -78,12 +78,12 @@ add_library (Rendering
 	"private/DXPixelShaderMeta.cpp"
 	"private/DXComputeShaderMeta.h"
 	"private/DXComputeShaderMeta.cpp"
-	"private/Materials/DXUnlitMaterial.h"
+	"private/Materials/DXUnlitErrorMaterial.h"
 	"public/DXMaterial.h"
 	"private/DXMaterial.cpp"
 	"public/DXMaterialMeta.h"
 	"private/DXMaterialMeta.cpp"
-	"private/Materials/DXUnlitMaterial.cpp"
+	"private/Materials/DXUnlitErrorMaterial.cpp"
 	"public/DXCopyCommandQueue.h"
 	"private/DXCopyCommandQueue.cpp"
 	"public/DXCopyCommandQueueMeta.h"
@@ -96,12 +96,11 @@ add_library (Rendering
 	"private/DXScene.cpp"
 	"public/DXSceneMeta.h"
 	"private/DXSceneMeta.cpp"
-	"private/Materials/DXUnlitMaterialMeta.h"
+	"private/Materials/DXUnlitErrorMaterialMeta.h"
+	"private/Materials/DXUnlitErrorMaterialMeta.cpp"
 	"private/ResourceUtils/DXCopyFenceMeta.cpp"
-	"private/Materials/DXUnlitMaterialMeta.cpp"
-	"private/Materials/DXUnlitMaterialMeta.h"
-	"private/Materials/DXUnlitMaterial.h"
-	"private/Materials/DXUnlitMaterial.cpp"
+	"private/Materials/DXUnlitErrorMaterial.h"
+	"private/Materials/DXUnlitErrorMaterial.cpp"
 	"public/UpdaterMeta.h"
 	"private/UpdaterMeta.cpp"
 	"public/Updater.h"
@@ -112,7 +111,9 @@ add_library (Rendering
 	"private/RenderPass/DXUnlitRP.cpp"
 	"public/DXMaterialRepo.h"
 	"private/DXMaterialRepo.cpp"
- "public/DXMaterialRepoMeta.h" "private/DXMaterialRepoMeta.cpp")
+	"public/DXMaterialRepoMeta.h"
+	"private/DXMaterialRepoMeta.cpp"
+)
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")

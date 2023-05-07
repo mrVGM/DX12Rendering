@@ -22,8 +22,8 @@
 #include "DXVertexShaderMeta.h"
 #include "DXPixelShaderMeta.h"
 
-#include "Materials/DXUnlitMaterial.h"
-#include "Materials/DXUnlitMaterialMeta.h"
+#include "Materials/DXUnlitErrorMaterial.h"
+#include "Materials/DXUnlitErrorMaterialMeta.h"
 
 #include "DXMaterialRepo.h"
 #include "DXMaterialRepoMeta.h"
@@ -48,7 +48,7 @@ namespace
 	rendering::DXShader* m_unlitPixelShader = nullptr;
 	rendering::DXShader* m_unlitVertexShader = nullptr;
 
-	rendering::DXUnlitMaterial* m_unlitMaterial = nullptr;
+	rendering::DXUnlitErrorMaterial* m_unlitErrorMaterial = nullptr;
 	rendering::DXMaterialRepo* m_materialRepo = nullptr;
 
 
@@ -211,16 +211,16 @@ rendering::DXShader* rendering::utils::GetUnlitPixelShader()
 	return m_unlitPixelShader;
 }
 
-rendering::DXUnlitMaterial* rendering::utils::GetUnlitMaterial()
+rendering::DXUnlitErrorMaterial* rendering::utils::GetUnlitErrorMaterial()
 {
-	if (m_unlitMaterial)
+	if (m_unlitErrorMaterial)
 	{
-		return m_unlitMaterial;
+		return m_unlitErrorMaterial;
 	}
 	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-	BaseObject* obj = container.GetObjectOfClass(DXUnlitMaterialMeta::GetInstance());
-	m_unlitMaterial = static_cast<DXUnlitMaterial*>(obj);
-	return m_unlitMaterial;
+	BaseObject* obj = container.GetObjectOfClass(DXUnlitErrorMaterialMeta::GetInstance());
+	m_unlitErrorMaterial = static_cast<DXUnlitErrorMaterial*>(obj);
+	return m_unlitErrorMaterial;
 }
 
 void rendering::utils::RunSync(jobs::Job* job)
@@ -303,7 +303,7 @@ void rendering::utils::CacheObjects()
 	GetCameraBuffer();
 	GetUnlitVertexShader();
 	GetUnlitPixelShader();
-	GetUnlitMaterial();
+	GetUnlitErrorMaterial();
 	GetMaterialRepo();
 
 	GetScene();

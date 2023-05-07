@@ -126,7 +126,7 @@ rendering::DXUnlitRP::~DXUnlitRP()
 void rendering::DXUnlitRP::RenderUnlit()
 {
     DXScene* scene = utils::GetScene();
-    DXMaterial* mat = utils::GetUnlitMaterial();
+    DXMaterial* mat = utils::GetUnlitErrorMaterial();
 
     mat->ResetCommandLists();
 

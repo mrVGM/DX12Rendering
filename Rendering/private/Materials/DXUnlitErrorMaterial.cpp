@@ -1,8 +1,8 @@
-#include "DXUnlitMaterial.h"
+#include "DXUnlitErrorMaterial.h"
 
 #include "d3dx12.h"
 
-#include "DXUnlitMaterialMeta.h"
+#include "DXUnlitErrorMaterialMeta.h"
 
 #include "RenderUtils.h"
 
@@ -13,8 +13,8 @@ if (FAILED(hRes)) {\
     throw error;\
 }
 
-rendering::DXUnlitMaterial::DXUnlitMaterial(const rendering::DXShader& vertexShader, const rendering::DXShader& pixelShader) :
-    DXMaterial(DXUnlitMaterialMeta::GetInstance(), vertexShader, pixelShader)
+rendering::DXUnlitErrorMaterial::DXUnlitErrorMaterial(const rendering::DXShader& vertexShader, const rendering::DXShader& pixelShader) :
+    DXMaterial(DXUnlitErrorMaterialMeta::GetInstance(), vertexShader, pixelShader)
 {
     DXDevice* device = utils::GetDevice();
 
@@ -102,11 +102,11 @@ rendering::DXUnlitMaterial::DXUnlitMaterial(const rendering::DXShader& vertexSha
 
 }
 
-rendering::DXUnlitMaterial::~DXUnlitMaterial()
+rendering::DXUnlitErrorMaterial::~DXUnlitErrorMaterial()
 {
 }
 
-ID3D12CommandList* rendering::DXUnlitMaterial::GenerateCommandList(
+ID3D12CommandList* rendering::DXUnlitErrorMaterial::GenerateCommandList(
     const DXBuffer& vertexBuffer,
     const DXBuffer& indexBuffer,
     const DXBuffer& instanceBuffer,

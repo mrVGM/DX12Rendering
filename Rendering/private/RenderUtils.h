@@ -13,7 +13,7 @@
 #include "DXRenderer.h"
 #include "DXMaterialRepo.h"
 
-#include "Materials/DXUnlitMaterial.h"
+#include "Materials/DXUnlitErrorMaterial.h"
 
 #include "ResourceUtils/DXCopyBuffers.h"
 
@@ -40,7 +40,7 @@ namespace rendering
 		rendering::DXShader* GetUnlitVertexShader();
 		rendering::DXShader* GetUnlitPixelShader();
 
-		rendering::DXUnlitMaterial* GetUnlitMaterial();
+		rendering::DXUnlitErrorMaterial* GetUnlitErrorMaterial();
 		rendering::DXMaterialRepo* GetMaterialRepo();
 
 		void RunSync(jobs::Job* job);

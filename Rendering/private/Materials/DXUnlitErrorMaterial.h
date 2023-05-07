@@ -4,15 +4,15 @@
 
 namespace rendering
 {
-	class DXUnlitMaterial : public rendering::DXMaterial
+	class DXUnlitErrorMaterial : public rendering::DXMaterial
 	{
 	private:
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pipelineState;
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature;
 
 	public:
-		DXUnlitMaterial(const DXShader& vertexShader, const DXShader& pixelShader);
-		virtual ~DXUnlitMaterial();
+		DXUnlitErrorMaterial(const DXShader& vertexShader, const DXShader& pixelShader);
+		virtual ~DXUnlitErrorMaterial();
 
 		virtual ID3D12CommandList* GenerateCommandList(
 			const DXBuffer& vertexBuffer,

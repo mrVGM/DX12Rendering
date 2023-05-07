@@ -56,9 +56,9 @@ void rendering::InitBaseObjects()
 	DXShader* ps = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_error.fxc");
 	DXShader* vs = new DXShader(DXVertexShaderMeta::GetInstance(), "shaders/bin/vs_mainVS.fxc");
 
-	new DXUnlitMaterial(*vs, *ps);
+	new DXUnlitErrorMaterial(*vs, *ps);
 
-	utils::GetMaterialRepo()->Register("error", *utils::GetUnlitMaterial());
+	utils::GetMaterialRepo()->Register("error", *utils::GetUnlitErrorMaterial());
 
 	rendering::utils::CacheObjects();
 	std::cout << "Base Rendering Objects created!" << std::endl;
