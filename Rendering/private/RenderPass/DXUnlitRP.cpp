@@ -143,10 +143,20 @@ void rendering::DXUnlitRP::RenderUnlit()
 
     const std::list<Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> >& unlitLists = mat->GetGeneratedCommandLists();
 
-    DXCommandQueue* commandQueue = utils::GetCommandQueue();
+    int numLists = unlitLists.size();
+    if (m_numCommandLists < numLists)
+    {
+        delete[] m_commandListsCache;
+        m_commandListsCache = new ID3D12CommandList* [numLists];
+        m_numCommandLists = numLists;
+    }
+
+    int index = 0;
     for (auto it = unlitLists.begin(); it != unlitLists.end(); ++it)
     {
-        ID3D12CommandList* const tmp[] = { it->Get() };
-        commandQueue->GetCommandQueue()->ExecuteCommandLists(1, tmp);
+        m_commandListsCache[index++] = it->Get();
     }
+
+    DXCommandQueue* commandQueue = utils::GetCommandQueue();
+    commandQueue->GetCommandQueue()->ExecuteCommandLists(numLists, m_commandListsCache);
 }
