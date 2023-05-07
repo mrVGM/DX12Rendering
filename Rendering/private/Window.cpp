@@ -232,3 +232,8 @@ void rendering::Window::RegisterRawInputDevice()
 	rid[0].hwndTarget = m_hwnd;
 	RegisterRawInputDevices(rid, 1, sizeof(rid[0]));
 }
+
+const rendering::InputInfo& rendering::Window::GetInputInfo()
+{
+	return m_inputInfo;
+}

@@ -41,5 +41,7 @@ namespace rendering
 		LRESULT CALLBACK WndProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 		void WindowTick();
+
+		const InputInfo& GetInputInfo();
 	};
 }
