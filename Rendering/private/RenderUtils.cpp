@@ -25,6 +25,9 @@
 #include "Materials/DXUnlitMaterial.h"
 #include "Materials/DXUnlitMaterialMeta.h"
 
+#include "DXMaterialRepo.h"
+#include "DXMaterialRepoMeta.h"
+
 namespace
 {
 	rendering::Updater* m_updater = nullptr;
@@ -46,6 +49,7 @@ namespace
 	rendering::DXShader* m_unlitVertexShader = nullptr;
 
 	rendering::DXUnlitMaterial* m_unlitMaterial = nullptr;
+	rendering::DXMaterialRepo* m_materialRepo = nullptr;
 
 
 	jobs::JobSystem* GetMainJobSystem()
@@ -274,6 +278,18 @@ rendering::DXRenderer* rendering::utils::GetRenderer()
 	return m_renderer;
 }
 
+rendering::DXMaterialRepo* rendering::utils::GetMaterialRepo()
+{
+	if (m_materialRepo)
+	{
+		return m_materialRepo;
+	}
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+	BaseObject* obj = container.GetObjectOfClass(DXMaterialRepoMeta::GetInstance());
+	m_materialRepo = static_cast<DXMaterialRepo*>(obj);
+	return m_materialRepo;
+}
+
 void rendering::utils::CacheObjects()
 {
 	GetWindow();
@@ -288,6 +304,7 @@ void rendering::utils::CacheObjects()
 	GetUnlitVertexShader();
 	GetUnlitPixelShader();
 	GetUnlitMaterial();
+	GetMaterialRepo();
 
 	GetScene();
 }

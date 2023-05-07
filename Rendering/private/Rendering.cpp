@@ -26,6 +26,7 @@
 #include "DXPixelShaderMeta.h"
 #include "Updater.h"
 
+#include "DXMaterialRepo.h"
 
 #include "DataLib.h"
 
@@ -50,10 +51,14 @@ void rendering::InitBaseObjects()
 	new DXCopyBuffers();
 	new DXScene();
 
+	new DXMaterialRepo();
+
 	DXShader* ps = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_unlit.fxc");
 	DXShader* vs = new DXShader(DXVertexShaderMeta::GetInstance(), "shaders/bin/vs_unlit.fxc");
 
 	new DXUnlitMaterial(*vs, *ps);
+
+	utils::GetMaterialRepo()->Register("error", *utils::GetUnlitMaterial());
 
 	rendering::utils::CacheObjects();
 	std::cout << "Base Rendering Objects created!" << std::endl;

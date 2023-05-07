@@ -11,6 +11,7 @@
 #include "DXShader.h"
 #include "Updater.h"
 #include "DXRenderer.h"
+#include "DXMaterialRepo.h"
 
 #include "Materials/DXUnlitMaterial.h"
 
@@ -40,6 +41,7 @@ namespace rendering
 		rendering::DXShader* GetUnlitPixelShader();
 
 		rendering::DXUnlitMaterial* GetUnlitMaterial();
+		rendering::DXMaterialRepo* GetMaterialRepo();
 
 		void RunSync(jobs::Job* job);
 		void RunAsync(jobs::Job* job);
