@@ -15,6 +15,8 @@
 #include "DXCameraBufferMeta.h"
 #include "ResourceUtils/DXCopyBuffersMeta.h"
 #include "DXSceneMeta.h"
+#include "UpdaterMeta.h"
+#include "DXRendererMeta.h"
 
 #include "DXShader.h"
 #include "DXVertexShaderMeta.h"
@@ -25,7 +27,9 @@
 
 namespace
 {
+	rendering::Updater* m_updater = nullptr;
 	rendering::Window* m_window = nullptr;
+	rendering::DXRenderer* m_renderer = nullptr;
 	rendering::DXDevice* m_device = nullptr;
 	rendering::DXSwapChain* m_swapChain = nullptr;
 	rendering::DXCommandQueue* m_commandQueue = nullptr;
@@ -244,6 +248,30 @@ void rendering::utils::DisposeBaseObject(BaseObject& baseObject)
 	};
 
 	utils::RunSync(new Dispose(baseObject));
+}
+
+rendering::Updater* rendering::utils::GetUpdater()
+{
+	if (m_updater)
+	{
+		return m_updater;
+	}
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+	BaseObject* obj = container.GetObjectOfClass(UpdaterMeta::GetInstance());
+	m_updater = static_cast<Updater*>(obj);
+	return m_updater;
+}
+
+rendering::DXRenderer* rendering::utils::GetRenderer()
+{
+	if (m_renderer)
+	{
+		return m_renderer;
+	}
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+	BaseObject* obj = container.GetObjectOfClass(DXRendererMeta::GetInstance());
+	m_renderer = static_cast<DXRenderer*>(obj);
+	return m_renderer;
 }
 
 void rendering::utils::CacheObjects()

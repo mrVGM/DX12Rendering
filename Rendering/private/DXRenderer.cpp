@@ -58,42 +58,21 @@ namespace
 		m_clearRTRP = static_cast<rendering::DXClearRTRP*>(obj);
 		return m_clearRTRP;
 	}
-
-	class RenderJob : public jobs::Job
-	{
-	private:
-		rendering::DXRenderer& m_renderer;
-	public:
-		RenderJob(rendering::DXRenderer& renderer, UINT64 signal) :
-			m_renderer(renderer)
-		{
-		}
-
-		void Do() override
-		{	
-			m_renderer.Render();
-
-			m_renderer.RenderFrame();
-		}
-
-		virtual ~RenderJob()
-		{
-			bool t = true;
-		}
-	};
 }
 
 
 rendering::DXRenderer::DXRenderer() :
 	BaseObject(DXRendererMeta::GetInstance())
 {
+	GetRenderFence();
+	GetClearRTRP();
 }
 
 rendering::DXRenderer::~DXRenderer()
 {
 }
 
-void rendering::DXRenderer::Render()
+void rendering::DXRenderer::Render(jobs::Job* done)
 {
 	DXSwapChain* swapChain = utils::GetSwapChain();
 	swapChain->UpdateCurrentFrameIndex();
@@ -117,18 +96,37 @@ void rendering::DXRenderer::Render()
 	swapChain->Present();
 
 	++m_counter;
+
+	utils::RunSync(done);
 }
 
-void rendering::DXRenderer::RenderFrame()
+void rendering::DXRenderer::RenderFrame(jobs::Job* done)
 {
-	utils::RunSync(new RenderJob(*this, m_counter));
-}
+	struct Context
+	{
+		DXRenderer* m_renderer = nullptr;
+		jobs::Job* m_done;
+	};
 
-void rendering::DXRenderer::StartRendering()
-{
-	GetRenderFence();
-	GetClearRTRP();
-	RenderFrame();
+	class RenderJob : public jobs::Job
+	{
+	private:
+		Context m_ctx;
+		
+	public:
+		RenderJob(const Context& ctx) :
+			m_ctx(ctx)
+		{
+		}
+
+		void Do() override
+		{
+			m_ctx.m_renderer->Render(m_ctx.m_done);
+		}
+	};
+
+	Context ctx {this, done};
+	utils::RunAsync(new RenderJob(ctx));
 }
 
 void rendering::DXRenderer::RenderUnlit()

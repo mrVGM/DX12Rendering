@@ -24,6 +24,7 @@
 #include "DXShader.h"
 #include "DXVertexShaderMeta.h"
 #include "DXPixelShaderMeta.h"
+#include "Updater.h"
 
 
 #include "DataLib.h"
@@ -32,12 +33,14 @@
 
 void rendering::InitBaseObjects()
 {
+	new Updater();
+
 	new rendering::Window();
 	new DXDevice();
 	new DXCommandQueue();
 	new DXCopyCommandQueue();
 	new DXSwapChain();
-	DXRenderer* renderer = new DXRenderer();
+	new DXRenderer();
 	new jobs::JobSystem(LoadJobSystemMeta::GetInstance(), 5);
 	new jobs::JobSystem(MainJobSystemMeta::GetInstance(), 1);
 
@@ -58,37 +61,32 @@ void rendering::InitBaseObjects()
 	class StartExclusiveAccessJob : public jobs::Job
 	{
 	private:
-		DXRenderer& m_renderer;
 	public:
-		StartExclusiveAccessJob(DXRenderer& renderer) :
-			m_renderer(renderer)
+		StartExclusiveAccessJob()
 		{
 		}
 		void Do()
 		{
-			BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-			container.StartExclusiveThreadAccess();
-			m_renderer.StartRendering();
+			rendering::Updater* updater = utils::GetUpdater();
+			updater->Start();
 		}
 	};
 
 	class InitCamBuffJob : public jobs::Job
 	{
 	private:
-		DXRenderer& m_renderer;
 	public:
-		InitCamBuffJob(DXRenderer& renderer) :
-			m_renderer(renderer)
+		InitCamBuffJob()
 		{
 		}
 		void Do() override
 		{
-			utils::RunSync(new StartExclusiveAccessJob(m_renderer));
+			utils::RunSync(new StartExclusiveAccessJob());
 		}
 	};
 
 	DXCamera* cam = utils::GetCamera();
-	cam->InitBuffer(new InitCamBuffJob(*renderer));
+	cam->InitBuffer(new InitCamBuffJob());
 
 
 	DXScene* scene = utils::GetScene();

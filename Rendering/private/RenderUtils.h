@@ -9,6 +9,8 @@
 #include "DXBuffer.h"
 #include "DXScene.h"
 #include "DXShader.h"
+#include "Updater.h"
+#include "DXRenderer.h"
 
 #include "Materials/DXUnlitMaterial.h"
 
@@ -21,7 +23,10 @@ namespace rendering
 	namespace utils
 	{
 		void CacheObjects();
+
+		rendering::Updater* GetUpdater();
 		rendering::Window* GetWindow();
+		rendering::DXRenderer* GetRenderer();
 		rendering::DXDevice* GetDevice();
 		rendering::DXSwapChain* GetSwapChain();
 		rendering::DXCommandQueue* GetCommandQueue();

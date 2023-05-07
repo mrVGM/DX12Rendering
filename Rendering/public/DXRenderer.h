@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BaseObject.h"
+#include "Job.h"
 
 #include <d3d12.h>
 #include <string>
@@ -13,12 +14,11 @@ namespace rendering
 	private:
 		UINT64 m_counter = 1;
 		void RenderUnlit();
+		void Render(jobs::Job* done);
 	public:
 		DXRenderer();
 		virtual ~DXRenderer();
 
-		void Render();
-		void RenderFrame();
-		void StartRendering();
+		void RenderFrame(jobs::Job* done);
 	};
 }

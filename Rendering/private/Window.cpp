@@ -7,6 +7,8 @@
 #include "JobSystem.h"
 #include "Job.h"
 
+#include <hidusage.h>
+
 namespace
 {
 	bool m_classRegistered = false;
@@ -90,6 +92,8 @@ LRESULT rendering::Window::StaticWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LP
 		::SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)data->lpCreateParams);
 		auto* window = (Window*)data->lpCreateParams;
 		window->m_hwnd = hWnd;
+
+		window->RegisterRawInputDevice();
 	}
 
 	// Process messages by window message function
@@ -146,6 +150,62 @@ LRESULT rendering::Window::WndProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 			Destroy();
 			break;
 		}
+
+	case WM_KEYDOWN:
+	{
+		m_inputInfo.m_keysDown.insert(wParam);
+		return 0;
+	}
+
+	case WM_KEYUP:
+	{
+		m_inputInfo.m_keysDown.erase(wParam);
+		return 0;
+	}
+
+	case WM_LBUTTONDOWN:
+	{
+		m_inputInfo.m_leftMouseButtonDown = true;
+		return 0;
+	}
+	case WM_LBUTTONUP:
+	{
+		m_inputInfo.m_leftMouseButtonDown = false;
+		return 0;
+	}
+
+	case WM_RBUTTONDOWN:
+	{
+		m_inputInfo.m_rightMouseButtonDown = true;
+		return 0;
+	}
+	case WM_RBUTTONUP:
+	{
+		m_inputInfo.m_rightMouseButtonDown = false;
+		return 0;
+	}
+
+	case WM_INPUT:
+	{
+		UINT dwSize = sizeof(RAWINPUT);
+		static BYTE lpb[sizeof(RAWINPUT)];
+		GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
+
+		RAWINPUT* raw = (RAWINPUT*)lpb;
+		if (raw->header.dwType == RIM_TYPEMOUSE)
+		{
+			if (raw->data.mouse.usFlags == MOUSE_MOVE_RELATIVE) {
+				m_inputInfo.m_mouseMovement[0] += raw->data.mouse.lLastX;
+				m_inputInfo.m_mouseMovement[1] += raw->data.mouse.lLastY;
+			}
+			else if (raw->data.mouse.usFlags == MOUSE_MOVE_ABSOLUTE) {
+				m_inputInfo.m_mouseMovement[0] = raw->data.mouse.lLastX;
+				m_inputInfo.m_mouseMovement[1] = raw->data.mouse.lLastY;
+			}
+		}
+		return 0;
+	}
+
 	}
 
 	return static_cast<LRESULT>(DefWindowProc(m_hwnd, uMsg, wParam, lParam));
@@ -161,4 +221,14 @@ void rendering::Window::WindowTick()
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
+}
+
+void rendering::Window::RegisterRawInputDevice()
+{
+	RAWINPUTDEVICE rid[1];
+	rid[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
+	rid[0].usUsage = HID_USAGE_GENERIC_MOUSE;
+	rid[0].dwFlags = RIDEV_INPUTSINK;
+	rid[0].hwndTarget = m_hwnd;
+	RegisterRawInputDevices(rid, 1, sizeof(rid[0]));
 }

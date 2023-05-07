@@ -101,7 +101,12 @@ add_library (Rendering
 	"private/Materials/DXUnlitMaterialMeta.cpp"
 	"private/Materials/DXUnlitMaterialMeta.h"
 	"private/Materials/DXUnlitMaterial.h"
-	"private/Materials/DXUnlitMaterial.cpp")
+	"private/Materials/DXUnlitMaterial.cpp"
+	"public/UpdaterMeta.h"
+	"private/UpdaterMeta.cpp"
+	"public/Updater.h"
+	"private/Updater.cpp"
+)
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
