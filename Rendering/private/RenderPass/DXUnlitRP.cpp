@@ -116,6 +116,10 @@ rendering::DXUnlitRP::DXUnlitRP() :
 
 rendering::DXUnlitRP::~DXUnlitRP()
 {
+    if (m_commandListsCache)
+    {
+        delete[] m_commandListsCache;
+    }
 }
 
 
