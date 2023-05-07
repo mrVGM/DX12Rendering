@@ -13,7 +13,6 @@ namespace rendering
 	{
 	private:
 		UINT64 m_counter = 1;
-		void RenderUnlit();
 		void Render(jobs::Job* done);
 	public:
 		DXRenderer();

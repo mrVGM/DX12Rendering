@@ -11,6 +11,8 @@
 #include "RenderFenceMeta.h"
 #include "RenderPass/DXClearRTRP.h"
 #include "RenderPass/DXClearRTRPMeta.h"
+#include "RenderPass/DXUnlitRP.h"
+#include "RenderPass/DXUnlitRPMeta.h"
 #include "WaitFence.h"
 
 #include "Job.h"
@@ -24,6 +26,7 @@ namespace
 	rendering::DXFence* m_renderFence = nullptr;
 	jobs::JobSystem* m_renderJobSystem = nullptr;
 	rendering::DXClearRTRP* m_clearRTRP = nullptr;
+	rendering::DXUnlitRP* m_unlitRP = nullptr;
 
 	rendering::DXFence* GetRenderFence()
 	{
@@ -58,6 +61,23 @@ namespace
 		m_clearRTRP = static_cast<rendering::DXClearRTRP*>(obj);
 		return m_clearRTRP;
 	}
+
+	rendering::DXUnlitRP* GetUnlitRP()
+	{
+		if (m_unlitRP)
+		{
+			return m_unlitRP;
+		}
+		BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+		BaseObject* obj = container.GetObjectOfClass(rendering::DXUnlitRPMeta::GetInstance());
+		if (!obj)
+		{
+			obj = new rendering::DXUnlitRP();
+		}
+
+		m_unlitRP = static_cast<rendering::DXUnlitRP*>(obj);
+		return m_unlitRP;
+	}
 }
 
 
@@ -66,6 +86,7 @@ rendering::DXRenderer::DXRenderer() :
 {
 	GetRenderFence();
 	GetClearRTRP();
+	GetUnlitRP();
 }
 
 rendering::DXRenderer::~DXRenderer()
@@ -78,15 +99,16 @@ void rendering::DXRenderer::Render(jobs::Job* done)
 	swapChain->UpdateCurrentFrameIndex();
 
 	DXClearRTRP* clearRT = GetClearRTRP();
+	DXUnlitRP* unlitRP = GetUnlitRP();
 
 	clearRT->Prepare();
+	unlitRP->Prepare();
 
 	DXFence* fence = GetRenderFence();
 	WaitFence waitFence(*fence);
 
 	clearRT->Execute();
-
-	RenderUnlit();
+	unlitRP->Execute();
 
 	DXCommandQueue* commandQueue = utils::GetCommandQueue();
 	commandQueue->GetCommandQueue()->Signal(fence->GetFence(), m_counter);
@@ -127,36 +149,4 @@ void rendering::DXRenderer::RenderFrame(jobs::Job* done)
 
 	Context ctx {this, done};
 	utils::RunAsync(new RenderJob(ctx));
-}
-
-void rendering::DXRenderer::RenderUnlit()
-{
-	DXScene* scene = utils::GetScene();
-	DXMaterial* mat = utils::GetUnlitMaterial();
-
-	mat->ResetCommandLists();
-
-	for (int i = 0; i < scene->m_scenesLoaded; ++i)
-	{
-		const collada::ColladaScene& curColladaScene = *scene->m_colladaScenes[i];
-		const DXScene::SceneResources& curSceneResources = scene->m_sceneResources[i];
-
-		for (auto it = curSceneResources.m_vertexBuffers.begin(); it != curSceneResources.m_vertexBuffers.end(); ++it)
-		{
-			DXBuffer* vertBuf = it->second;
-			DXBuffer* indexBuf = curSceneResources.m_indexBuffers.find(it->first)->second;
-			DXBuffer* instanceBuf = curSceneResources.m_instanceBuffers.find(it->first)->second;
-
-			mat->GenerateCommandList(*vertBuf, *indexBuf, *instanceBuf);
-		}
-	}
-
-	const std::list<Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> >& unlitLists = mat->GetGeneratedCommandLists();
-
-	DXCommandQueue* commandQueue = utils::GetCommandQueue();
-	for (auto it = unlitLists.begin(); it != unlitLists.end(); ++it)
-	{
-		ID3D12CommandList *const tmp[] = { it->Get() };
-		commandQueue->GetCommandQueue()->ExecuteCommandLists(1, tmp);
-	}
 }
