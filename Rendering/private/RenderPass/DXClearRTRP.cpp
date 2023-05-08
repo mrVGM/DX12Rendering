@@ -60,11 +60,8 @@ void rendering::DXClearRTRP::Prepare()
         m_commandList->ResourceBarrier(1, &barrier);
     }
 
-    D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = utils::GetDSVDescriptorHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
     const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-
     m_commandList->ClearRenderTargetView(swapChain->GetCurrentRTVDescriptor(), clearColor, 0, nullptr);
-    m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
     {
         CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(swapChain->GetCurrentRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);

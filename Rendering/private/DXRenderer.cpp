@@ -13,6 +13,8 @@
 #include "RenderPass/DXClearRTRPMeta.h"
 #include "RenderPass/DXUnlitRP.h"
 #include "RenderPass/DXUnlitRPMeta.h"
+#include "RenderPass/DXClearDSTRP.h"
+#include "RenderPass/DXClearDSTRPMeta.h"
 #include "WaitFence.h"
 
 #include "Job.h"
@@ -27,6 +29,7 @@ namespace
 	jobs::JobSystem* m_renderJobSystem = nullptr;
 	rendering::DXClearRTRP* m_clearRTRP = nullptr;
 	rendering::DXUnlitRP* m_unlitRP = nullptr;
+	rendering::DXClearDSTRP* m_clearDSTRP = nullptr;
 
 	rendering::DXFence* GetRenderFence()
 	{
@@ -78,6 +81,23 @@ namespace
 		m_unlitRP = static_cast<rendering::DXUnlitRP*>(obj);
 		return m_unlitRP;
 	}
+
+	rendering::DXClearDSTRP* GetClearDSTRP()
+	{
+		if (m_clearDSTRP)
+		{
+			return m_clearDSTRP;
+		}
+		BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+		BaseObject* obj = container.GetObjectOfClass(rendering::DXClearDSTRPMeta::GetInstance());
+		if (!obj)
+		{
+			obj = new rendering::DXClearDSTRP();
+		}
+
+		m_clearDSTRP = static_cast<rendering::DXClearDSTRP*>(obj);
+		return m_clearDSTRP;
+	}
 }
 
 
@@ -86,6 +106,7 @@ rendering::DXRenderer::DXRenderer() :
 {
 	GetRenderFence();
 	GetClearRTRP();
+	GetClearDSTRP();
 	GetUnlitRP();
 }
 
@@ -99,15 +120,18 @@ void rendering::DXRenderer::Render(jobs::Job* done)
 	swapChain->UpdateCurrentFrameIndex();
 
 	DXClearRTRP* clearRT = GetClearRTRP();
+	DXClearDSTRP* clearDST = GetClearDSTRP();
 	DXUnlitRP* unlitRP = GetUnlitRP();
 
 	clearRT->Prepare();
+	clearDST->Prepare();
 	unlitRP->Prepare();
 
 	DXFence* fence = GetRenderFence();
 	WaitFence waitFence(*fence);
 
 	clearRT->Execute();
+	clearDST->Execute();
 	unlitRP->Execute();
 
 	DXCommandQueue* commandQueue = utils::GetCommandQueue();
