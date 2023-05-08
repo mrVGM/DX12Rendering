@@ -138,6 +138,9 @@ namespace
 				DXTexture* dsTex = utils::GetDepthStencilTexture();
 				dsTex->Place(m_ctx.m_heap->GetHeap(), 0);
 
+				DXDescriptorHeap::CreateDSVDescriptorHeap(*dsTex);
+				utils::GetDSVDescriptorHeap();
+
 				utils::RunSync(m_ctx.m_done);
 			}
 		};

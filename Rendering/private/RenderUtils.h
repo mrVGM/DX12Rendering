@@ -18,6 +18,8 @@
 
 #include "ResourceUtils/DXCopyBuffers.h"
 
+#include "DXDescriptorHeap.h"
+
 #include "JobSystem.h"
 
 namespace rendering
@@ -38,6 +40,7 @@ namespace rendering
 		rendering::DXScene* GetScene();
 		rendering::DXCopyBuffers* GetCopyBuffers();
 		rendering::DXTexture* GetDepthStencilTexture();
+		rendering::DXDescriptorHeap* GetDSVDescriptorHeap();
 
 		rendering::DXShader* GetUnlitVertexShader();
 		rendering::DXShader* GetUnlitPixelShader();
