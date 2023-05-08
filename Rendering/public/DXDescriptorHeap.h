@@ -21,5 +21,6 @@ namespace rendering
 		virtual ~DXDescriptorHeap();
 
 		static DXDescriptorHeap* CreateDSVDescriptorHeap(DXTexture& depthStencilTex);
+		ID3D12DescriptorHeap* GetDescriptorHeap();
 	};
 }

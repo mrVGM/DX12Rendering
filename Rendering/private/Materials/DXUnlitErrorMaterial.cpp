@@ -85,9 +85,7 @@ rendering::DXUnlitErrorMaterial::DXUnlitErrorMaterial(const rendering::DXShader&
         psoDesc.BlendState.RenderTarget[0].DestBlendAlpha = D3D12_BLEND::D3D12_BLEND_ZERO;
         psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = 0x0f;
 
-        //psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-        psoDesc.DepthStencilState.DepthEnable = FALSE;
-        psoDesc.DepthStencilState.StencilEnable = FALSE;
+        psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 
         psoDesc.SampleMask = UINT_MAX;
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -133,8 +131,9 @@ ID3D12CommandList* rendering::DXUnlitErrorMaterial::GenerateCommandList(
     commandList->RSSetViewports(1, &swapChain->GetViewport());
     commandList->RSSetScissorRects(1, &swapChain->GetScissorRect());
 
+    D3D12_CPU_DESCRIPTOR_HANDLE dsHandle = utils::GetDSVDescriptorHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
     D3D12_CPU_DESCRIPTOR_HANDLE handles[] = { swapChain->GetCurrentRTVDescriptor() };
-    commandList->OMSetRenderTargets(_countof(handles), handles, FALSE, nullptr);
+    commandList->OMSetRenderTargets(_countof(handles), handles, FALSE, &dsHandle);
 
     D3D12_VERTEX_BUFFER_VIEW vertexBufferViews[2];
     D3D12_VERTEX_BUFFER_VIEW& realVertexBufferView = vertexBufferViews[0];

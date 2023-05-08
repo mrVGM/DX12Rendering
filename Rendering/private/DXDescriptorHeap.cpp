@@ -52,4 +52,9 @@ rendering::DXDescriptorHeap* rendering::DXDescriptorHeap::CreateDSVDescriptorHea
 }
 
 
+ID3D12DescriptorHeap* rendering::DXDescriptorHeap::GetDescriptorHeap()
+{
+	return m_descriptorHeap.Get();
+}
+
 #undef THROW_ERROR
