@@ -131,6 +131,12 @@ add_library (Rendering
 	"private/RenderPass/DXClearDSTRP.cpp"
 	"private/Materials/DXUnlitMaterialMetaTag.h"
 	"private/Materials/DXUnlitMaterialMetaTag.cpp"
+	"private/Materials/SharederRepo.h"
+	"private/Materials/SharederRepo.cpp"
+	"private/Materials/DXUnlitMaterialMeta.h"
+	"private/Materials/DXUnlitMaterialMeta.cpp"
+	"private/Materials/DXUnlitMaterial.h"
+	"private/Materials/DXUnlitMaterial.cpp"
 )
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

@@ -42,9 +42,6 @@ namespace rendering
 		rendering::DXTexture* GetDepthStencilTexture();
 		rendering::DXDescriptorHeap* GetDSVDescriptorHeap();
 
-		rendering::DXShader* GetUnlitVertexShader();
-		rendering::DXShader* GetUnlitPixelShader();
-
 		rendering::DXUnlitErrorMaterial* GetUnlitErrorMaterial();
 		rendering::DXMaterialRepo* GetMaterialRepo();
 

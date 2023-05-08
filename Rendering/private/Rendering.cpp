@@ -32,6 +32,9 @@
 
 #include "DataLib.h"
 
+#include "Materials/SharederRepo.h"
+#include "Materials/DXUnlitMaterial.h"
+
 #include <iostream>
 
 namespace
@@ -62,13 +65,14 @@ namespace
 			}
 			void Do() override
 			{
-				DXShader* ps = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_error.fxc");
-				DXShader* vs = new DXShader(DXVertexShaderMeta::GetInstance(), "shaders/bin/vs_mainVS.fxc");
+				rendering::shader_repo::LoadShaderPrograms();
+
+				DXShader* ps = rendering::shader_repo::GetErrorPixelShader();
+				DXShader* vs = rendering::shader_repo::GetMainVertexShader();
 
 				new DXUnlitErrorMaterial(*vs, *ps);
 				DXMaterial* errorMat = utils::GetUnlitErrorMaterial();
 
-				new DXMaterialRepo();
 				DXMaterialRepo* repo = utils::GetMaterialRepo();
 				repo->Register("error", *errorMat);
 
@@ -241,6 +245,15 @@ namespace
 			void Do() override
 			{
 				DXScene* scene = utils::GetScene();
+
+#if true
+				{
+					collada::ColladaScene* tmpScene = scene->m_colladaScenes[scene->m_scenesLoaded];
+					std::string& matOverride = *(tmpScene->GetScene().m_objects.begin()->second.m_materialOverrides.begin());
+					matOverride = "cyan";
+				}
+#endif
+
 				++scene->m_scenesLoaded;
 			}
 		};
@@ -281,6 +294,7 @@ namespace
 		new DXRenderer();
 		new DXCopyBuffers();
 		new Updater();
+		new DXMaterialRepo();
 
 		rendering::utils::CacheObjects();
 		std::cout << "Base Rendering Objects created!" << std::endl;
@@ -301,6 +315,56 @@ namespace
 
 		utils::RunSync(new StartExclusiveAccessJob());
 	}
+
+	void LoadCyanMaterial()
+	{
+		using namespace rendering;
+
+		struct Context
+		{
+			DXUnlitMaterial* m_material = nullptr;
+		};
+
+		class SettingsBufferReady : public jobs::Job
+		{
+		private:
+			Context m_ctx;
+		public:
+			SettingsBufferReady(const Context& ctx) :
+				m_ctx(ctx)
+			{
+			}
+
+			void Do() override
+			{
+				DXBuffer* buffer = m_ctx.m_material->GetSettingsBuffer();
+				float color[] = { 0, 1, 1, 1 };
+				buffer->CopyData(color, _countof(color) * sizeof(float));
+
+				DXMaterialRepo* repo = utils::GetMaterialRepo();
+				repo->Register("cyan", *m_ctx.m_material);
+			}
+		};
+
+		class CreateUnlitMaterial : public jobs::Job
+		{
+		private:
+			Context m_ctx;
+		public:
+			CreateUnlitMaterial(const Context& ctx) :
+				m_ctx(ctx)
+			{
+			}
+			void Do() override
+			{
+				m_ctx.m_material = new DXUnlitMaterial(*shader_repo::GetMainVertexShader(), *shader_repo::GetUnlitPixelShader());
+				m_ctx.m_material->CreateSettingsBuffer(new SettingsBufferReady(m_ctx));
+			}
+		};
+
+		Context ctx;
+		utils::RunSync(new CreateUnlitMaterial(ctx));
+	}
 }
 
 void rendering::Boot()
@@ -309,4 +373,5 @@ void rendering::Boot()
 
 	LoadScene();
 	LoadRenderPipepine();
+	LoadCyanMaterial();
 }

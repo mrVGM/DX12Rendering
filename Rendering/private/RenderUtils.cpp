@@ -50,9 +50,6 @@ namespace
 	rendering::DXScene* m_scene = nullptr;
 	rendering::DXCopyBuffers* m_copyBuffers = nullptr;
 
-	rendering::DXShader* m_unlitPixelShader = nullptr;
-	rendering::DXShader* m_unlitVertexShader = nullptr;
-
 	rendering::DXUnlitErrorMaterial* m_unlitErrorMaterial = nullptr;
 	rendering::DXMaterialRepo* m_materialRepo = nullptr;
 
@@ -216,29 +213,6 @@ rendering::DXDescriptorHeap* rendering::utils::GetDSVDescriptorHeap()
 	return m_dsvDescriptorHeap;
 }
 
-rendering::DXShader* rendering::utils::GetUnlitVertexShader()
-{
-	if (m_unlitVertexShader)
-	{
-		return m_unlitVertexShader;
-	}
-	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-	BaseObject* obj = container.GetObjectOfClass(DXVertexShaderMeta::GetInstance());
-	m_unlitVertexShader = static_cast<DXShader*>(obj);
-	return m_unlitVertexShader;
-}
-
-rendering::DXShader* rendering::utils::GetUnlitPixelShader()
-{
-	if (m_unlitPixelShader)
-	{
-		return m_unlitPixelShader;
-	}
-	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-	BaseObject* obj = container.GetObjectOfClass(DXPixelShaderMeta::GetInstance());
-	m_unlitPixelShader = static_cast<DXShader*>(obj);
-	return m_unlitPixelShader;
-}
 
 rendering::DXUnlitErrorMaterial* rendering::utils::GetUnlitErrorMaterial()
 {
@@ -332,13 +306,4 @@ void rendering::utils::CacheObjects()
 	GetRenderer();
 
 	return;
-
-	GetCamera();
-	GetCameraBuffer();
-	GetUnlitVertexShader();
-	GetUnlitPixelShader();
-	GetUnlitErrorMaterial();
-	GetMaterialRepo();
-
-	GetScene();
 }
