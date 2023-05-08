@@ -2,5 +2,5 @@
 
 namespace rendering
 {
-	void InitBaseObjects();
+	void Boot();
 }

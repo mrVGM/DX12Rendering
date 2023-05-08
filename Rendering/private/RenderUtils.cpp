@@ -314,6 +314,11 @@ void rendering::utils::CacheObjects()
 	GetCopyCommandQueue();
 	GetMainJobSystem();
 	GetLoadJobSystem();
+	GetCopyBuffers();
+	GetRenderer();
+
+	return;
+
 	GetCamera();
 	GetCameraBuffer();
 	GetUnlitVertexShader();

@@ -36,7 +36,7 @@ int main(int args, const char** argv)
 		std::cout << "Invalid Path to Data Directory!" << std::endl;
 	}
 
-	rendering::InitBaseObjects();
+	rendering::Boot();
 
 	std::cin.get();
 
