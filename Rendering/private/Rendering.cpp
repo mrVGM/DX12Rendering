@@ -13,6 +13,8 @@
 #include "JobSystem.h"
 #include "Job.h"
 
+#include "DXHeap.h"
+
 #include "ResourceUtils/DXCopyBuffers.h"
 
 #include "DXScene.h"
@@ -38,14 +40,14 @@ namespace
 	{
 		bool m_camBufferLoaded = false;
 		bool m_errorMatLoaded = false;
+		bool m_depthStencilTextureLoaded = false;
 	};
 
-	void LoadErrorMaterial(BootContext& bootContext, jobs::Job* done)
+	void LoadErrorMaterial(jobs::Job* done)
 	{
 		using namespace rendering;
 		struct Context
 		{
-			BootContext* m_bootCtx = nullptr;
 			jobs::Job* m_done = nullptr;
 		};
 
@@ -70,40 +72,21 @@ namespace
 				DXMaterialRepo* repo = utils::GetMaterialRepo();
 				repo->Register("error", *errorMat);
 
-				m_ctx.m_bootCtx->m_errorMatLoaded = true;
 				utils::RunSync(m_ctx.m_done);
 			}
 		};
 
-		Context ctx{ &bootContext, done };
+		Context ctx{ done };
 
 		utils::RunSync(new CreateShadersAndMaterial(ctx));
 	}
 
-
-	void LoadCamAndBuffer(BootContext& bootContext, jobs::Job* done)
+	void LoadCamAndBuffer(jobs::Job* done)
 	{
 		using namespace rendering;
 		struct Context
 		{
-			BootContext* m_bootCtx = nullptr;
 			jobs::Job* m_done = nullptr;
-		};
-
-		class CamBufferDone : public jobs::Job
-		{
-		private:
-			Context m_ctx;
-		public:
-			CamBufferDone(const Context& ctx) :
-				m_ctx(ctx)
-			{
-			}
-			void Do() override
-			{
-				m_ctx.m_bootCtx->m_camBufferLoaded = true;
-				utils::RunSync(m_ctx.m_done);
-			}
 		};
 
 		class CreateCamAndBuffer : public jobs::Job
@@ -123,13 +106,74 @@ namespace
 				DXCamera* cam = utils::GetCamera();
 				utils::GetCameraBuffer();
 
-				cam->InitBuffer(new CamBufferDone(m_ctx));
+				cam->InitBuffer(m_ctx.m_done);
 			}
 		};
 
-		Context ctx{ &bootContext, done };
+		Context ctx{ done };
 
 		utils::RunSync(new CreateCamAndBuffer(ctx));
+	}
+
+	void LoadDepthStencilTexture(jobs::Job* done)
+	{
+		using namespace rendering;
+		struct Context
+		{
+			DXHeap* m_heap = nullptr;
+			jobs::Job* m_done = nullptr;
+		};
+
+		class DSTexReady : public jobs::Job
+		{
+		private:
+			Context m_ctx;
+		public:
+			DSTexReady(const Context& ctx) :
+				m_ctx(ctx)
+			{
+			}
+			void Do() override
+			{
+				DXTexture* dsTex = utils::GetDepthStencilTexture();
+				dsTex->Place(m_ctx.m_heap->GetHeap(), 0);
+
+				utils::RunSync(m_ctx.m_done);
+			}
+		};
+
+		class CreateDSTex : public jobs::Job
+		{
+		private:
+			Context m_ctx;
+		public:
+			CreateDSTex(const Context& ctx) :
+				m_ctx(ctx)
+			{
+			}
+			void Do() override
+			{
+				Window* wnd = utils::GetWindow();
+				DXTexture::CreateDepthStencilTexture(wnd->m_width, wnd->m_height);
+				DXTexture* dsTex = utils::GetDepthStencilTexture();
+
+				D3D12_RESOURCE_ALLOCATION_INFO allocInfo = dsTex->GetTextureAllocationInfo();
+
+				DXHeap* heap = new DXHeap();
+				m_ctx.m_heap = heap;
+
+				heap->SetHeapType(D3D12_HEAP_TYPE_DEFAULT);
+				heap->SetHeapFlags(D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES);
+				heap->SetHeapSize(allocInfo.SizeInBytes);
+
+				heap->Create();
+				heap->MakeResident(new DSTexReady(m_ctx));
+			}
+		};
+
+		Context ctx{ nullptr, done };
+
+		utils::RunSync(new CreateDSTex(ctx));
 	}
 
 	void LoadRenderPipepine()
@@ -140,19 +184,27 @@ namespace
 		{
 		private:
 			BootContext& m_ctx;
+			bool& m_readyItem;
 		public:
-			ItemReady(BootContext& ctx) :
-				m_ctx(ctx)
+			ItemReady(BootContext& ctx, bool& readyItem) :
+				m_ctx(ctx),
+				m_readyItem(readyItem)
 			{
 			}
 			void Do() override
 			{
+				m_readyItem = true;
 				if (!m_ctx.m_camBufferLoaded)
 				{
 					return;
 				}
 
 				if (!m_ctx.m_errorMatLoaded)
+				{
+					return;
+				}
+
+				if (!m_ctx.m_depthStencilTextureLoaded)
 				{
 					return;
 				}
@@ -165,8 +217,9 @@ namespace
 		};
 
 		BootContext* ctx = new BootContext();
-		LoadCamAndBuffer(*ctx, new ItemReady(*ctx));
-		LoadErrorMaterial(*ctx, new ItemReady(*ctx));
+		LoadCamAndBuffer(new ItemReady(*ctx, ctx->m_camBufferLoaded));
+		LoadErrorMaterial(new ItemReady(*ctx, ctx->m_errorMatLoaded));
+		LoadDepthStencilTexture(new ItemReady(*ctx, ctx->m_depthStencilTextureLoaded));
 	}
 
 

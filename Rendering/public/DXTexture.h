@@ -27,7 +27,7 @@ namespace rendering
 		void Place(ID3D12Heap* heap, UINT64 heapOffset);
 
 		const D3D12_RESOURCE_DESC& GetTextureDescription() const;
-		D3D12_RESOURCE_ALLOCATION_INFO GetTextureAllocationInfo(ID3D12Device* device);
+		D3D12_RESOURCE_ALLOCATION_INFO GetTextureAllocationInfo();
 		ID3D12Resource* GetTexture() const;
 
 		static DXTexture* CreateDepthStencilTexture(UINT width, UINT height);

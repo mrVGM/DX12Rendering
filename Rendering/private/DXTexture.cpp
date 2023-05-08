@@ -312,4 +312,13 @@ rendering::DXTexture* rendering::DXTexture::CreateDepthStencilTexture(UINT width
 	return res;
 }
 
+D3D12_RESOURCE_ALLOCATION_INFO rendering::DXTexture::GetTextureAllocationInfo()
+{
+	DXDevice* device = utils::GetDevice();
+
+	D3D12_RESOURCE_DESC textureDesc = GetTextureDescription();
+	D3D12_RESOURCE_ALLOCATION_INFO info = device->GetDevice().GetResourceAllocationInfo(0, 1, &textureDesc);
+	return info;
+}
+
 #undef THROW_ERROR
