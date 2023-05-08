@@ -3,6 +3,8 @@
 #include "RenderPass/DXUnlitRPMeta.h"
 #include "RenderUtils.h"
 
+#include "Materials/DXUnlitMaterialMetaTag.h"
+
 #include <set>
 
 #define THROW_ERROR(hRes, error) \
@@ -132,6 +134,33 @@ void rendering::DXUnlitRP::RenderUnlit()
 
     DXMaterialRepo* repo = utils::GetMaterialRepo();
     DXMaterial* errorMat = repo->GetMaterial("error");
+    errorMat->ResetCommandLists();
+
+    for (int i = 0; i < scene->m_scenesLoaded; ++i)
+    {
+        collada::ColladaScene& curColladaScene = *scene->m_colladaScenes[i];
+        const DXScene::SceneResources& curSceneResources = scene->m_sceneResources[i];
+
+        collada::Scene& s = curColladaScene.GetScene();
+
+        for (auto it = s.m_objects.begin(); it != s.m_objects.end(); ++it)
+        {
+            collada::Object& obj = it->second;
+            for (auto it = obj.m_materialOverrides.begin(); it != obj.m_materialOverrides.end(); ++it)
+            {
+                DXMaterial* mat = repo->GetMaterial(*it);
+                if (!mat)
+                {
+                    continue;
+                }
+
+                if (mat->GetMeta().HasTag(DXUnlitMaterialMetaTag::GetInstance()))
+                {
+                    mat->ResetCommandLists();
+                }
+            }
+        }
+    }
 
     std::list<ID3D12CommandList*> unlitLists;
     for (int i = 0; i < scene->m_scenesLoaded; ++i)
@@ -146,12 +175,6 @@ void rendering::DXUnlitRP::RenderUnlit()
             collada::Object& obj = it->second;
             collada::Geometry& geo = s.m_geometries[obj.m_geometry];
             int instanceIndex = s.m_objectInstanceMap[it->first];
-            
-            while (obj.m_materialOverrides.size() < geo.m_materials.size())
-            {
-                obj.m_materialOverrides.push_back("");
-            }
-
             auto matOverrideIt = obj.m_materialOverrides.begin();
 
             for (auto it = geo.m_materials.begin(); it != geo.m_materials.end(); ++it)
@@ -163,12 +186,17 @@ void rendering::DXUnlitRP::RenderUnlit()
                 DXBuffer* indexBuf = curSceneResources.m_indexBuffers.find(obj.m_geometry)->second;
                 DXBuffer* instanceBuf = curSceneResources.m_instanceBuffers.find(obj.m_geometry)->second;
 
-                if (mat)
+                if (!mat)
+                {
+                    mat = errorMat;
+                }
+
+                if (!mat->GetMeta().HasTag(DXUnlitMaterialMetaTag::GetInstance()))
                 {
                     continue;
                 }
                 
-                unlitLists.push_back(errorMat->GenerateCommandList(
+                unlitLists.push_back(mat->GenerateCommandList(
                     *vertBuf,
                     *indexBuf,
                     *instanceBuf,

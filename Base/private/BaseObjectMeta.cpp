@@ -4,14 +4,9 @@
 
 #include <iostream>
 
-BaseObjectMeta::BaseObjectMeta(const BaseObjectMeta* parentClass, int numMetaTags, const BaseObjectMetaTag* const* metaTags) :
+BaseObjectMeta::BaseObjectMeta(const BaseObjectMeta* parentClass) :
 	m_parentClass(parentClass)
 {
-	for (int i = 0; i < numMetaTags; ++i)
-	{
-		m_metaTags.insert(metaTags[i]);
-	}
-
 	BaseObjectMetaContainer& container = BaseObjectMetaContainer::GetInstance();
 	container.RegisterMeta(this);
 }
