@@ -4,9 +4,14 @@
 
 #include <iostream>
 
-BaseObjectMeta::BaseObjectMeta(const BaseObjectMeta* parentClass) :
+BaseObjectMeta::BaseObjectMeta(const BaseObjectMeta* parentClass, int numMetaTags, const BaseObjectMetaTag* const* metaTags) :
 	m_parentClass(parentClass)
 {
+	for (int i = 0; i < numMetaTags; ++i)
+	{
+		m_metaTags.insert(metaTags[i]);
+	}
+
 	BaseObjectMetaContainer& container = BaseObjectMetaContainer::GetInstance();
 	container.RegisterMeta(this);
 }
@@ -25,4 +30,9 @@ bool BaseObjectMeta::IsChildOf(const BaseObjectMeta& other) const
 	}
 
 	return false;
+}
+
+bool BaseObjectMeta::HasTag(const BaseObjectMetaTag& metaTag) const
+{
+	return m_metaTags.contains(&metaTag);
 }

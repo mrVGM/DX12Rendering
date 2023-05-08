@@ -123,7 +123,15 @@ add_library (Rendering
 	"private/DXDescriptorHeapMeta.cpp"
 	"public/DXDescriptorHeap.h"
 	"private/DXDescriptorHeap.cpp"
- "private/DXDepthStencilDescriptorHeapMeta.cpp" "private/DXDepthStencilDescriptorHeapMeta.h" "private/RenderPass/DXClearDSTRPMeta.h" "private/RenderPass/DXClearDSTRPMeta.cpp" "private/RenderPass/DXClearDSTRP.h" "private/RenderPass/DXClearDSTRP.cpp")
+	"private/DXDepthStencilDescriptorHeapMeta.cpp"
+	"private/DXDepthStencilDescriptorHeapMeta.h"
+	"private/RenderPass/DXClearDSTRPMeta.h"
+	"private/RenderPass/DXClearDSTRPMeta.cpp"
+	"private/RenderPass/DXClearDSTRP.h"
+	"private/RenderPass/DXClearDSTRP.cpp"
+	"private/Materials/DXUnlitMaterialMetaTag.h"
+	"private/Materials/DXUnlitMaterialMetaTag.cpp"
+)
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")

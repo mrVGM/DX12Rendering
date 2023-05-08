@@ -19,6 +19,11 @@ void BaseObjectMetaContainer::RegisterMeta(const BaseObjectMeta* meta)
 	m_metaRefs.push_back(meta);
 }
 
+void BaseObjectMetaContainer::RegisterMetaTag(const BaseObjectMetaTag* metaTag)
+{
+	m_metaTagRefs.push_back(metaTag);
+}
+
 BaseObjectMetaContainer::BaseObjectMetaContainer()
 {
 }

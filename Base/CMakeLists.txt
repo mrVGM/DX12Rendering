@@ -10,7 +10,10 @@ add_library (Base
 	"public/BaseFramework.h"
 	"private/BaseFramework.cpp"
 	"public/BaseObjectContainer.h"
- "private/BaseObjectContainer.cpp" )
+	"private/BaseObjectContainer.cpp"
+	"public/BaseObjectMetaTag.h"
+	"private/BaseObjectMetaTag.cpp"
+)
 
 target_include_directories(Base INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Base PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
