@@ -12,6 +12,7 @@
 #include "Updater.h"
 #include "DXRenderer.h"
 #include "DXMaterialRepo.h"
+#include "DXTexture.h"
 
 #include "Materials/DXUnlitErrorMaterial.h"
 
@@ -36,6 +37,7 @@ namespace rendering
 		rendering::DXBuffer* GetCameraBuffer();
 		rendering::DXScene* GetScene();
 		rendering::DXCopyBuffers* GetCopyBuffers();
+		rendering::DXTexture* GetDepthStencilTexture();
 
 		rendering::DXShader* GetUnlitVertexShader();
 		rendering::DXShader* GetUnlitPixelShader();

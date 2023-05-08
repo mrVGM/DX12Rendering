@@ -17,6 +17,7 @@
 #include "DXSceneMeta.h"
 #include "UpdaterMeta.h"
 #include "DXRendererMeta.h"
+#include "DXDepthStencilTextureMeta.h"
 
 #include "DXShader.h"
 #include "DXVertexShaderMeta.h"
@@ -41,6 +42,8 @@ namespace
 	rendering::DXBuffer* m_cameraBuffer = nullptr;
 	jobs::JobSystem* m_mainJobSystem = nullptr;
 	jobs::JobSystem* m_loadJobSystem = nullptr;
+
+	rendering::DXTexture* m_depthStencilTexture = nullptr;
 
 	rendering::DXScene* m_scene = nullptr;
 	rendering::DXCopyBuffers* m_copyBuffers = nullptr;
@@ -185,6 +188,18 @@ rendering::DXCopyBuffers* rendering::utils::GetCopyBuffers()
 	BaseObject* obj = container.GetObjectOfClass(DXCopyBuffersMeta::GetInstance());
 	m_copyBuffers = static_cast<DXCopyBuffers*>(obj);
 	return m_copyBuffers;
+}
+
+rendering::DXTexture* rendering::utils::GetDepthStencilTexture()
+{
+	if (m_depthStencilTexture)
+	{
+		return m_depthStencilTexture;
+	}
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+	BaseObject* obj = container.GetObjectOfClass(DXDepthStencilTextureMeta::GetInstance());
+	m_depthStencilTexture = static_cast<DXTexture*>(obj);
+	return m_depthStencilTexture;
 }
 
 rendering::DXShader* rendering::utils::GetUnlitVertexShader()

@@ -113,6 +113,12 @@ add_library (Rendering
 	"private/DXMaterialRepo.cpp"
 	"public/DXMaterialRepoMeta.h"
 	"private/DXMaterialRepoMeta.cpp"
+	"private/DXTexture.cpp"
+	"public/DXTexture.h"
+	"private/DXTextureMeta.cpp"
+	"public/DXTextureMeta.h"
+	"private/DXDepthStencilTextureMeta.h"
+	"private/DXDepthStencilTextureMeta.cpp"
 )
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
