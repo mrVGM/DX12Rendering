@@ -137,6 +137,14 @@ add_library (Rendering
 	"private/Materials/DXUnlitMaterialMeta.cpp"
 	"private/Materials/DXUnlitMaterial.h"
 	"private/Materials/DXUnlitMaterial.cpp"
+	"private/Deferred/DeferredRendering.h"
+	"private/Deferred/DeferredRendering.cpp"
+	"private/Deferred/DXGBufferDuffuseTexMeta.h"
+	"private/Deferred/DXGBufferDiffuseTexMeta.cpp"
+	"private/Deferred/DXGBufferNormalTexMeta.h"
+	"private/Deferred/DXGBufferNormalTexMeta.cpp"
+	"private/Deferred/DXGBufferPositionTexMeta.h"
+	"private/Deferred/DXGBufferPositionTexMeta.cpp"
 )
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

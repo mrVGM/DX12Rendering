@@ -31,5 +31,6 @@ namespace rendering
 		ID3D12Resource* GetTexture() const;
 
 		static DXTexture* CreateDepthStencilTexture(UINT width, UINT height);
+		static DXTexture* CreateRenderTargetTexture(const BaseObjectMeta& meta, UINT width, UINT height);
 	};
 }

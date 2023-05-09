@@ -35,6 +35,8 @@
 #include "Materials/SharederRepo.h"
 #include "Materials/DXUnlitMaterial.h"
 
+#include "Deferred/DeferredRendering.h"
+
 #include <iostream>
 
 namespace
@@ -44,6 +46,7 @@ namespace
 		bool m_camBufferLoaded = false;
 		bool m_errorMatLoaded = false;
 		bool m_depthStencilTextureLoaded = false;
+		bool m_gBufferReady = false;
 	};
 
 	void LoadErrorMaterial(jobs::Job* done)
@@ -215,6 +218,11 @@ namespace
 				{
 					return;
 				}
+				
+				if (!m_ctx.m_gBufferReady)
+				{
+					return;
+				}
 
 				delete &m_ctx;
 
@@ -227,6 +235,7 @@ namespace
 		LoadCamAndBuffer(new ItemReady(*ctx, ctx->m_camBufferLoaded));
 		LoadErrorMaterial(new ItemReady(*ctx, ctx->m_errorMatLoaded));
 		LoadDepthStencilTexture(new ItemReady(*ctx, ctx->m_depthStencilTextureLoaded));
+		deferred::LoadGBuffer(new ItemReady(*ctx, ctx->m_gBufferReady));
 	}
 
 

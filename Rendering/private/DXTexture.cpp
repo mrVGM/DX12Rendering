@@ -321,4 +321,24 @@ D3D12_RESOURCE_ALLOCATION_INFO rendering::DXTexture::GetTextureAllocationInfo()
 	return info;
 }
 
+rendering::DXTexture* rendering::DXTexture::CreateRenderTargetTexture(const BaseObjectMeta& meta, UINT width, UINT height)
+{
+	D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+	DXGI_FORMAT format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+
+	CD3DX12_RESOURCE_DESC textureDesc = {};
+	textureDesc = CD3DX12_RESOURCE_DESC::Tex2D(
+		format,
+		width,
+		height,
+		1,
+		0,
+		1,
+		0,
+		flags);
+
+	DXTexture* res = new DXTexture(meta, textureDesc);
+	return res;
+}
+
 #undef THROW_ERROR
