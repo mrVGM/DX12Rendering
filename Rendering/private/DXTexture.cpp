@@ -5,6 +5,8 @@
 #include "DXDepthStencilTextureMeta.h"
 #include "RenderUtils.h"
 
+#include "DXHeap.h"
+
 #define THROW_ERROR(hRes, error) \
 if (FAILED(hRes)) {\
     throw error;\
@@ -259,7 +261,7 @@ rendering::DXTexture::~DXTexture()
 {
 }
 
-void rendering::DXTexture::Place(ID3D12Heap* heap, UINT64 heapOffset)
+void rendering::DXTexture::Place(DXHeap& heap, UINT64 heapOffset)
 {
 	DXDevice* device = utils::GetDevice();
 
@@ -273,13 +275,15 @@ void rendering::DXTexture::Place(ID3D12Heap* heap, UINT64 heapOffset)
 
 	THROW_ERROR(
 		device->GetDevice().CreatePlacedResource(
-			heap,
+			heap.GetHeap(),
 			heapOffset,
 			&textureDesc,
 			isDS ? D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_DEPTH_WRITE : D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PRESENT,
 			isDS ? &depthOptimizedClearValue : nullptr,
 			IID_PPV_ARGS(&m_texture)),
 		"Can't place texture in the heap!")
+
+	m_heap = &heap;
 }
 
 ID3D12Resource* rendering::DXTexture::GetTexture() const

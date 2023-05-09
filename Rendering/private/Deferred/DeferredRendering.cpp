@@ -8,6 +8,8 @@
 
 #include "DXHeap.h"
 
+#include "DXDescriptorHeap.h"
+
 namespace
 {
 	rendering::DXTexture* m_duffuseTex = nullptr;
@@ -63,7 +65,7 @@ void rendering::deferred::LoadGBuffer(jobs::Job* done)
 
 		void Do() override
 		{
-			m_tex.Place(m_heap.GetHeap(), 0);
+			m_tex.Place(m_heap, 0);
 			--m_ctx.m_texturesToLoad;
 
 			if (m_ctx.m_texturesToLoad > 0)

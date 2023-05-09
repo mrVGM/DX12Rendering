@@ -145,6 +145,10 @@ add_library (Rendering
 	"private/Deferred/DXGBufferNormalTexMeta.cpp"
 	"private/Deferred/DXGBufferPositionTexMeta.h"
 	"private/Deferred/DXGBufferPositionTexMeta.cpp"
+	"private/RenderPass/DXDeferredRPMeta.h"
+	"private/RenderPass/DXDeferredRPMeta.cpp"
+	"private/RenderPass/DXDeferredRP.h"
+	"private/RenderPass/DXDeferredRP.cpp"
 )
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

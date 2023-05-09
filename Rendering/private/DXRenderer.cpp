@@ -15,6 +15,9 @@
 #include "RenderPass/DXUnlitRPMeta.h"
 #include "RenderPass/DXClearDSTRP.h"
 #include "RenderPass/DXClearDSTRPMeta.h"
+#include "RenderPass/DXDeferredRP.h"
+#include "RenderPass/DXDeferredRPMeta.h"
+
 #include "WaitFence.h"
 
 #include "Job.h"
@@ -29,6 +32,7 @@ namespace
 	jobs::JobSystem* m_renderJobSystem = nullptr;
 	rendering::DXClearRTRP* m_clearRTRP = nullptr;
 	rendering::DXUnlitRP* m_unlitRP = nullptr;
+	rendering::DXDeferredRP* m_deferredRP = nullptr;
 	rendering::DXClearDSTRP* m_clearDSTRP = nullptr;
 
 	rendering::DXFence* GetRenderFence()
@@ -98,16 +102,38 @@ namespace
 		m_clearDSTRP = static_cast<rendering::DXClearDSTRP*>(obj);
 		return m_clearDSTRP;
 	}
+
+	rendering::DXDeferredRP* GetDeferredRP()
+	{
+		if (m_deferredRP)
+		{
+			return m_deferredRP;
+		}
+		BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+		BaseObject* obj = container.GetObjectOfClass(rendering::DXDeferredRPMeta::GetInstance());
+		if (!obj)
+		{
+			obj = new rendering::DXDeferredRP();
+		}
+
+		m_deferredRP = static_cast<rendering::DXDeferredRP*>(obj);
+		return m_deferredRP;
+	}
 }
 
 
-rendering::DXRenderer::DXRenderer() :
-	BaseObject(DXRendererMeta::GetInstance())
+void rendering::DXRenderer::Init()
 {
 	GetRenderFence();
 	GetClearRTRP();
 	GetClearDSTRP();
+	GetDeferredRP();
 	GetUnlitRP();
+}
+
+rendering::DXRenderer::DXRenderer() :
+	BaseObject(DXRendererMeta::GetInstance())
+{
 }
 
 rendering::DXRenderer::~DXRenderer()

@@ -187,7 +187,11 @@ void rendering::Updater::StartUpdate(double dt)
 
 void rendering::Updater::Start()
 {
+	DXRenderer* renderer = utils::GetRenderer();
+	renderer->Init();
+	
 	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 	m_lastTick = now;
+
 	StartUpdate(0);
 }
