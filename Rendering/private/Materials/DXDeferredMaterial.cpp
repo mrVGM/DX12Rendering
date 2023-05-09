@@ -159,9 +159,9 @@ ID3D12CommandList* rendering::DXDeferredMaterial::GenerateCommandList(
     D3D12_CPU_DESCRIPTOR_HANDLE dsHandle = utils::GetDSVDescriptorHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
     D3D12_CPU_DESCRIPTOR_HANDLE handles[] =
     {
-        deferredRP->GetDescriptorHandleFor(DXDeferredRP::Diffuse),
-        deferredRP->GetDescriptorHandleFor(DXDeferredRP::Normal),
-        deferredRP->GetDescriptorHandleFor(DXDeferredRP::Position)
+        deferredRP->GetDescriptorHandleFor(DXDeferredRP::GBufferTexType::Diffuse),
+        deferredRP->GetDescriptorHandleFor(DXDeferredRP::GBufferTexType::Normal),
+        deferredRP->GetDescriptorHandleFor(DXDeferredRP::GBufferTexType::Position)
     };
     commandList->OMSetRenderTargets(_countof(handles), handles, FALSE, &dsHandle);
 

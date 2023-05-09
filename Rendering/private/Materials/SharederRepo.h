@@ -18,6 +18,9 @@ namespace rendering
 		DXShader* GetUnlitPixelShader();
 		DXShader* GetDeferredPixelShader();
 
+		DXShader* GetDeferredRPPixelShader();
+		DXShader* GetDeferredRPVertexShader();
+
 		void LoadShaderPrograms();
 	}
 }

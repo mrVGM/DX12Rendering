@@ -11,35 +11,31 @@
 
 namespace rendering
 {
+	class DXShader;
 	class DXDeferredRP : public RenderPass
 	{
 	public:
-		enum GBuffTextureType
+		enum GBufferTexType
 		{
-			Diffuse = 0,
-			Normal = 1,
-			Position = 2
+			Diffuse,
+			Normal,
+			Position
 		};
+
 	private:
-		ID3D12CommandList** m_commandListsCache = nullptr;
-		int m_numCommandLists = 0;
+		Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pipelineState;
+		Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature;
 
-		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_rtvDescriptorHeap;
-		UINT m_rtvDescriptorSize = -1;
+		const DXShader& m_vertexShader;
+		const DXShader& m_pixelShader;
 
-		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocator;
-		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_startList;
-		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_endList;
-
-		void Create();
-		void RenderUnlit();
 	public:
 		DXDeferredRP();
 		virtual ~DXDeferredRP();
 
+		D3D12_CPU_DESCRIPTOR_HANDLE GetDescriptorHandleFor(GBufferTexType texType);
+
 		void Prepare() override;
 		void Execute() override;
-
-		D3D12_CPU_DESCRIPTOR_HANDLE GetDescriptorHandleFor(GBuffTextureType texType);
 	};
 }
