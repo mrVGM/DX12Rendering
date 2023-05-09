@@ -3,10 +3,10 @@
 #include "RenderPass/DXDeferredRPMeta.h"
 #include "RenderUtils.h"
 
-#include "Materials/DXUnlitMaterialMetaTag.h"
-
 #include "Deferred/DeferredRendering.h"
 #include "Materials/SharederRepo.h"
+
+#include "Materials/DXDeferredMaterialMetaTag.h"
 
 #include <set>
 
@@ -35,6 +35,18 @@ rendering::DXDeferredRP::DXDeferredRP() :
 
     THROW_ERROR(
         m_endList->Close(),
+        "Can't close Command List!")
+
+    THROW_ERROR(
+        device->GetDevice().CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_startListAllocator)),
+        "Can't create Command Allocator!")
+
+    THROW_ERROR(
+        device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_startListAllocator.Get(), nullptr, IID_PPV_ARGS(&m_startList)),
+        "Can't reset Command List!")
+
+    THROW_ERROR(
+        m_startList->Close(),
         "Can't close Command List!")
 
     {
@@ -107,11 +119,20 @@ rendering::DXDeferredRP::DXDeferredRP() :
 
 rendering::DXDeferredRP::~DXDeferredRP()
 {
+    if (m_commandListsCache)
+    {
+        delete[] m_commandListsCache;
+    }
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE rendering::DXDeferredRP::GetDescriptorHandleFor(GBufferTexType texType)
 {
-    return D3D12_CPU_DESCRIPTOR_HANDLE();
+    CD3DX12_CPU_DESCRIPTOR_HANDLE handle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart());
+
+    for (int i = 0; i < texType; ++i) {
+        handle.Offset(m_rtvDescriptorSize);
+    }
+    return handle;
 }
 
 void rendering::DXDeferredRP::CreateRTVHeap()
@@ -236,7 +257,7 @@ void rendering::DXDeferredRP::PrepareEndList()
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferNormalTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferPositionTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
         };
-        m_startList->ResourceBarrier(_countof(barrier), barrier);
+        m_endList->ResourceBarrier(_countof(barrier), barrier);
     }
 
 
@@ -271,7 +292,7 @@ void rendering::DXDeferredRP::PrepareEndList()
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferNormalTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferPositionTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
         };
-        m_startList->ResourceBarrier(_countof(barrier), barrier);
+        m_endList->ResourceBarrier(_countof(barrier), barrier);
     }
 
     THROW_ERROR(
@@ -281,6 +302,11 @@ void rendering::DXDeferredRP::PrepareEndList()
 
 void rendering::DXDeferredRP::PrepareStartList()
 {
+    if (m_startListPrepared)
+    {
+        return;
+    }
+
     DXDevice* device = utils::GetDevice();
 
     THROW_ERROR(
@@ -304,17 +330,124 @@ void rendering::DXDeferredRP::PrepareStartList()
     THROW_ERROR(
         m_startList->Close(),
         "Can't close Command List!")
+
+    m_startListPrepared = true;
+}
+
+void rendering::DXDeferredRP::RenderDeferred()
+{
+    DXScene* scene = utils::GetScene();
+    DXMaterialRepo* repo = utils::GetMaterialRepo();
+
+    for (int i = 0; i < scene->m_scenesLoaded; ++i)
+    {
+        collada::ColladaScene& curColladaScene = *scene->m_colladaScenes[i];
+        const DXScene::SceneResources& curSceneResources = scene->m_sceneResources[i];
+
+        collada::Scene& s = curColladaScene.GetScene();
+
+        for (auto it = s.m_objects.begin(); it != s.m_objects.end(); ++it)
+        {
+            collada::Object& obj = it->second;
+            for (auto it = obj.m_materialOverrides.begin(); it != obj.m_materialOverrides.end(); ++it)
+            {
+                DXMaterial* mat = repo->GetMaterial(*it);
+                if (!mat)
+                {
+                    continue;
+                }
+
+                if (mat->GetMeta().HasTag(DXDeferredMaterialMetaTag::GetInstance()))
+                {
+                    mat->ResetCommandLists();
+                }
+            }
+        }
+    }
+
+    std::list<ID3D12CommandList*> deferredLists;
+    for (int i = 0; i < scene->m_scenesLoaded; ++i)
+    {
+        collada::ColladaScene& curColladaScene = *scene->m_colladaScenes[i];
+        const DXScene::SceneResources& curSceneResources = scene->m_sceneResources[i];
+
+        collada::Scene& s = curColladaScene.GetScene();
+
+        for (auto it = s.m_objects.begin(); it != s.m_objects.end(); ++it)
+        {
+            collada::Object& obj = it->second;
+            collada::Geometry& geo = s.m_geometries[obj.m_geometry];
+            int instanceIndex = s.m_objectInstanceMap[it->first];
+            auto matOverrideIt = obj.m_materialOverrides.begin();
+
+            for (auto it = geo.m_materials.begin(); it != geo.m_materials.end(); ++it)
+            {
+                DXMaterial* mat = repo->GetMaterial(*matOverrideIt);
+                ++matOverrideIt;
+
+                DXBuffer* vertBuf = curSceneResources.m_vertexBuffers.find(obj.m_geometry)->second;
+                DXBuffer* indexBuf = curSceneResources.m_indexBuffers.find(obj.m_geometry)->second;
+                DXBuffer* instanceBuf = curSceneResources.m_instanceBuffers.find(obj.m_geometry)->second;
+
+                if (!mat)
+                {
+                    continue;
+                }
+
+                if (!mat->GetMeta().HasTag(DXDeferredMaterialMetaTag::GetInstance()))
+                {
+                    continue;
+                }
+
+                deferredLists.push_back(mat->GenerateCommandList(
+                    *vertBuf,
+                    *indexBuf,
+                    *instanceBuf,
+                    (*it).indexOffset,
+                    (*it).indexCount,
+                    instanceIndex));
+            }
+        }
+    }
+
+    int numLists = deferredLists.size();
+    if (m_numCommandLists < numLists)
+    {
+        delete[] m_commandListsCache;
+        m_commandListsCache = new ID3D12CommandList * [numLists];
+        m_numCommandLists = numLists;
+    }
+
+    int index = 0;
+    for (auto it = deferredLists.begin(); it != deferredLists.end(); ++it)
+    {
+        m_commandListsCache[index++] = *it;
+    }
+
+    DXCommandQueue* commandQueue = utils::GetCommandQueue();
+    commandQueue->GetCommandQueue()->ExecuteCommandLists(numLists, m_commandListsCache);
 }
 
 void rendering::DXDeferredRP::Prepare()
 {
+    PrepareStartList();
+    PrepareEndList();
 }
 
 void rendering::DXDeferredRP::Execute()
 {
     DXCommandQueue* commandQueue = rendering::utils::GetCommandQueue();
-    ID3D12CommandList* ppCommandLists[] = { m_endList.Get() };
-    commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+    {
+        ID3D12CommandList* ppCommandLists[] = { m_startList.Get() };
+        commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+    }
+
+    commandQueue->GetCommandQueue()->ExecuteCommandLists(m_numCommandLists, m_commandListsCache);
+
+    {
+        ID3D12CommandList* ppCommandLists[] = { m_endList.Get() };
+        commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+    }
 }
 
 #undef THROW_ERROR

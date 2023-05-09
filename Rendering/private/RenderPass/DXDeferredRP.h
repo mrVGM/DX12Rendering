@@ -17,12 +17,15 @@ namespace rendering
 	public:
 		enum GBufferTexType
 		{
-			Diffuse,
-			Normal,
-			Position
+			Diffuse = 0,
+			Normal = 1,
+			Position = 2
 		};
 
 	private:
+		ID3D12CommandList** m_commandListsCache = nullptr;
+		int m_numCommandLists = 0;
+
 		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_endListAllocator;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_endList;
 
@@ -38,6 +41,8 @@ namespace rendering
 		UINT m_rtvDescriptorSize = 0;
 		UINT m_srvDescriptorSize = 0;
 
+		bool m_startListPrepared = false;
+
 		const DXShader& m_vertexShader;
 		const DXShader& m_pixelShader;
 
@@ -46,6 +51,8 @@ namespace rendering
 
 		void PrepareEndList();
 		void PrepareStartList();
+
+		void RenderDeferred();
 	public:
 		DXDeferredRP();
 		virtual ~DXDeferredRP();
