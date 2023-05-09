@@ -187,6 +187,56 @@ namespace
 		utils::RunSync(new CreateDSTex(ctx));
 	}
 
+	void LoadDeferredMaterial()
+	{
+		using namespace rendering;
+
+		struct Context
+		{
+			DXDeferredMaterial* m_material = nullptr;
+		};
+
+		class SettingsBufferReady : public jobs::Job
+		{
+		private:
+			Context m_ctx;
+		public:
+			SettingsBufferReady(const Context& ctx) :
+				m_ctx(ctx)
+			{
+			}
+
+			void Do() override
+			{
+				DXBuffer* buffer = m_ctx.m_material->GetSettingsBuffer();
+				float color[] = { 1, 1, 0, 1 };
+				buffer->CopyData(color, _countof(color) * sizeof(float));
+
+				DXMaterialRepo* repo = utils::GetMaterialRepo();
+				repo->Register("yellow", *m_ctx.m_material);
+			}
+		};
+
+		class CreateDeferredMaterial : public jobs::Job
+		{
+		private:
+			Context m_ctx;
+		public:
+			CreateDeferredMaterial(const Context& ctx) :
+				m_ctx(ctx)
+			{
+			}
+			void Do() override
+			{
+				m_ctx.m_material = new DXDeferredMaterial(*shader_repo::GetMainVertexShader(), *shader_repo::GetDeferredPixelShader());
+				m_ctx.m_material->CreateSettingsBuffer(new SettingsBufferReady(m_ctx));
+			}
+		};
+
+		Context ctx;
+		utils::RunSync(new CreateDeferredMaterial(ctx));
+	}
+
 	void LoadRenderPipepine()
 	{
 		using namespace rendering;
@@ -227,6 +277,8 @@ namespace
 
 				delete &m_ctx;
 
+				LoadDeferredMaterial();
+
 				Updater* updater = utils::GetUpdater();
 				updater->Start();
 			}
@@ -238,7 +290,6 @@ namespace
 		LoadDepthStencilTexture(new ItemReady(*ctx, ctx->m_depthStencilTextureLoaded));
 		deferred::LoadGBuffer(new ItemReady(*ctx, ctx->m_gBufferReady));
 	}
-
 
 	void LoadScene()
 	{
@@ -260,7 +311,7 @@ namespace
 				{
 					collada::ColladaScene* tmpScene = scene->m_colladaScenes[scene->m_scenesLoaded];
 					std::string& matOverride = *(tmpScene->GetScene().m_objects.begin()->second.m_materialOverrides.begin());
-					matOverride = "cyan";
+					matOverride = "yellow";
 				}
 #endif
 
@@ -287,7 +338,6 @@ namespace
 
 		utils::RunSync(new CreateDXScene());
 	}
-
 
 	void InitBaseObjects()
 	{
@@ -374,57 +424,7 @@ namespace
 
 		Context ctx;
 		utils::RunSync(new CreateUnlitMaterial(ctx));
-	}
-
-	void LoadDeferredMaterial()
-	{
-		using namespace rendering;
-
-		struct Context
-		{
-			DXDeferredMaterial* m_material = nullptr;
-		};
-
-		class SettingsBufferReady : public jobs::Job
-		{
-		private:
-			Context m_ctx;
-		public:
-			SettingsBufferReady(const Context& ctx) :
-				m_ctx(ctx)
-			{
-			}
-
-			void Do() override
-			{
-				DXBuffer* buffer = m_ctx.m_material->GetSettingsBuffer();
-				float color[] = { 1, 1, 0, 1 };
-				buffer->CopyData(color, _countof(color) * sizeof(float));
-
-				DXMaterialRepo* repo = utils::GetMaterialRepo();
-				repo->Register("yellow", *m_ctx.m_material);
-			}
-		};
-
-		class CreateDeferredMaterial : public jobs::Job
-		{
-		private:
-			Context m_ctx;
-		public:
-			CreateDeferredMaterial(const Context& ctx) :
-				m_ctx(ctx)
-			{
-			}
-			void Do() override
-			{
-				m_ctx.m_material = new DXDeferredMaterial(*shader_repo::GetMainVertexShader(), *shader_repo::GetDeferredPixelShader());
-				m_ctx.m_material->CreateSettingsBuffer(new SettingsBufferReady(m_ctx));
-			}
-		};
-
-		Context ctx;
-		utils::RunSync(new CreateDeferredMaterial(ctx));
-	}
+	}	
 }
 
 void rendering::Boot()

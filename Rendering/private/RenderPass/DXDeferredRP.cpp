@@ -59,6 +59,21 @@ rendering::DXDeferredRP::DXDeferredRP() :
             featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
         }
 
+        D3D12_STATIC_SAMPLER_DESC sampler = {};
+        sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+        sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        sampler.MipLODBias = 0;
+        sampler.MaxAnisotropy = 0;
+        sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+        sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+        sampler.MinLOD = 0.0f;
+        sampler.MaxLOD = D3D12_FLOAT32_MAX;
+        sampler.ShaderRegister = 0;
+        sampler.RegisterSpace = 0;
+        sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
         // Allow input layout and deny uneccessary access to certain pipeline stages.
         D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
             D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
@@ -66,8 +81,13 @@ rendering::DXDeferredRP::DXDeferredRP() :
             D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
             D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 
+        CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
+        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3, 0, 0);
+        CD3DX12_ROOT_PARAMETER1 rootParameters[1];
+        rootParameters[0].InitAsDescriptorTable(1, ranges, D3D12_SHADER_VISIBILITY_PIXEL);
+
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-        rootSignatureDesc.Init_1_1(0, nullptr, 0, nullptr, rootSignatureFlags);
+        rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, &sampler, rootSignatureFlags);
 
         ComPtr<ID3DBlob> signature;
         ComPtr<ID3DBlob> error;
@@ -262,6 +282,10 @@ void rendering::DXDeferredRP::PrepareEndList()
 
 
     m_endList->SetGraphicsRootSignature(m_rootSignature.Get());
+    ID3D12DescriptorHeap* descriptorHeaps[] = { m_srvHeap.Get() };
+    m_endList->SetDescriptorHeaps(1, descriptorHeaps);
+
+    m_endList->SetGraphicsRootDescriptorTable(0, descriptorHeaps[0]->GetGPUDescriptorHandleForHeapStart());
 
     m_endList->RSSetViewports(1, &swapChain->GetViewport());
     m_endList->RSSetScissorRects(1, &swapChain->GetScissorRect());
@@ -326,6 +350,11 @@ void rendering::DXDeferredRP::PrepareStartList()
         };
         m_startList->ResourceBarrier(_countof(barrier), barrier);
     }
+
+    const float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    m_startList->ClearRenderTargetView(GetDescriptorHandleFor(GBufferTexType::Diffuse), clearColor, 0, nullptr);
+    m_startList->ClearRenderTargetView(GetDescriptorHandleFor(GBufferTexType::Normal), clearColor, 0, nullptr);
+    m_startList->ClearRenderTargetView(GetDescriptorHandleFor(GBufferTexType::Position), clearColor, 0, nullptr);
 
     THROW_ERROR(
         m_startList->Close(),
@@ -442,7 +471,7 @@ void rendering::DXDeferredRP::Execute()
         commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
     }
 
-    commandQueue->GetCommandQueue()->ExecuteCommandLists(m_numCommandLists, m_commandListsCache);
+    RenderDeferred();
 
     {
         ID3D12CommandList* ppCommandLists[] = { m_endList.Get() };

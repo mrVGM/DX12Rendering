@@ -45,6 +45,8 @@ rendering::DXDeferredMaterial::DXDeferredMaterial(const rendering::DXShader& ver
 {
     DXDevice* device = utils::GetDevice();
 
+    GetDeferredRP();
+
     using Microsoft::WRL::ComPtr;
     {
         D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
