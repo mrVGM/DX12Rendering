@@ -12,11 +12,15 @@ namespace rendering
 	{
 	private:
 		std::map<std::string, DXMaterial*> m_repo;
+		void LoadErrorMaterial();
+
 	public:
 		DXMaterialRepo();
 		virtual ~DXMaterialRepo();
 
 		DXMaterial* GetMaterial(const std::string& name) const;
 		void Register(const std::string& name, DXMaterial& material);
+
+		void LoadMaterials();
 	};
 }

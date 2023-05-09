@@ -45,49 +45,9 @@ namespace
 	struct BootContext
 	{
 		bool m_camBufferLoaded = false;
-		bool m_errorMatLoaded = false;
 		bool m_depthStencilTextureLoaded = false;
 		bool m_gBufferReady = false;
 	};
-
-	void LoadErrorMaterial(jobs::Job* done)
-	{
-		using namespace rendering;
-		struct Context
-		{
-			jobs::Job* m_done = nullptr;
-		};
-
-		class CreateShadersAndMaterial : public jobs::Job
-		{
-		private:
-			Context m_ctx;
-		public:
-			CreateShadersAndMaterial(const Context& ctx) :
-				m_ctx(ctx)
-			{
-			}
-			void Do() override
-			{
-				rendering::shader_repo::LoadShaderPrograms();
-
-				DXShader* ps = rendering::shader_repo::GetErrorPixelShader();
-				DXShader* vs = rendering::shader_repo::GetMainVertexShader();
-
-				new DXUnlitErrorMaterial(*vs, *ps);
-				DXMaterial* errorMat = utils::GetUnlitErrorMaterial();
-
-				DXMaterialRepo* repo = utils::GetMaterialRepo();
-				repo->Register("error", *errorMat);
-
-				utils::RunSync(m_ctx.m_done);
-			}
-		};
-
-		Context ctx{ done };
-
-		utils::RunSync(new CreateShadersAndMaterial(ctx));
-	}
 
 	void LoadCamAndBuffer(jobs::Job* done)
 	{
@@ -187,56 +147,6 @@ namespace
 		utils::RunSync(new CreateDSTex(ctx));
 	}
 
-	void LoadDeferredMaterial()
-	{
-		using namespace rendering;
-
-		struct Context
-		{
-			DXDeferredMaterial* m_material = nullptr;
-		};
-
-		class SettingsBufferReady : public jobs::Job
-		{
-		private:
-			Context m_ctx;
-		public:
-			SettingsBufferReady(const Context& ctx) :
-				m_ctx(ctx)
-			{
-			}
-
-			void Do() override
-			{
-				DXBuffer* buffer = m_ctx.m_material->GetSettingsBuffer();
-				float color[] = { 1, 1, 0, 1 };
-				buffer->CopyData(color, _countof(color) * sizeof(float));
-
-				DXMaterialRepo* repo = utils::GetMaterialRepo();
-				repo->Register("yellow", *m_ctx.m_material);
-			}
-		};
-
-		class CreateDeferredMaterial : public jobs::Job
-		{
-		private:
-			Context m_ctx;
-		public:
-			CreateDeferredMaterial(const Context& ctx) :
-				m_ctx(ctx)
-			{
-			}
-			void Do() override
-			{
-				m_ctx.m_material = new DXDeferredMaterial(*shader_repo::GetMainVertexShader(), *shader_repo::GetDeferredPixelShader());
-				m_ctx.m_material->CreateSettingsBuffer(new SettingsBufferReady(m_ctx));
-			}
-		};
-
-		Context ctx;
-		utils::RunSync(new CreateDeferredMaterial(ctx));
-	}
-
 	void LoadRenderPipepine()
 	{
 		using namespace rendering;
@@ -260,11 +170,6 @@ namespace
 					return;
 				}
 
-				if (!m_ctx.m_errorMatLoaded)
-				{
-					return;
-				}
-
 				if (!m_ctx.m_depthStencilTextureLoaded)
 				{
 					return;
@@ -277,16 +182,16 @@ namespace
 
 				delete &m_ctx;
 
-				LoadDeferredMaterial();
-
 				Updater* updater = utils::GetUpdater();
 				updater->Start();
+
+				DXMaterialRepo* repo = utils::GetMaterialRepo();
+				repo->LoadMaterials();
 			}
 		};
 
 		BootContext* ctx = new BootContext();
 		LoadCamAndBuffer(new ItemReady(*ctx, ctx->m_camBufferLoaded));
-		LoadErrorMaterial(new ItemReady(*ctx, ctx->m_errorMatLoaded));
 		LoadDepthStencilTexture(new ItemReady(*ctx, ctx->m_depthStencilTextureLoaded));
 		deferred::LoadGBuffer(new ItemReady(*ctx, ctx->m_gBufferReady));
 	}
@@ -375,56 +280,6 @@ namespace
 
 		utils::RunSync(new StartExclusiveAccessJob());
 	}
-
-	void LoadCyanMaterial()
-	{
-		using namespace rendering;
-
-		struct Context
-		{
-			DXUnlitMaterial* m_material = nullptr;
-		};
-
-		class SettingsBufferReady : public jobs::Job
-		{
-		private:
-			Context m_ctx;
-		public:
-			SettingsBufferReady(const Context& ctx) :
-				m_ctx(ctx)
-			{
-			}
-
-			void Do() override
-			{
-				DXBuffer* buffer = m_ctx.m_material->GetSettingsBuffer();
-				float color[] = { 0, 1, 1, 1 };
-				buffer->CopyData(color, _countof(color) * sizeof(float));
-
-				DXMaterialRepo* repo = utils::GetMaterialRepo();
-				repo->Register("cyan", *m_ctx.m_material);
-			}
-		};
-
-		class CreateUnlitMaterial : public jobs::Job
-		{
-		private:
-			Context m_ctx;
-		public:
-			CreateUnlitMaterial(const Context& ctx) :
-				m_ctx(ctx)
-			{
-			}
-			void Do() override
-			{
-				m_ctx.m_material = new DXUnlitMaterial(*shader_repo::GetMainVertexShader(), *shader_repo::GetUnlitPixelShader());
-				m_ctx.m_material->CreateSettingsBuffer(new SettingsBufferReady(m_ctx));
-			}
-		};
-
-		Context ctx;
-		utils::RunSync(new CreateUnlitMaterial(ctx));
-	}	
 }
 
 void rendering::Boot()
@@ -433,5 +288,4 @@ void rendering::Boot()
 
 	LoadScene();
 	LoadRenderPipepine();
-	LoadCyanMaterial();
 }
