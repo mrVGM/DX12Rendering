@@ -149,7 +149,12 @@ add_library (Rendering
 	"private/RenderPass/DXDeferredRPMeta.cpp"
 	"private/RenderPass/DXDeferredRP.h"
 	"private/RenderPass/DXDeferredRP.cpp"
-)
+	"private/Materials/DXDeferredMaterial.h"
+	"private/Materials/DXDeferredMaterial.cpp"
+	"private/Materials/DXDeferredMaterialMeta.h"
+	"private/Materials/DXDeferredMaterialMeta.cpp"
+	"private/Materials/DXDeferredMaterialMetaTag.h"
+	"private/Materials/DXDeferredMaterialMetaTag.cpp")
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
