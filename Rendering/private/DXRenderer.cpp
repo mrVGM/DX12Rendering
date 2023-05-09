@@ -148,10 +148,12 @@ void rendering::DXRenderer::Render(jobs::Job* done)
 	DXClearRTRP* clearRT = GetClearRTRP();
 	DXClearDSTRP* clearDST = GetClearDSTRP();
 	DXUnlitRP* unlitRP = GetUnlitRP();
+	DXDeferredRP* deferredRP = GetDeferredRP();
 
 	clearRT->Prepare();
 	clearDST->Prepare();
 	unlitRP->Prepare();
+	deferredRP->Prepare();
 
 	DXFence* fence = GetRenderFence();
 	WaitFence waitFence(*fence);
@@ -159,6 +161,7 @@ void rendering::DXRenderer::Render(jobs::Job* done)
 	clearRT->Execute();
 	clearDST->Execute();
 	unlitRP->Execute();
+	deferredRP->Execute();
 
 	DXCommandQueue* commandQueue = utils::GetCommandQueue();
 	commandQueue->GetCommandQueue()->Signal(fence->GetFence(), m_counter);

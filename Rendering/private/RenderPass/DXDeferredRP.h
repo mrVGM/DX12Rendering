@@ -23,6 +23,9 @@ namespace rendering
 		};
 
 	private:
+		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocator;
+		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_commandList;
+
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pipelineState;
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature;
 

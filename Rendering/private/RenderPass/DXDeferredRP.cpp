@@ -21,9 +21,22 @@ rendering::DXDeferredRP::DXDeferredRP() :
     m_vertexShader(*rendering::shader_repo::GetDeferredRPVertexShader()),
     m_pixelShader(*rendering::shader_repo::GetDeferredRPPixelShader())
 {
+    using Microsoft::WRL::ComPtr;
+
     DXDevice* device = utils::GetDevice();
 
-    using Microsoft::WRL::ComPtr;
+    THROW_ERROR(
+        device->GetDevice().CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator)),
+        "Can't create Command Allocator!")
+
+    THROW_ERROR(
+        device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&m_commandList)),
+        "Can't reset Command List!")
+
+    THROW_ERROR(
+        m_commandList->Close(),
+        "Can't close Command List!")
+
     {
         D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
 
@@ -42,11 +55,7 @@ rendering::DXDeferredRP::DXDeferredRP() :
             D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-        CD3DX12_ROOT_PARAMETER1 rootParameters[2];
-        rootParameters[0].InitAsConstantBufferView(0, 0);
-        rootParameters[1].InitAsConstantBufferView(1, 0);
-
-        rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 0, nullptr, rootSignatureFlags);
+        rootSignatureDesc.Init_1_1(0, nullptr, 0, nullptr, rootSignatureFlags);
 
         ComPtr<ID3DBlob> signature;
         ComPtr<ID3DBlob> error;
@@ -66,7 +75,7 @@ rendering::DXDeferredRP::DXDeferredRP() :
         D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
         {
             { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-            { "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 8, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+            { "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 8, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
         };
 
         // Describe and create the graphics pipeline state object (PSO).
@@ -78,19 +87,19 @@ rendering::DXDeferredRP::DXDeferredRP() :
         psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 
         psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-        psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-
+        psoDesc.DepthStencilState.DepthEnable = false;
+        psoDesc.DepthStencilState.StencilEnable = false;
         psoDesc.SampleMask = UINT_MAX;
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         psoDesc.NumRenderTargets = 1;
         psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+
         psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
         psoDesc.SampleDesc.Count = 1;
         THROW_ERROR(
             device->GetDevice().CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)),
             "Can't create Graphics Pipeline State!")
     }
-
 }
 
 rendering::DXDeferredRP::~DXDeferredRP()
@@ -104,10 +113,63 @@ D3D12_CPU_DESCRIPTOR_HANDLE rendering::DXDeferredRP::GetDescriptorHandleFor(GBuf
 
 void rendering::DXDeferredRP::Prepare()
 {
+    DXDevice* device = utils::GetDevice();
+    DXSwapChain* swapChain = utils::GetSwapChain();
+    DXBuffer* camBuff = utils::GetCameraBuffer();
+
+    ID3D12Resource* curRT = swapChain->GetCurrentRenderTarget();
+
+    THROW_ERROR(
+        m_commandAllocator->Reset(),
+        "Can't reset Command Allocator!")
+
+    THROW_ERROR(
+        m_commandList->Reset(m_commandAllocator.Get(), m_pipelineState.Get()),
+        "Can't reset Command List!")
+
+    {
+        CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(swapChain->GetCurrentRenderTarget(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+        m_commandList->ResourceBarrier(1, &barrier);
+    }
+
+    m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+
+    m_commandList->RSSetViewports(1, &swapChain->GetViewport());
+    m_commandList->RSSetScissorRects(1, &swapChain->GetScissorRect());
+
+    D3D12_CPU_DESCRIPTOR_HANDLE handles[] =
+    {
+        swapChain->GetCurrentRTVDescriptor()
+    };
+    m_commandList->OMSetRenderTargets(_countof(handles), handles, FALSE, nullptr);
+
+    D3D12_VERTEX_BUFFER_VIEW vertexBufferViews[1];
+    D3D12_VERTEX_BUFFER_VIEW& realVertexBufferView = vertexBufferViews[0];
+    DXBuffer* vertexBuffer = rendering::deferred::GetRenderTextureVertexBuffer();
+    realVertexBufferView.BufferLocation = vertexBuffer->GetBuffer()->GetGPUVirtualAddress();
+    realVertexBufferView.StrideInBytes = vertexBuffer->GetStride();
+    realVertexBufferView.SizeInBytes = vertexBuffer->GetBufferSize();
+
+    m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    m_commandList->IASetVertexBuffers(0, _countof(vertexBufferViews), vertexBufferViews);
+
+    m_commandList->DrawInstanced(6, 1, 0, 0);
+
+    {
+        CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(swapChain->GetCurrentRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+        m_commandList->ResourceBarrier(1, &barrier);
+    }
+
+    THROW_ERROR(
+        m_commandList->Close(),
+        "Can't close Command List!")
 }
 
 void rendering::DXDeferredRP::Execute()
 {
+    DXCommandQueue* commandQueue = rendering::utils::GetCommandQueue();
+    ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
+    commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 }
 
 #undef THROW_ERROR
