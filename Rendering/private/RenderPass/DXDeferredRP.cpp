@@ -8,6 +8,9 @@
 
 #include "Materials/DXDeferredMaterialMetaTag.h"
 
+#include "DXBufferMeta.h"
+#include "DXHeap.h"
+
 #include <set>
 
 #define THROW_ERROR(hRes, error) \
@@ -83,8 +86,9 @@ rendering::DXDeferredRP::DXDeferredRP() :
 
         CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
         ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3, 0, 0);
-        CD3DX12_ROOT_PARAMETER1 rootParameters[1];
-        rootParameters[0].InitAsDescriptorTable(1, ranges, D3D12_SHADER_VISIBILITY_PIXEL);
+        CD3DX12_ROOT_PARAMETER1 rootParameters[2];
+        rootParameters[0].InitAsConstantBufferView(0, 0);
+        rootParameters[1].InitAsDescriptorTable(1, ranges, D3D12_SHADER_VISIBILITY_PIXEL);
 
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
         rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, &sampler, rootSignatureFlags);
@@ -285,7 +289,8 @@ void rendering::DXDeferredRP::PrepareEndList()
     ID3D12DescriptorHeap* descriptorHeaps[] = { m_srvHeap.Get() };
     m_endList->SetDescriptorHeaps(1, descriptorHeaps);
 
-    m_endList->SetGraphicsRootDescriptorTable(0, descriptorHeaps[0]->GetGPUDescriptorHandleForHeapStart());
+    m_endList->SetGraphicsRootConstantBufferView(0, m_lightsBuffer->GetBuffer()->GetGPUVirtualAddress());
+    m_endList->SetGraphicsRootDescriptorTable(1, descriptorHeaps[0]->GetGPUDescriptorHandleForHeapStart());
 
     m_endList->RSSetViewports(1, &swapChain->GetViewport());
     m_endList->RSSetScissorRects(1, &swapChain->GetScissorRect());
@@ -481,7 +486,82 @@ void rendering::DXDeferredRP::Execute()
 
 void rendering::DXDeferredRP::Load(jobs::Job* done)
 {
-    utils::RunSync(done);
+    struct Context
+    {
+        DXDeferredRP* m_deferredRP = nullptr;
+        DXBuffer* m_buffer = nullptr;
+        DXHeap* m_heap = nullptr;
+        jobs::Job* m_done = nullptr;
+    };
+
+    class PlaceBuffer : public jobs::Job
+    {
+    private:
+        Context m_ctx;
+    public:
+        PlaceBuffer(const Context& ctx) :
+            m_ctx(ctx)
+        {
+        }
+        void Do() override
+        {
+            m_ctx.m_buffer->Place(m_ctx.m_heap, 0);
+
+            struct vec4 
+            {
+                float m_data[4];
+            };
+
+            void* dst = m_ctx.m_buffer->Map();
+            vec4* cur = static_cast<vec4*>(dst);
+            {
+                int* tmp = reinterpret_cast<int*>(cur);
+                *tmp = 1;
+
+                ++cur;
+                *cur = vec4{ 10, 10, -10, 30 };
+            }
+
+            m_ctx.m_deferredRP->m_lightsBuffer = m_ctx.m_buffer;
+
+            utils::RunSync(m_ctx.m_done);
+        }
+    };
+
+    class CreateHeapAndBuffer : public jobs::Job
+    {
+    private:
+        Context m_ctx;
+    public:
+        CreateHeapAndBuffer(const Context& ctx) :
+            m_ctx(ctx)
+        {
+        }
+
+        void Do()
+        {
+            m_ctx.m_buffer = new DXBuffer(DXBufferMeta::GetInstance());
+            m_ctx.m_buffer->SetBufferSizeAndFlags(256, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE);
+            m_ctx.m_buffer->SetBufferStride(256);
+
+            m_ctx.m_heap = new DXHeap();
+            m_ctx.m_heap->SetHeapSize(256);
+            m_ctx.m_heap->SetHeapType(D3D12_HEAP_TYPE_UPLOAD);
+            m_ctx.m_heap->SetHeapFlags(D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS);
+            m_ctx.m_heap->Create();
+
+            m_ctx.m_heap->MakeResident(new PlaceBuffer(m_ctx));
+        }
+    };
+
+    Context ctx
+    {
+        this,
+        nullptr,
+        nullptr,
+        done
+    };
+    utils::RunSync(new CreateHeapAndBuffer(ctx));
 }
 
 #undef THROW_ERROR

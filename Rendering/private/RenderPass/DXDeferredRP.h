@@ -12,6 +12,8 @@
 namespace rendering
 {
 	class DXShader;
+	class DXBuffer;
+
 	class DXDeferredRP : public RenderPass
 	{
 	public:
@@ -37,6 +39,8 @@ namespace rendering
 
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_srvHeap;
+
+		DXBuffer* m_lightsBuffer = nullptr;
 
 		UINT m_rtvDescriptorSize = 0;
 		UINT m_srvDescriptorSize = 0;
