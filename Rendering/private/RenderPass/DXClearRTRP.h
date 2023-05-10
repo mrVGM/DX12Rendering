@@ -24,5 +24,6 @@ namespace rendering
 
 		void Prepare() override;
 		void Execute() override;
+		void Load(jobs::Job* done) override;
 	};
 }

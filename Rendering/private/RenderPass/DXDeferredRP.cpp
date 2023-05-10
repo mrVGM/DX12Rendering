@@ -479,4 +479,9 @@ void rendering::DXDeferredRP::Execute()
     }
 }
 
+void rendering::DXDeferredRP::Load(jobs::Job* done)
+{
+    utils::RunSync(done);
+}
+
 #undef THROW_ERROR

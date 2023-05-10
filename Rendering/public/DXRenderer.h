@@ -18,7 +18,7 @@ namespace rendering
 		DXRenderer();
 		virtual ~DXRenderer();
 
-		void Init();
 		void RenderFrame(jobs::Job* done);
+		void LoadRPs(jobs::Job* done);
 	};
 }

@@ -29,11 +29,10 @@
 namespace
 {
 	rendering::DXFence* m_renderFence = nullptr;
-	jobs::JobSystem* m_renderJobSystem = nullptr;
 	rendering::DXClearRTRP* m_clearRTRP = nullptr;
+	rendering::DXClearDSTRP* m_clearDSTRP = nullptr;
 	rendering::DXUnlitRP* m_unlitRP = nullptr;
 	rendering::DXDeferredRP* m_deferredRP = nullptr;
-	rendering::DXClearDSTRP* m_clearDSTRP = nullptr;
 
 	rendering::DXFence* GetRenderFence()
 	{
@@ -121,16 +120,6 @@ namespace
 	}
 }
 
-
-void rendering::DXRenderer::Init()
-{
-	GetRenderFence();
-	GetClearRTRP();
-	GetClearDSTRP();
-	GetDeferredRP();
-	GetUnlitRP();
-}
-
 rendering::DXRenderer::DXRenderer() :
 	BaseObject(DXRendererMeta::GetInstance())
 {
@@ -202,4 +191,78 @@ void rendering::DXRenderer::RenderFrame(jobs::Job* done)
 
 	Context ctx {this, done};
 	utils::RunAsync(new RenderJob(ctx));
+}
+
+
+void rendering::DXRenderer::LoadRPs(jobs::Job* done)
+{
+	struct Context
+	{
+		int m_jobsInProgress = 4;
+		jobs::Job* m_done = nullptr;
+	};
+
+	class LoadReady : public jobs::Job
+	{
+	private:
+		Context& m_ctx;
+	public:
+		LoadReady(Context& ctx) :
+			m_ctx(ctx)
+		{
+		}
+
+		void Do() override
+		{
+			--m_ctx.m_jobsInProgress;
+
+			if (m_ctx.m_jobsInProgress > 0)
+			{
+				return;
+			}
+
+			utils::RunSync(m_ctx.m_done);
+			delete &m_ctx;
+		}
+	};
+
+	class CreateObjects : public jobs::Job
+	{
+	private:
+		Context& m_ctx;
+	public:
+		CreateObjects(Context& ctx) :
+			m_ctx(ctx)
+		{
+		}
+
+		void Do() override
+		{
+			GetRenderFence();
+			{
+				RenderPass* rp = GetClearRTRP();
+				rp->Load(new LoadReady(m_ctx));
+			}
+
+			{
+				RenderPass* rp = GetClearDSTRP();
+				rp->Load(new LoadReady(m_ctx));
+			}
+			
+			{
+				RenderPass* rp = GetUnlitRP();
+				rp->Load(new LoadReady(m_ctx));
+			}
+			
+			{
+				RenderPass* rp = GetDeferredRP();;
+				rp->Load(new LoadReady(m_ctx));
+			}
+		}
+	};
+
+	Context* ctx = new Context();
+	ctx->m_done = done;
+
+	utils::RunSync(new CreateObjects(*ctx));
 }

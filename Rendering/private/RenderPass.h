@@ -2,7 +2,7 @@
 
 #include "BaseObject.h"
 
-#include <string>
+#include "Job.h"
 
 class BaseObjectMeta;
 
@@ -14,6 +14,7 @@ namespace rendering
 	public:
 		virtual void Prepare() = 0;
 		virtual void Execute() = 0;
+		virtual void Load(jobs::Job* done) = 0;
 
 		RenderPass(const BaseObjectMeta& meta);
 		virtual ~RenderPass();

@@ -85,6 +85,11 @@ void rendering::DXClearRTRP::Execute()
     commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 }
 
+void rendering::DXClearRTRP::Load(jobs::Job* done)
+{
+    utils::RunSync(done);
+}
+
 #undef THROW_ERROR
 
 rendering::DXClearRTRP::DXClearRTRP() :

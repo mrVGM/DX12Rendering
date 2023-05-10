@@ -68,6 +68,11 @@ void rendering::DXClearDSTRP::Execute()
     commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 }
 
+void rendering::DXClearDSTRP::Load(jobs::Job* done)
+{
+    utils::RunSync(done);
+}
+
 
 rendering::DXClearDSTRP::DXClearDSTRP() :
     RenderPass(DXClearDSTRPMeta::GetInstance())
