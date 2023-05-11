@@ -41,6 +41,9 @@ namespace rendering
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_srvHeap;
 
+		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_rtvLitHeap;
+		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_srvLitHeap;
+
 		DXBuffer* m_lightsBuffer = nullptr;
 
 		UINT m_rtvDescriptorSize = 0;
@@ -53,6 +56,9 @@ namespace rendering
 
 		void CreateRTVHeap();
 		void CreateSRVHeap();
+
+		void CreateRTVLitHeap();
+		void CreateSRVLitHeap();
 
 		void PrepareEndList();
 		void PrepareStartList();

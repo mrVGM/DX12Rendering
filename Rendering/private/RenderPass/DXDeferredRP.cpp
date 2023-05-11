@@ -284,6 +284,106 @@ void rendering::DXDeferredRP::CreateSRVHeap()
     }
 }
 
+void rendering::DXDeferredRP::CreateRTVLitHeap()
+{
+    using Microsoft::WRL::ComPtr;
+
+    DXDevice* device = utils::GetDevice();
+
+    // Create descriptor heaps.
+    {
+        // Describe and create a render target view (RTV) descriptor heap.
+        D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
+        rtvHeapDesc.NumDescriptors = 3;
+        rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+        rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+        THROW_ERROR(
+            device->GetDevice().CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_rtvLitHeap)),
+            "Can't create a descriptor heap!")
+    }
+
+    // Create frame resources.
+    {
+        assert(m_rtvDescriptorSize > 0);
+
+        CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvLitHeap->GetCPUDescriptorHandleForHeapStart());
+
+        device->GetDevice().CreateRenderTargetView(rendering::deferred::GetGBufferAmbientLitTex()->GetTexture(), nullptr, rtvHandle);
+        rtvHandle.Offset(1, m_rtvDescriptorSize);
+
+        device->GetDevice().CreateRenderTargetView(rendering::deferred::GetGBufferDiffuseLitTex()->GetTexture(), nullptr, rtvHandle);
+        rtvHandle.Offset(1, m_rtvDescriptorSize);
+
+        device->GetDevice().CreateRenderTargetView(rendering::deferred::GetGBufferSpecularLitTex()->GetTexture(), nullptr, rtvHandle);
+        rtvHandle.Offset(1, m_rtvDescriptorSize);
+    }
+}
+
+void rendering::DXDeferredRP::CreateSRVLitHeap()
+{
+    using Microsoft::WRL::ComPtr;
+
+    DXDevice* device = utils::GetDevice();
+
+    // Create descriptor heaps.
+    {
+        // Describe and create a render target view (RTV) descriptor heap.
+        D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
+        srvHeapDesc.NumDescriptors = 3;
+        srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+        THROW_ERROR(
+            device->GetDevice().CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&m_srvLitHeap)),
+            "Can't create a descriptor heap!")
+    }
+
+    // Create frame resources.
+    {
+        assert(m_srvDescriptorSize > 0);
+
+        CD3DX12_CPU_DESCRIPTOR_HANDLE srvHandle(m_srvLitHeap->GetCPUDescriptorHandleForHeapStart());
+
+        {
+            DXTexture* tex = deferred::GetGBufferAmbientLitTex();
+            D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+            srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+            srvDesc.Format = tex->GetTextureDescription().Format;
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+            srvDesc.Texture3D.MipLevels = 1;
+            srvDesc.Texture2D.MipLevels = 1;
+
+            device->GetDevice().CreateShaderResourceView(tex->GetTexture(), &srvDesc, srvHandle);
+            srvHandle.Offset(1, m_srvDescriptorSize);
+        }
+
+        {
+            DXTexture* tex = deferred::GetGBufferDiffuseLitTex();
+            D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+            srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+            srvDesc.Format = tex->GetTextureDescription().Format;
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+            srvDesc.Texture3D.MipLevels = 1;
+            srvDesc.Texture2D.MipLevels = 1;
+
+            device->GetDevice().CreateShaderResourceView(tex->GetTexture(), &srvDesc, srvHandle);
+            srvHandle.Offset(1, m_srvDescriptorSize);
+        }
+
+        {
+            DXTexture* tex = deferred::GetGBufferSpecularLitTex();
+            D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+            srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+            srvDesc.Format = tex->GetTextureDescription().Format;
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+            srvDesc.Texture3D.MipLevels = 1;
+            srvDesc.Texture2D.MipLevels = 1;
+
+            device->GetDevice().CreateShaderResourceView(tex->GetTexture(), &srvDesc, srvHandle);
+            srvHandle.Offset(1, m_srvDescriptorSize);
+        }
+    }
+}
+
 void rendering::DXDeferredRP::PrepareEndList()
 {
     DXDevice* device = utils::GetDevice();
@@ -625,6 +725,9 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
             {
                 return;
             }
+
+            m_ctx.m_deferredRP->CreateRTVLitHeap();
+            m_ctx.m_deferredRP->CreateSRVLitHeap();
 
             utils::RunSync(m_ctx.m_done);
             delete& m_ctx;

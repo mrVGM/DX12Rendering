@@ -473,6 +473,21 @@ rendering::DXTexture* rendering::deferred::GetGBufferPositionTex()
 	return m_positionTex;
 }
 
+rendering::DXTexture* rendering::deferred::GetGBufferAmbientLitTex()
+{
+	return m_ambientLitTex;
+}
+
+rendering::DXTexture* rendering::deferred::GetGBufferDiffuseLitTex()
+{
+	return m_diffuseLitTex;
+}
+
+rendering::DXTexture* rendering::deferred::GetGBufferSpecularLitTex()
+{
+	return m_specularLitTex;
+}
+
 rendering::DXBuffer* rendering::deferred::GetRenderTextureVertexBuffer()
 {
 	return m_renderTextureVertexBuffer;
