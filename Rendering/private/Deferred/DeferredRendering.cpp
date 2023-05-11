@@ -5,6 +5,7 @@
 #include "Deferred/DXGBufferDuffuseTexMeta.h"
 #include "Deferred/DXGBufferNormalTexMeta.h"
 #include "Deferred/DXGBufferPositionTexMeta.h"
+#include "Deferred/DXGBufferSpecularTexMeta.h"
 
 #include "DXHeap.h"
 #include "DXBufferMeta.h"
@@ -14,6 +15,7 @@
 namespace
 {
 	rendering::DXTexture* m_duffuseTex = nullptr;
+	rendering::DXTexture* m_specularTex = nullptr;
 	rendering::DXTexture* m_surfaceNormalTex = nullptr;
 	rendering::DXTexture* m_positionTex = nullptr;
 	rendering::DXBuffer* m_renderTextureVertexBuffer = nullptr;
@@ -240,14 +242,16 @@ namespace
 		struct Context
 		{
 			DXTexture* m_diffuse = nullptr;
+			DXTexture* m_specular = nullptr;
 			DXTexture* m_normal = nullptr;
 			DXTexture* m_position = nullptr;
 
 			DXHeap* m_diffuseHeap = nullptr;
+			DXHeap* m_specularHeap = nullptr;
 			DXHeap* m_normalHeap = nullptr;
 			DXHeap* m_positionHeap = nullptr;
 
-			int m_itemsToLoad = 3;
+			int m_itemsToLoad = 4;
 
 			jobs::Job* m_done = nullptr;
 		};
@@ -277,6 +281,7 @@ namespace
 				}
 
 				m_duffuseTex = m_ctx.m_diffuse;
+				m_specularTex = m_ctx.m_specular;
 				m_surfaceNormalTex = m_ctx.m_normal;
 				m_positionTex = m_ctx.m_position;
 
@@ -299,6 +304,7 @@ namespace
 			{
 				Window* wnd = utils::GetWindow();
 				m_ctx.m_diffuse = DXTexture::CreateRenderTargetTexture(deferred::DXGBufferDuffuseTexMeta::GetInstance(), wnd->m_width, wnd->m_height);
+				m_ctx.m_specular = DXTexture::CreateRenderTargetTexture(deferred::DXGBufferSpecularTexMeta::GetInstance(), wnd->m_width, wnd->m_height);
 				m_ctx.m_normal = DXTexture::CreateRenderTargetTexture(deferred::DXGBufferNormalTexMeta::GetInstance(), wnd->m_width, wnd->m_height);
 				m_ctx.m_position = DXTexture::CreateRenderTargetTexture(deferred::DXGBufferPositionTexMeta::GetInstance(), wnd->m_width, wnd->m_height);
 
@@ -307,6 +313,12 @@ namespace
 				m_ctx.m_diffuseHeap->SetHeapType(D3D12_HEAP_TYPE_DEFAULT);
 				m_ctx.m_diffuseHeap->SetHeapFlags(D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES);
 				m_ctx.m_diffuseHeap->Create();
+
+				m_ctx.m_specularHeap = new DXHeap();
+				m_ctx.m_specularHeap->SetHeapSize(m_ctx.m_specular->GetTextureAllocationInfo().SizeInBytes);
+				m_ctx.m_specularHeap->SetHeapType(D3D12_HEAP_TYPE_DEFAULT);
+				m_ctx.m_specularHeap->SetHeapFlags(D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES);
+				m_ctx.m_specularHeap->Create();
 
 				m_ctx.m_normalHeap = new DXHeap();
 				m_ctx.m_normalHeap->SetHeapSize(m_ctx.m_normal->GetTextureAllocationInfo().SizeInBytes);
@@ -321,6 +333,7 @@ namespace
 				m_ctx.m_positionHeap->Create();
 
 				m_ctx.m_diffuseHeap->MakeResident(new HeapLoaded(m_ctx, *m_ctx.m_diffuseHeap, *m_ctx.m_diffuse));
+				m_ctx.m_specularHeap->MakeResident(new HeapLoaded(m_ctx, *m_ctx.m_specularHeap, *m_ctx.m_specular));
 				m_ctx.m_normalHeap->MakeResident(new HeapLoaded(m_ctx, *m_ctx.m_normalHeap, *m_ctx.m_normal));
 				m_ctx.m_positionHeap->MakeResident(new HeapLoaded(m_ctx, *m_ctx.m_positionHeap, *m_ctx.m_position));
 			}
@@ -336,6 +349,11 @@ namespace
 rendering::DXTexture* rendering::deferred::GetGBufferDiffuseTex()
 {
 	return m_duffuseTex;
+}
+
+rendering::DXTexture* rendering::deferred::GetGBufferSpecularTex()
+{
+	return m_specularTex;
 }
 
 rendering::DXTexture* rendering::deferred::GetGBufferNormalTex()

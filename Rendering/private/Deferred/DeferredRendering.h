@@ -10,6 +10,7 @@ namespace rendering
 	namespace deferred
 	{
 		DXTexture* GetGBufferDiffuseTex();
+		DXTexture* GetGBufferSpecularTex();
 		DXTexture* GetGBufferNormalTex();
 		DXTexture* GetGBufferPositionTex();
 

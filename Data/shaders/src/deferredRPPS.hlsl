@@ -13,14 +13,16 @@ cbuffer LigthsData : register(b0)
 };
 
 Texture2D p_diffuse     : register(t0);
-Texture2D p_normal      : register(t1);
-Texture2D p_position    : register(t2);
+Texture2D p_specular    : register(t1);
+Texture2D p_normal      : register(t2);
+Texture2D p_position    : register(t3);
 
 SamplerState p_sampler  : register(s0);
 
 float4 PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
 {
     float4 diffuseTex = p_diffuse.Sample(p_sampler, uv);
+    float4 specularTex = p_specular.Sample(p_sampler, uv);
     float4 normalTex = p_normal.Sample(p_sampler, uv);
     float4 positionTex = p_normal.Sample(p_sampler, uv);
 

@@ -177,7 +177,7 @@ void rendering::DXDeferredRP::CreateRTVHeap()
     {
         // Describe and create a render target view (RTV) descriptor heap.
         D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-        rtvHeapDesc.NumDescriptors = 3;
+        rtvHeapDesc.NumDescriptors = 4;
         rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
         rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
         THROW_ERROR(
@@ -192,6 +192,9 @@ void rendering::DXDeferredRP::CreateRTVHeap()
         CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart());
 
         device->GetDevice().CreateRenderTargetView(rendering::deferred::GetGBufferDiffuseTex()->GetTexture(), nullptr, rtvHandle);
+        rtvHandle.Offset(1, m_rtvDescriptorSize);
+
+        device->GetDevice().CreateRenderTargetView(rendering::deferred::GetGBufferSpecularTex()->GetTexture(), nullptr, rtvHandle);
         rtvHandle.Offset(1, m_rtvDescriptorSize);
 
         device->GetDevice().CreateRenderTargetView(rendering::deferred::GetGBufferNormalTex()->GetTexture(), nullptr, rtvHandle);
@@ -213,7 +216,7 @@ void rendering::DXDeferredRP::CreateSRVHeap()
     {
         // Describe and create a render target view (RTV) descriptor heap.
         D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-        srvHeapDesc.NumDescriptors = 3;
+        srvHeapDesc.NumDescriptors = 4;
         srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
         srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
         THROW_ERROR(
@@ -229,6 +232,19 @@ void rendering::DXDeferredRP::CreateSRVHeap()
 
         {
             DXTexture* tex = deferred::GetGBufferDiffuseTex();
+            D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+            srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+            srvDesc.Format = tex->GetTextureDescription().Format;
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+            srvDesc.Texture3D.MipLevels = 1;
+            srvDesc.Texture2D.MipLevels = 1;
+
+            device->GetDevice().CreateShaderResourceView(tex->GetTexture(), &srvDesc, srvHandle);
+            srvHandle.Offset(1, m_srvDescriptorSize);
+        }
+
+        {
+            DXTexture* tex = deferred::GetGBufferSpecularTex();
             D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
             srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
             srvDesc.Format = tex->GetTextureDescription().Format;
@@ -286,6 +302,7 @@ void rendering::DXDeferredRP::PrepareEndList()
         {
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(swapChain->GetCurrentRenderTarget(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferDiffuseTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferNormalTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferPositionTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
         };
@@ -295,7 +312,7 @@ void rendering::DXDeferredRP::PrepareEndList()
 
     m_endList->SetGraphicsRootSignature(m_rootSignature.Get());
     ID3D12DescriptorHeap* descriptorHeaps[] = { m_srvHeap.Get() };
-    m_endList->SetDescriptorHeaps(1, descriptorHeaps);
+    m_endList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
     m_endList->SetGraphicsRootConstantBufferView(0, m_lightsBuffer->GetBuffer()->GetGPUVirtualAddress());
     m_endList->SetGraphicsRootDescriptorTable(1, descriptorHeaps[0]->GetGPUDescriptorHandleForHeapStart());
@@ -326,6 +343,7 @@ void rendering::DXDeferredRP::PrepareEndList()
         {
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(swapChain->GetCurrentRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferDiffuseTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferNormalTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferPositionTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
         };
@@ -358,6 +376,7 @@ void rendering::DXDeferredRP::PrepareStartList()
         CD3DX12_RESOURCE_BARRIER barrier[] =
         {
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferDiffuseTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferNormalTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferPositionTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
         };
@@ -366,6 +385,7 @@ void rendering::DXDeferredRP::PrepareStartList()
 
     const float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
     m_startList->ClearRenderTargetView(GetDescriptorHandleFor(GBufferTexType::Diffuse), clearColor, 0, nullptr);
+    m_startList->ClearRenderTargetView(GetDescriptorHandleFor(GBufferTexType::Specular), clearColor, 0, nullptr);
     m_startList->ClearRenderTargetView(GetDescriptorHandleFor(GBufferTexType::Normal), clearColor, 0, nullptr);
     m_startList->ClearRenderTargetView(GetDescriptorHandleFor(GBufferTexType::Position), clearColor, 0, nullptr);
 

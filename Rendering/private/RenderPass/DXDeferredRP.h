@@ -20,8 +20,9 @@ namespace rendering
 		enum GBufferTexType
 		{
 			Diffuse = 0,
-			Normal = 1,
-			Position = 2
+			Specular = 1,
+			Normal = 2,
+			Position = 3
 		};
 
 	private:

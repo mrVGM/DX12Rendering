@@ -110,11 +110,12 @@ rendering::DXDeferredMaterial::DXDeferredMaterial(const rendering::DXShader& ver
         psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
         psoDesc.SampleMask = UINT_MAX;
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-        psoDesc.NumRenderTargets = 3;
+        psoDesc.NumRenderTargets = 4;
 
         psoDesc.RTVFormats[0] = DXGI_FORMAT_R32G32B32A32_FLOAT;
         psoDesc.RTVFormats[1] = DXGI_FORMAT_R32G32B32A32_FLOAT;
         psoDesc.RTVFormats[2] = DXGI_FORMAT_R32G32B32A32_FLOAT;
+        psoDesc.RTVFormats[3] = DXGI_FORMAT_R32G32B32A32_FLOAT;
 
         psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
         psoDesc.SampleDesc.Count = 1;
@@ -162,6 +163,7 @@ ID3D12CommandList* rendering::DXDeferredMaterial::GenerateCommandList(
     D3D12_CPU_DESCRIPTOR_HANDLE handles[] =
     {
         deferredRP->GetDescriptorHandleFor(DXDeferredRP::GBufferTexType::Diffuse),
+        deferredRP->GetDescriptorHandleFor(DXDeferredRP::GBufferTexType::Specular),
         deferredRP->GetDescriptorHandleFor(DXDeferredRP::GBufferTexType::Normal),
         deferredRP->GetDescriptorHandleFor(DXDeferredRP::GBufferTexType::Position)
     };
@@ -185,7 +187,7 @@ ID3D12CommandList* rendering::DXDeferredMaterial::GenerateCommandList(
 
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    commandList->IASetVertexBuffers(0, 2, vertexBufferViews);
+    commandList->IASetVertexBuffers(0, _countof(vertexBufferViews), vertexBufferViews);
     commandList->IASetIndexBuffer(&indexBufferView);
 
     int numInstances = instanceBuffer.GetBufferSize() / instanceBuffer.GetStride();

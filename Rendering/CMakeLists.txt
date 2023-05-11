@@ -154,7 +154,10 @@ add_library (Rendering
 	"private/Materials/DXDeferredMaterialMeta.h"
 	"private/Materials/DXDeferredMaterialMeta.cpp"
 	"private/Materials/DXDeferredMaterialMetaTag.h"
-	"private/Materials/DXDeferredMaterialMetaTag.cpp")
+	"private/Materials/DXDeferredMaterialMetaTag.cpp"
+	"private/Deferred/DXGBufferSpecularTexMeta.h"
+	"private/Deferred/DXGBufferSpecularTexMeta.cpp"
+)
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
