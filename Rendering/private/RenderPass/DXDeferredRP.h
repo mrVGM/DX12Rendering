@@ -25,15 +25,20 @@ namespace rendering
 			Position = 3
 		};
 
+		enum GBufferLitTexType
+		{
+			AmbientLit = 0,
+			DiffuseLit = 1,
+			SpecularLit = 2
+		};
+
 	private:
 		ID3D12CommandList** m_commandListsCache = nullptr;
 		int m_numCommandLists = 0;
 
-		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_endListAllocator;
-		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_endList;
-
-		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_startListAllocator;
+		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_lightCalculationsAllocator;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_startList;
+		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_endList;
 
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pipelineState;
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature;
@@ -50,6 +55,7 @@ namespace rendering
 		UINT m_srvDescriptorSize = 0;
 
 		bool m_startListPrepared = false;
+		bool m_endListPrepared = false;
 
 		const DXShader& m_vertexShader;
 		const DXShader& m_pixelShader;
@@ -67,6 +73,8 @@ namespace rendering
 		void LoadLitTextures(jobs::Job* done);
 
 		void RenderDeferred();
+
+		D3D12_CPU_DESCRIPTOR_HANDLE GetDescriptorHandleFor(GBufferLitTexType texType);
 	public:
 		DXDeferredRP();
 		virtual ~DXDeferredRP();

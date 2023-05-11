@@ -29,27 +29,23 @@ rendering::DXDeferredRP::DXDeferredRP() :
     DXDevice* device = utils::GetDevice();
 
     THROW_ERROR(
-        device->GetDevice().CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_endListAllocator)),
+        device->GetDevice().CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_lightCalculationsAllocator)),
         "Can't create Command Allocator!")
 
     THROW_ERROR(
-        device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_endListAllocator.Get(), nullptr, IID_PPV_ARGS(&m_endList)),
-        "Can't reset Command List!")
-
-    THROW_ERROR(
-        m_endList->Close(),
-        "Can't close Command List!")
-
-    THROW_ERROR(
-        device->GetDevice().CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_startListAllocator)),
-        "Can't create Command Allocator!")
-
-    THROW_ERROR(
-        device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_startListAllocator.Get(), nullptr, IID_PPV_ARGS(&m_startList)),
+        device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_lightCalculationsAllocator.Get(), nullptr, IID_PPV_ARGS(&m_startList)),
         "Can't reset Command List!")
 
     THROW_ERROR(
         m_startList->Close(),
+        "Can't close Command List!")
+
+    THROW_ERROR(
+        device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_lightCalculationsAllocator.Get(), nullptr, IID_PPV_ARGS(&m_endList)),
+        "Can't reset Command List!")
+
+    THROW_ERROR(
+        m_endList->Close(),
         "Can't close Command List!")
 
     {
@@ -122,21 +118,28 @@ rendering::DXDeferredRP::DXDeferredRP() :
         psoDesc.PS = CD3DX12_SHADER_BYTECODE(m_pixelShader.GetCompiledShader());
         psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 
-        psoDesc.BlendState.RenderTarget[0].BlendEnable = TRUE;
-        psoDesc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND::D3D12_BLEND_SRC_ALPHA;
-        psoDesc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND::D3D12_BLEND_INV_SRC_ALPHA;
-        psoDesc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP::D3D12_BLEND_OP_ADD;
-        psoDesc.BlendState.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP::D3D12_BLEND_OP_ADD;
-        psoDesc.BlendState.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND::D3D12_BLEND_ONE;
-        psoDesc.BlendState.RenderTarget[0].DestBlendAlpha = D3D12_BLEND::D3D12_BLEND_ZERO;
-        psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = 0x0f;
+        for (int i = 0; i < 3; ++i)
+        {
+            psoDesc.BlendState.RenderTarget[i].BlendEnable = TRUE;
+            psoDesc.BlendState.RenderTarget[i].SrcBlend = D3D12_BLEND::D3D12_BLEND_SRC_ALPHA;
+            psoDesc.BlendState.RenderTarget[i].DestBlend = D3D12_BLEND::D3D12_BLEND_INV_SRC_ALPHA;
+            psoDesc.BlendState.RenderTarget[i].BlendOp = D3D12_BLEND_OP::D3D12_BLEND_OP_ADD;
+            psoDesc.BlendState.RenderTarget[i].BlendOpAlpha = D3D12_BLEND_OP::D3D12_BLEND_OP_ADD;
+            psoDesc.BlendState.RenderTarget[i].SrcBlendAlpha = D3D12_BLEND::D3D12_BLEND_ONE;
+            psoDesc.BlendState.RenderTarget[i].DestBlendAlpha = D3D12_BLEND::D3D12_BLEND_ZERO;
+            psoDesc.BlendState.RenderTarget[i].RenderTargetWriteMask = 0x0f;
+        }
 
         psoDesc.DepthStencilState.DepthEnable = false;
         psoDesc.DepthStencilState.StencilEnable = false;
         psoDesc.SampleMask = UINT_MAX;
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-        psoDesc.NumRenderTargets = 1;
-        psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+        psoDesc.NumRenderTargets = 3;
+
+        for (int i = 0; i < 3; ++i)
+        {
+            psoDesc.RTVFormats[i] = DXGI_FORMAT_R32G32B32A32_FLOAT;
+        }
 
         psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
         psoDesc.SampleDesc.Count = 1;
@@ -166,6 +169,17 @@ D3D12_CPU_DESCRIPTOR_HANDLE rendering::DXDeferredRP::GetDescriptorHandleFor(GBuf
     }
     return handle;
 }
+
+D3D12_CPU_DESCRIPTOR_HANDLE rendering::DXDeferredRP::GetDescriptorHandleFor(GBufferLitTexType texType)
+{
+    CD3DX12_CPU_DESCRIPTOR_HANDLE handle(m_rtvLitHeap->GetCPUDescriptorHandleForHeapStart());
+
+    for (int i = 0; i < texType; ++i) {
+        handle.Offset(m_rtvDescriptorSize);
+    }
+    return handle;
+}
+
 
 void rendering::DXDeferredRP::CreateRTVHeap()
 {
@@ -386,21 +400,38 @@ void rendering::DXDeferredRP::CreateSRVLitHeap()
 
 void rendering::DXDeferredRP::PrepareEndList()
 {
+    if (m_endListPrepared)
+    {
+        return;
+    }
+
     DXDevice* device = utils::GetDevice();
     DXSwapChain* swapChain = utils::GetSwapChain();
 
     THROW_ERROR(
-        m_endListAllocator->Reset(),
-        "Can't reset Command Allocator!")
-
-    THROW_ERROR(
-        m_endList->Reset(m_endListAllocator.Get(), m_pipelineState.Get()),
+        m_endList->Reset(m_lightCalculationsAllocator.Get(), m_pipelineState.Get()),
         "Can't reset Command List!")
 
     {
         CD3DX12_RESOURCE_BARRIER barrier[] =
         {
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(swapChain->GetCurrentRenderTarget(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferAmbientLitTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferDiffuseLitTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularLitTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET)
+        };
+        m_endList->ResourceBarrier(_countof(barrier), barrier);
+    }
+
+    {
+        const float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+        m_endList->ClearRenderTargetView(GetDescriptorHandleFor(GBufferLitTexType::AmbientLit), clearColor, 0, nullptr);
+        m_endList->ClearRenderTargetView(GetDescriptorHandleFor(GBufferLitTexType::DiffuseLit), clearColor, 0, nullptr);
+        m_endList->ClearRenderTargetView(GetDescriptorHandleFor(GBufferLitTexType::SpecularLit), clearColor, 0, nullptr);
+    }
+
+    {
+        CD3DX12_RESOURCE_BARRIER barrier[] =
+        {
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferDiffuseTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferNormalTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
@@ -422,7 +453,9 @@ void rendering::DXDeferredRP::PrepareEndList()
 
     D3D12_CPU_DESCRIPTOR_HANDLE handles[] =
     {
-        swapChain->GetCurrentRTVDescriptor()
+        GetDescriptorHandleFor(DXDeferredRP::GBufferLitTexType::AmbientLit),
+        GetDescriptorHandleFor(DXDeferredRP::GBufferLitTexType::DiffuseLit),
+        GetDescriptorHandleFor(DXDeferredRP::GBufferLitTexType::SpecularLit),
     };
     m_endList->OMSetRenderTargets(_countof(handles), handles, FALSE, nullptr);
 
@@ -441,11 +474,14 @@ void rendering::DXDeferredRP::PrepareEndList()
     {
         CD3DX12_RESOURCE_BARRIER barrier[] =
         {
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(swapChain->GetCurrentRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferDiffuseTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferNormalTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferPositionTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
+
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferAmbientLitTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferDiffuseLitTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularLitTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT)
         };
         m_endList->ResourceBarrier(_countof(barrier), barrier);
     }
@@ -453,6 +489,8 @@ void rendering::DXDeferredRP::PrepareEndList()
     THROW_ERROR(
         m_endList->Close(),
         "Can't close Command List!")
+
+    m_endListPrepared = true;
 }
 
 void rendering::DXDeferredRP::PrepareStartList()
@@ -465,11 +503,7 @@ void rendering::DXDeferredRP::PrepareStartList()
     DXDevice* device = utils::GetDevice();
 
     THROW_ERROR(
-        m_startListAllocator->Reset(),
-        "Can't reset Command Allocator!")
-
-    THROW_ERROR(
-        m_startList->Reset(m_startListAllocator.Get(), m_pipelineState.Get()),
+        m_startList->Reset(m_lightCalculationsAllocator.Get(), m_pipelineState.Get()),
         "Can't reset Command List!")
 
     {

@@ -19,8 +19,19 @@ Texture2D p_position    : register(t3);
 
 SamplerState p_sampler  : register(s0);
 
-float4 PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
+struct PS_OUTPUT
 {
+    float4 m_ambientLit: SV_Target0;
+    float4 m_diffuseLit: SV_Target1;
+    float4 m_specularLit: SV_Target2;
+};
+
+PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
+{
+    PS_OUTPUT output;
+
+    return output;
+
     float4 diffuseTex = p_diffuse.Sample(p_sampler, uv);
     float4 specularTex = p_specular.Sample(p_sampler, uv);
     float4 normalTex = p_normal.Sample(p_sampler, uv);
@@ -28,7 +39,7 @@ float4 PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
 
     if (dot(normalTex, normalTex) < 1)
     {
-        return float4(0,0,0,0);
+        //return float4(0,0,0,0);
     }
 
     float3 color = 0.2 * diffuseTex;
@@ -61,5 +72,5 @@ float4 PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
         color = clamp(color, 0, 1);
     }
 
-    return float4(color, 1);
+    //return float4(color, 1);
 }
