@@ -822,6 +822,7 @@ void rendering::DXDeferredRP::Prepare()
 {
     PrepareStartList();
     PrepareEndList();
+    PreparePostLightingList();
 }
 
 void rendering::DXDeferredRP::Execute()
@@ -836,6 +837,11 @@ void rendering::DXDeferredRP::Execute()
 
     {
         ID3D12CommandList* ppCommandLists[] = { m_endList.Get() };
+        commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+    }
+
+    {
+        ID3D12CommandList* ppCommandLists[] = { m_postLightingList.Get() };
         commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
     }
 }
