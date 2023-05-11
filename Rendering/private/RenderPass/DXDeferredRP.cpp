@@ -888,7 +888,7 @@ void rendering::DXDeferredRP::LoadLightsBuffer(jobs::Job* done)
                 *tmp = 1;
 
                 ++cur;
-                *cur = vec4{ 10, 10, -10, 30 };
+                *cur = vec4{ 3, 3, -3, 30 };
             }
 
             m_ctx.m_deferredRP->m_lightsBuffer = m_ctx.m_buffer;

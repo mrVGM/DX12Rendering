@@ -40,7 +40,7 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
     float4 diffuseTex = p_diffuse.Sample(p_sampler, uv);
     float4 specularTex = p_specular.Sample(p_sampler, uv);
     float4 normalTex = p_normal.Sample(p_sampler, uv);
-    float4 positionTex = p_normal.Sample(p_sampler, uv);
+    float4 positionTex = p_position.Sample(p_sampler, uv);
 
     output.m_ambientLit = float4(0,0,0,0);
     output.m_diffuseLit = float4(0,0,0,0);
