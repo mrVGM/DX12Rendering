@@ -84,7 +84,7 @@ namespace
 			void Do() override
 			{
 				DXBuffer* buffer = m_ctx.m_material->GetSettingsBuffer();
-				float color[] = { 1, 1, 0, 1 };
+				float color[] = { 1, 1, 0, 1, 1, 1, 1, 32 };
 				buffer->CopyData(color, _countof(color) * sizeof(float));
 
 				DXMaterialRepo* repo = utils::GetMaterialRepo();

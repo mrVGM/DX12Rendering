@@ -58,13 +58,13 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
 
     float3 reflectedEyeDir = float3(0, 0, 0);
     {
-        float3 eyeDir = normalized(m_camPos - positionTex.xyz);
+        float3 eyeDir = normalize(m_camPos - positionTex.xyz);
         reflectedEyeDir = eyeDir;
 
         if (dot(eyeDir, normalTex.xyz) < 1)
         {
             float3 y = normalTex.xyz;
-            float3 x = normalized(cross(eyeDir, y));
+            float3 x = normalize(cross(eyeDir, y));
             float3 z = cross(y, x);
 
             float4x4 mat = float4x4(float4(x, 0), float4(y, 0), float4(z, 0), float4(0, 0, 0, 1));

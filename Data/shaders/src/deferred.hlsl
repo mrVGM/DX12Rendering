@@ -1,6 +1,8 @@
 cbuffer DeferredSettings : register(b1)
 {
     float4 m_color;
+    float3 m_specularColor;
+    float m_specularCoef;
 };
 
 struct PS_OUTPUT
@@ -15,7 +17,7 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float4 worldPosition : WORLD_POS
 {
     PS_OUTPUT output;
     output.m_diffuse = m_color;
-    output.m_specular = float4(1,1,1,1);
+    output.m_specular = float4(m_specularColor, m_specularCoef);
     output.m_normal = normal;
     output.m_position = worldPosition;
 
