@@ -66,7 +66,11 @@ namespace rendering
 		const DXShader& m_vertexShader;
 		const DXShader& m_pixelShader;
 
+		const DXShader& m_postLightingVertexShader;
+		const DXShader& m_postLightingPixelShader;
+
 		void CreateLightCalculationsPipelineStageAndRootSignature();
+		void CreatePostLightingPipelineStageAndRootSignature();
 
 		void CreateRTVHeap();
 		void CreateSRVHeap();
@@ -76,6 +80,7 @@ namespace rendering
 
 		void PrepareEndList();
 		void PrepareStartList();
+		void PreparePostLightingList();
 
 		void LoadLightsBuffer(jobs::Job* done);
 		void LoadLitTextures(jobs::Job* done);
