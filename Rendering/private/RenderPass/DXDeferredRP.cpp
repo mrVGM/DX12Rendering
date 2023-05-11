@@ -512,7 +512,12 @@ void rendering::DXDeferredRP::Execute()
     }
 }
 
-void rendering::DXDeferredRP::Load(jobs::Job* done)
+void rendering::DXDeferredRP::LoadLitTextures(jobs::Job* done)
+{
+    deferred::LoadGBufferLitTextures(done);
+}
+
+void rendering::DXDeferredRP::LoadLightsBuffer(jobs::Job* done)
 {
     struct Context
     {
@@ -591,5 +596,48 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
     };
     utils::RunSync(new CreateHeapAndBuffer(ctx));
 }
+
+
+void rendering::DXDeferredRP::Load(jobs::Job* done)
+{
+    struct Context
+    {
+        DXDeferredRP* m_deferredRP = nullptr;
+        int m_itemsLeft = 2;
+
+        jobs::Job* m_done = nullptr;
+    };
+
+    class ItemReady : public jobs::Job
+    {
+    private:
+        Context& m_ctx;
+    public:
+        ItemReady(Context& ctx) :
+            m_ctx(ctx)
+        {
+        }
+
+        void Do() override
+        {
+            --m_ctx.m_itemsLeft;
+            if (m_ctx.m_itemsLeft > 0)
+            {
+                return;
+            }
+
+            utils::RunSync(m_ctx.m_done);
+            delete& m_ctx;
+        }
+    };
+
+    Context* ctx = new Context();
+    ctx->m_deferredRP = this;
+    ctx->m_done = done;
+
+    LoadLightsBuffer(new ItemReady(*ctx));
+    LoadLitTextures(new ItemReady(*ctx));
+}
+
 
 #undef THROW_ERROR

@@ -7,6 +7,10 @@
 #include "Deferred/DXGBufferPositionTexMeta.h"
 #include "Deferred/DXGBufferSpecularTexMeta.h"
 
+#include "Deferred/DXGBufferAmbientLitTexMeta.h"
+#include "Deferred/DXGBufferDiffuseLitTexMeta.h"
+#include "Deferred/DXGBufferSpecularLitTexMeta.h"
+
 #include "DXHeap.h"
 #include "DXBufferMeta.h"
 
@@ -19,6 +23,10 @@ namespace
 	rendering::DXTexture* m_surfaceNormalTex = nullptr;
 	rendering::DXTexture* m_positionTex = nullptr;
 	rendering::DXBuffer* m_renderTextureVertexBuffer = nullptr;
+
+	rendering::DXTexture* m_ambientLitTex = nullptr;
+	rendering::DXTexture* m_diffuseLitTex = nullptr;
+	rendering::DXTexture* m_specularLitTex = nullptr;
 
 	void LoadRenderTextureVertexBuffer(jobs::Job* done)
 	{
@@ -344,6 +352,105 @@ namespace
 
 		utils::RunSync(new CreateTextures(*ctx));
 	}
+
+
+	void LoadRenderLitTextures(jobs::Job* done)
+	{
+		using namespace rendering;
+		struct Context
+		{
+			DXTexture* m_ambientLit = nullptr;
+			DXTexture* m_diffuseLit = nullptr;
+			DXTexture* m_specularLit = nullptr;
+
+			DXHeap* m_ambientLitHeap = nullptr;
+			DXHeap* m_diffuseLitHeap = nullptr;
+			DXHeap* m_specularLitHeap = nullptr;
+
+			int m_itemsToLoad = 3;
+
+			jobs::Job* m_done = nullptr;
+		};
+
+		class HeapLoaded : public jobs::Job
+		{
+		private:
+			Context& m_ctx;
+			DXHeap& m_heap;
+			DXTexture& m_tex;
+		public:
+			HeapLoaded(Context& ctx, DXHeap& heap, DXTexture& tex) :
+				m_ctx(ctx),
+				m_heap(heap),
+				m_tex(tex)
+			{
+			}
+
+			void Do() override
+			{
+				m_tex.Place(m_heap, 0);
+				--m_ctx.m_itemsToLoad;
+
+				if (m_ctx.m_itemsToLoad > 0)
+				{
+					return;
+				}
+
+				m_ambientLitTex = m_ctx.m_ambientLit;
+				m_diffuseLitTex = m_ctx.m_diffuseLit;
+				m_specularLitTex = m_ctx.m_specularLit;
+
+				utils::RunSync(m_ctx.m_done);
+				delete& m_ctx;
+			}
+		};
+
+		class CreateTextures : public jobs::Job
+		{
+		private:
+			Context& m_ctx;
+		public:
+			CreateTextures(Context& ctx) :
+				m_ctx(ctx)
+			{
+			}
+
+			void Do() override
+			{
+				Window* wnd = utils::GetWindow();
+				m_ctx.m_ambientLit = DXTexture::CreateRenderTargetTexture(deferred::DXGBufferAmbientLitTexMeta::GetInstance(), wnd->m_width, wnd->m_height);
+				m_ctx.m_diffuseLit = DXTexture::CreateRenderTargetTexture(deferred::DXGBufferDiffuseLitTexMeta::GetInstance(), wnd->m_width, wnd->m_height);
+				m_ctx.m_specularLit = DXTexture::CreateRenderTargetTexture(deferred::DXGBufferSpecularLitTexMeta::GetInstance(), wnd->m_width, wnd->m_height);
+
+				m_ctx.m_ambientLitHeap = new DXHeap();
+				m_ctx.m_ambientLitHeap->SetHeapSize(m_ctx.m_ambientLit->GetTextureAllocationInfo().SizeInBytes);
+				m_ctx.m_ambientLitHeap->SetHeapType(D3D12_HEAP_TYPE_DEFAULT);
+				m_ctx.m_ambientLitHeap->SetHeapFlags(D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES);
+				m_ctx.m_ambientLitHeap->Create();
+
+				m_ctx.m_diffuseLitHeap = new DXHeap();
+				m_ctx.m_diffuseLitHeap->SetHeapSize(m_ctx.m_diffuseLit->GetTextureAllocationInfo().SizeInBytes);
+				m_ctx.m_diffuseLitHeap->SetHeapType(D3D12_HEAP_TYPE_DEFAULT);
+				m_ctx.m_diffuseLitHeap->SetHeapFlags(D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES);
+				m_ctx.m_diffuseLitHeap->Create();
+
+				m_ctx.m_specularLitHeap = new DXHeap();
+				m_ctx.m_specularLitHeap->SetHeapSize(m_ctx.m_specularLit->GetTextureAllocationInfo().SizeInBytes);
+				m_ctx.m_specularLitHeap->SetHeapType(D3D12_HEAP_TYPE_DEFAULT);
+				m_ctx.m_specularLitHeap->SetHeapFlags(D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES);
+				m_ctx.m_specularLitHeap->Create();
+
+				m_ctx.m_ambientLitHeap->MakeResident(new HeapLoaded(m_ctx, *m_ctx.m_ambientLitHeap, *m_ctx.m_ambientLit));
+				m_ctx.m_diffuseLitHeap->MakeResident(new HeapLoaded(m_ctx, *m_ctx.m_diffuseLitHeap, *m_ctx.m_diffuseLit));
+				m_ctx.m_specularLitHeap->MakeResident(new HeapLoaded(m_ctx, *m_ctx.m_specularLitHeap, *m_ctx.m_specularLit));
+			}
+		};
+
+		Context* ctx = new Context();
+		ctx->m_done = done;
+
+		utils::RunSync(new CreateTextures(*ctx));
+	}
 }
 
 rendering::DXTexture* rendering::deferred::GetGBufferDiffuseTex()
@@ -408,4 +515,9 @@ void rendering::deferred::LoadGBuffer(jobs::Job* done)
 
 	LoadRenderTextures(new ItemLoaded(*ctx));
 	LoadRenderTextureVertexBuffer(new ItemLoaded(*ctx));
+}
+
+void rendering::deferred::LoadGBufferLitTextures(jobs::Job* done)
+{
+	LoadRenderLitTextures(done);
 }

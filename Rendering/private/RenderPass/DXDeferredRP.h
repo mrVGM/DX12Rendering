@@ -57,6 +57,9 @@ namespace rendering
 		void PrepareEndList();
 		void PrepareStartList();
 
+		void LoadLightsBuffer(jobs::Job* done);
+		void LoadLitTextures(jobs::Job* done);
+
 		void RenderDeferred();
 	public:
 		DXDeferredRP();

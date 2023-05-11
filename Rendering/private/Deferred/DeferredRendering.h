@@ -14,8 +14,13 @@ namespace rendering
 		DXTexture* GetGBufferNormalTex();
 		DXTexture* GetGBufferPositionTex();
 
+		DXTexture* GetGBufferAmbientLitTex();
+		DXTexture* GetGBufferDiffuseLitTex();
+		DXTexture* GetGBufferSpecularLitTex();
+
 		DXBuffer* GetRenderTextureVertexBuffer();
 
 		void LoadGBuffer(jobs::Job* done);
+		void LoadGBufferLitTextures(jobs::Job* done);
 	}
 }
