@@ -28,25 +28,82 @@ rendering::DXDeferredRP::DXDeferredRP() :
 
     DXDevice* device = utils::GetDevice();
 
-    THROW_ERROR(
-        device->GetDevice().CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_lightCalculationsAllocator)),
-        "Can't create Command Allocator!")
+    {
+        THROW_ERROR(
+            device->GetDevice().CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_lightCalculationsAllocator)),
+            "Can't create Command Allocator!")
 
-    THROW_ERROR(
-        device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_lightCalculationsAllocator.Get(), nullptr, IID_PPV_ARGS(&m_startList)),
-        "Can't reset Command List!")
+        THROW_ERROR(
+            device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_lightCalculationsAllocator.Get(), nullptr, IID_PPV_ARGS(&m_startList)),
+            "Can't reset Command List!")
 
-    THROW_ERROR(
-        m_startList->Close(),
-        "Can't close Command List!")
+        THROW_ERROR(
+            m_startList->Close(),
+            "Can't close Command List!")
 
-    THROW_ERROR(
-        device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_lightCalculationsAllocator.Get(), nullptr, IID_PPV_ARGS(&m_endList)),
-        "Can't reset Command List!")
+        THROW_ERROR(
+            device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_lightCalculationsAllocator.Get(), nullptr, IID_PPV_ARGS(&m_endList)),
+            "Can't reset Command List!")
 
-    THROW_ERROR(
-        m_endList->Close(),
-        "Can't close Command List!")
+        THROW_ERROR(
+            m_endList->Close(),
+            "Can't close Command List!")
+    }
+
+    {
+        THROW_ERROR(
+            device->GetDevice().CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_postlightCalculationsAllocator)),
+            "Can't create Command Allocator!")
+
+        THROW_ERROR(
+            device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_postlightCalculationsAllocator.Get(), nullptr, IID_PPV_ARGS(&m_postLightingList)),
+            "Can't reset Command List!")
+
+        THROW_ERROR(
+            m_postLightingList->Close(),
+            "Can't close Command List!")
+    }
+    
+    CreateLightCalculationsPipelineStageAndRootSignature();
+
+    CreateRTVHeap();
+    CreateSRVHeap();
+}
+
+rendering::DXDeferredRP::~DXDeferredRP()
+{
+    if (m_commandListsCache)
+    {
+        delete[] m_commandListsCache;
+    }
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE rendering::DXDeferredRP::GetDescriptorHandleFor(GBufferTexType texType)
+{
+    CD3DX12_CPU_DESCRIPTOR_HANDLE handle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart());
+
+    for (int i = 0; i < texType; ++i) {
+        handle.Offset(m_rtvDescriptorSize);
+    }
+    return handle;
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE rendering::DXDeferredRP::GetDescriptorHandleFor(GBufferLitTexType texType)
+{
+    CD3DX12_CPU_DESCRIPTOR_HANDLE handle(m_rtvLitHeap->GetCPUDescriptorHandleForHeapStart());
+
+    for (int i = 0; i < texType; ++i) {
+        handle.Offset(m_rtvDescriptorSize);
+    }
+    return handle;
+}
+
+
+void rendering::DXDeferredRP::CreateLightCalculationsPipelineStageAndRootSignature()
+{
+    using Microsoft::WRL::ComPtr;
+
+    DXDevice* device = utils::GetDevice();
 
     {
         D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
@@ -81,7 +138,7 @@ rendering::DXDeferredRP::DXDeferredRP() :
             D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 
         CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
-        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3, 0, 0);
+        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 4, 0, 0);
         CD3DX12_ROOT_PARAMETER1 rootParameters[2];
         rootParameters[0].InitAsConstantBufferView(0, 0);
         rootParameters[1].InitAsDescriptorTable(1, ranges, D3D12_SHADER_VISIBILITY_PIXEL);
@@ -147,39 +204,7 @@ rendering::DXDeferredRP::DXDeferredRP() :
             device->GetDevice().CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)),
             "Can't create Graphics Pipeline State!")
     }
-
-    CreateRTVHeap();
-    CreateSRVHeap();
 }
-
-rendering::DXDeferredRP::~DXDeferredRP()
-{
-    if (m_commandListsCache)
-    {
-        delete[] m_commandListsCache;
-    }
-}
-
-D3D12_CPU_DESCRIPTOR_HANDLE rendering::DXDeferredRP::GetDescriptorHandleFor(GBufferTexType texType)
-{
-    CD3DX12_CPU_DESCRIPTOR_HANDLE handle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart());
-
-    for (int i = 0; i < texType; ++i) {
-        handle.Offset(m_rtvDescriptorSize);
-    }
-    return handle;
-}
-
-D3D12_CPU_DESCRIPTOR_HANDLE rendering::DXDeferredRP::GetDescriptorHandleFor(GBufferLitTexType texType)
-{
-    CD3DX12_CPU_DESCRIPTOR_HANDLE handle(m_rtvLitHeap->GetCPUDescriptorHandleForHeapStart());
-
-    for (int i = 0; i < texType; ++i) {
-        handle.Offset(m_rtvDescriptorSize);
-    }
-    return handle;
-}
-
 
 void rendering::DXDeferredRP::CreateRTVHeap()
 {
@@ -503,7 +528,7 @@ void rendering::DXDeferredRP::PrepareStartList()
     DXDevice* device = utils::GetDevice();
 
     THROW_ERROR(
-        m_startList->Reset(m_lightCalculationsAllocator.Get(), m_pipelineState.Get()),
+        m_startList->Reset(m_lightCalculationsAllocator.Get(), nullptr),
         "Can't reset Command List!")
 
     {

@@ -49,6 +49,12 @@ namespace rendering
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_rtvLitHeap;
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_srvLitHeap;
 
+		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_postlightCalculationsAllocator;
+		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_postLightingList;
+
+		Microsoft::WRL::ComPtr<ID3D12PipelineState> m_postLigtingPipelineState;
+		Microsoft::WRL::ComPtr<ID3D12RootSignature> m_postLigtingRootSignature;
+
 		DXBuffer* m_lightsBuffer = nullptr;
 
 		UINT m_rtvDescriptorSize = 0;
@@ -59,6 +65,8 @@ namespace rendering
 
 		const DXShader& m_vertexShader;
 		const DXShader& m_pixelShader;
+
+		void CreateLightCalculationsPipelineStageAndRootSignature();
 
 		void CreateRTVHeap();
 		void CreateSRVHeap();
