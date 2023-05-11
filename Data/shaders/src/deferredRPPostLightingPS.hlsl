@@ -6,5 +6,7 @@ SamplerState p_sampler  : register(s0);
 
 float4 PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
 {
-    return float4(uv, 0, 0.5);
+    float4 ambientTex = p_ambient.Sample(p_sampler, uv);
+
+    return ambientTex;
 }

@@ -279,7 +279,7 @@ void rendering::DXDeferredRP::CreatePostLightingPipelineStageAndRootSignature()
         // Describe and create the graphics pipeline state object (PSO).
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
         psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
-        psoDesc.pRootSignature = m_rootSignature.Get();
+        psoDesc.pRootSignature = m_postLigtingRootSignature.Get();
         psoDesc.VS = CD3DX12_SHADER_BYTECODE(m_postLightingVertexShader.GetCompiledShader());
         psoDesc.PS = CD3DX12_SHADER_BYTECODE(m_postLightingPixelShader.GetCompiledShader());
         psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
