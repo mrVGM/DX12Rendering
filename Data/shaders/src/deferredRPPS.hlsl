@@ -37,18 +37,17 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
     float4 positionTex = p_normal.Sample(p_sampler, uv);
 
     output.m_ambientLit = float4(0,0,0,0);
-    if (diffuseTex.w > 0)
-    {
-        output.m_ambientLit = float4(0.2 * diffuseTex.xyz, 1);
-    }
-    return output;
+    output.m_diffuseLit = float4(0,0,0,0);
+    output.m_specularLit = float4(0,0,0,0);
 
     if (dot(normalTex, normalTex) < 1)
     {
-        //return float4(0,0,0,0);
+        return output;
     }
 
-    float3 color = 0.2 * diffuseTex;
+    output.m_ambientLit = float4(0.2 * diffuseTex.xyz, 1);
+
+    float3 color = float3(0, 0, 0);
 
     for (int i = 0; i < m_numLights; ++i)
     {
@@ -63,20 +62,15 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
             continue;
         }
 
-        float cosCoef = dot(dir, normalTex);
-
-        if (cosCoef <= 0)
-        {
-            continue;
-        }
-
-        float coef = 1 - dist / cur.m_range;
-        coef *= dot(dir, normalTex);
-        coef *= 3;
-
-        color += coef * diffuseTex;
+        float cosCoef = max(0, dot(dir, normalTex.xyz));
+        color += cosCoef * diffuseTex.xyz;
         color = clamp(color, 0, 1);
     }
 
-    //return float4(color, 1);
+    if (dot(color, color) > 0)
+    {
+        output.m_diffuseLit = float4(color, 1);
+    }
+
+    return output;
 }
