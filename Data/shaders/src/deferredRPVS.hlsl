@@ -1,10 +1,3 @@
-#include "quat_lib.hlsl"
-
-cbuffer MVCMatrix : register(b0)
-{
-    float4x4 m_matrix;
-};
-
 struct PSInput
 {
     float4 position         : SV_POSITION;

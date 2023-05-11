@@ -142,9 +142,10 @@ void rendering::DXDeferredRP::CreateLightCalculationsPipelineStageAndRootSignatu
 
         CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
         ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 4, 0, 0);
-        CD3DX12_ROOT_PARAMETER1 rootParameters[2];
+        CD3DX12_ROOT_PARAMETER1 rootParameters[3];
         rootParameters[0].InitAsConstantBufferView(0, 0);
-        rootParameters[1].InitAsDescriptorTable(1, ranges, D3D12_SHADER_VISIBILITY_PIXEL);
+        rootParameters[1].InitAsConstantBufferView(1, 0);
+        rootParameters[2].InitAsDescriptorTable(1, ranges, D3D12_SHADER_VISIBILITY_PIXEL);
 
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
         rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, &sampler, rootSignatureFlags);
@@ -573,8 +574,9 @@ void rendering::DXDeferredRP::PrepareEndList()
     ID3D12DescriptorHeap* descriptorHeaps[] = { m_srvHeap.Get() };
     m_endList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-    m_endList->SetGraphicsRootConstantBufferView(0, m_lightsBuffer->GetBuffer()->GetGPUVirtualAddress());
-    m_endList->SetGraphicsRootDescriptorTable(1, descriptorHeaps[0]->GetGPUDescriptorHandleForHeapStart());
+    m_endList->SetGraphicsRootConstantBufferView(0, utils::GetCameraBuffer()->GetBuffer()->GetGPUVirtualAddress());
+    m_endList->SetGraphicsRootConstantBufferView(1, m_lightsBuffer->GetBuffer()->GetGPUVirtualAddress());
+    m_endList->SetGraphicsRootDescriptorTable(2, descriptorHeaps[0]->GetGPUDescriptorHandleForHeapStart());
 
     m_endList->RSSetViewports(1, &swapChain->GetViewport());
     m_endList->RSSetScissorRects(1, &swapChain->GetScissorRect());

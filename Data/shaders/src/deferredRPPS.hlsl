@@ -4,7 +4,13 @@ struct Light
     float m_range;
 };
 
-cbuffer LigthsData : register(b0)
+cbuffer MVCMatrix : register(b0)
+{
+    float4x4 m_matrix;
+    float4 m_camPos;
+};
+
+cbuffer LigthsData : register(b1)
 {
     int m_numLights;
     float3 m_placeholder;
@@ -48,6 +54,30 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
     output.m_ambientLit = float4(0.2 * diffuseTex.xyz, 1);
 
     float3 color = float3(0, 0, 0);
+    float3 specularColor = float3(0, 0, 0);
+
+    float3 reflectedEyeDir = float3(0, 0, 0);
+    {
+        float3 eyeDir = normalized(m_camPos - positionTex.xyz);
+        reflectedEyeDir = eyeDir;
+
+        if (dot(eyeDir, normalTex.xyz) < 1)
+        {
+            float3 y = normalTex.xyz;
+            float3 x = normalized(cross(eyeDir, y));
+            float3 z = cross(y, x);
+
+            float4x4 mat = float4x4(float4(x, 0), float4(y, 0), float4(z, 0), float4(0, 0, 0, 1));
+            float4x4 inv = transpose(mat);
+
+            float4 tmp = mul(mat, float4(eyeDir, 1));
+            tmp.x = -tmp.x;
+            tmp.z = -tmp.z;
+            tmp = mul(inv, tmp);
+
+            reflectedEyeDir = tmp.xyz;
+        }
+    }
 
     for (int i = 0; i < m_numLights; ++i)
     {
@@ -62,14 +92,27 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
             continue;
         }
 
-        float cosCoef = max(0, dot(dir, normalTex.xyz));
-        color += cosCoef * diffuseTex.xyz;
-        color = clamp(color, 0, 1);
+        {
+            float cosCoef = max(0, dot(dir, normalTex.xyz));
+            color += cosCoef * diffuseTex.xyz;
+            color = clamp(color, 0, 1);
+        }
+
+        {
+            float cosCoef = max(0, dot(dir, reflectedEyeDir));
+            specularColor += pow(cosCoef, 16) * specularTex;
+            specularColor = clamp(specularColor, 0, 1);
+        }
     }
 
     if (dot(color, color) > 0)
     {
         output.m_diffuseLit = float4(color, 1);
+    }
+
+    if (dot(specularColor, specularColor) > 0)
+    {
+        output.m_specularLit = float4(specularColor, 1);
     }
 
     return output;
