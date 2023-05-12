@@ -227,11 +227,7 @@ namespace
 		if (!ReadGeometry(geometryURL, geometry, invertAxis, scene)) {
 			return false;
 		}
-
-		if (invertAxis) {
-			obj.InvertAxis();
-		}
-		obj.CalcPositionRotationScale();
+		obj.CalcPositionRotationScale(invertAxis);
 
 		return true;
 	}
@@ -545,6 +541,47 @@ namespace
 
 		return x;
 	}
+
+	DirectX::XMVECTOR GetQuaternion(const DirectX::XMVECTOR& X, const DirectX::XMVECTOR& Y, const DirectX::XMVECTOR& Z)
+	{
+		using namespace DirectX;
+
+		const float eps = 0.00000001f;
+
+		const DirectX::XMVECTOR& X0 = XMVectorSet(1, 0, 0, 0);
+		const DirectX::XMVECTOR& Y0 = XMVectorSet(0, 1, 0, 0);
+		const DirectX::XMVECTOR& Z0 = XMVectorSet(0, 0, 1, 0);
+
+		XMVECTOR pole1 = XMVector3Cross(X0, X);
+		if(XMVectorGetX(XMVector3Dot(pole1, pole1)) < eps)
+		{
+			pole1 = Y0;
+		}
+
+		float cosAngle1 = XMVectorGetX(XMVector3Dot(X0, X));
+		cosAngle1 = clamp(cosAngle1, -1, 1);
+		float angle1 = acos(cosAngle1);
+
+		XMVECTOR q1 = -sin(angle1 / 2) * pole1;
+		q1 = XMVectorSetW(q1, cos(angle1 / 2));
+
+		XMVECTOR Y1 = XMQuaternionMultiply(q1, XMQuaternionMultiply(Y0, XMQuaternionConjugate(q1)));
+		XMVECTOR pole2 = XMVector3Cross(Y1, Y);
+
+		if (XMVectorGetX(XMVector3Dot(pole2, pole2)) < eps)
+		{
+			pole2 = X;
+		}
+		float cosAngle2 = XMVectorGetX(XMVector3Dot(Y1, Y));
+		cosAngle2 = clamp(cosAngle2, -1, 1);
+		float angle2 = acos(cosAngle2);
+
+		XMVECTOR q2 = -sin(angle2 / 2) * pole2;
+		q2 = XMVectorSetW(q2, cos(angle2 / 2));
+
+		XMVECTOR res = XMQuaternionMultiply(q2, q1);
+		return res;
+	}
 }
 
 bool collada::ConvertToScene(const std::list<collada::ColladaNode*>& nodes, collada::Scene& scene)
@@ -661,7 +698,7 @@ void collada::Object::InvertAxis()
 	m_transform[15] = XMVectorGetW(trMat.r[3]);
 }
 
-void collada::Object::CalcPositionRotationScale()
+void collada::Object::CalcPositionRotationScale(bool invertAxis)
 {
 	using namespace DirectX;
 
@@ -676,8 +713,8 @@ void collada::Object::CalcPositionRotationScale()
 	m_instanceData.m_position[2] = XMVectorGetZ(offset);
 
 	XMVECTOR X0 = XMVectorSet(1, 0, 0, 1);
-	XMVECTOR Y0 = XMVectorSet(0, 0, 1, 1);
-	XMVECTOR Z0 = XMVectorSet(0, 1, 0, 1);
+	XMVECTOR Y0 = XMVectorSet(0, 1, 0, 1);
+	XMVECTOR Z0 = XMVectorSet(0, 0, 1, 1);
 
 	XMVECTOR X = XMVector4Transform(X0, trMat) - offset;
 	XMVECTOR Y = XMVector4Transform(Y0, trMat) - offset;
@@ -687,65 +724,35 @@ void collada::Object::CalcPositionRotationScale()
 	m_instanceData.m_scale[1] = XMVectorGetX(XMVector3Length(Y));
 	m_instanceData.m_scale[2] = XMVectorGetX(XMVector3Length(Z));
 
-	XMVECTOR cross = XMVector3Cross(X, Y);
-	float dot = XMVectorGetX(XMVector3Dot(cross, Z));
-
-	if (dot > 0) {
-		m_instanceData.m_scale[2] *= -1;
-	}
-
 	X /= m_instanceData.m_scale[0];
 	Y /= m_instanceData.m_scale[1];
 	Z /= m_instanceData.m_scale[2];
 
-	float cosXAngle = XMVectorGetX(XMVector3Dot(X0, X));
-	if (cosXAngle < -1) {
-		cosXAngle = -1;
+	XMVECTOR rot = GetQuaternion(X, Y, Z);
+
+	m_instanceData.m_rotation[0] = XMVectorGetW(rot);
+	m_instanceData.m_rotation[1] = XMVectorGetX(rot);
+	m_instanceData.m_rotation[2] = XMVectorGetY(rot);
+	m_instanceData.m_rotation[3] = XMVectorGetZ(rot);
+
+	if (invertAxis)
+	{
+		{
+			float tmp = m_instanceData.m_position[1];
+			m_instanceData.m_position[1] = m_instanceData.m_position[2];
+			m_instanceData.m_position[2] = tmp;
+		}
+
+		{
+			float tmp = m_instanceData.m_scale[1];
+			m_instanceData.m_scale[1] = m_instanceData.m_scale[2];
+			m_instanceData.m_scale[2] = tmp;
+		}
+
+		{
+			float tmp = m_instanceData.m_rotation[2];
+			m_instanceData.m_rotation[2] = m_instanceData.m_rotation[3];
+			m_instanceData.m_rotation[3] = tmp;
+		}
 	}
-	if (cosXAngle > 1) {
-		cosXAngle = 1;
-	}
-
-	float xAngle = acos(cosXAngle);
-	XMVECTOR pole = XMVector3Cross(X0, X);
-	pole = -XMVector3Normalize(pole);
-
-	if (XMVectorGetX(XMVector3Dot(pole, pole)) == 0) {
-		pole = Z0;
-	}
-
-	XMVECTOR q1 = -sin(xAngle / 2) * pole;
-	q1 = XMVectorSetW(q1, cos(xAngle / 2));
-
-	XMVECTOR Y0Quat = XMVectorSetW(Y0, 0);
-	XMVECTOR Y1 = XMQuaternionMultiply(XMQuaternionMultiply(q1, Y0Quat), XMQuaternionConjugate(q1));
-
-	float cosYAngle = XMVectorGetX(XMVector3Dot(Y1, Y));
-	if (cosYAngle < -1) {
-		cosYAngle = -1;
-	}
-	if (cosYAngle > 1) {
-		cosYAngle = 1;
-	}
-	float yAngle = acos(cosYAngle);
-
-	pole = XMVector3Cross(Y1, Y);
-	pole = XMVector3Normalize(pole);
-
-	if (XMVectorGetX(XMVector3Dot(pole, X)) >= 0) {
-		pole = -X;
-	}
-	else {
-		pole = X;
-	}
-
-	XMVECTOR q2 = sin(yAngle / 2) * pole;
-	q2 = XMVectorSetW(q2, -cos(yAngle / 2));
-
-	XMVECTOR q = XMQuaternionMultiply(q2, q1);
-
-	m_instanceData.m_rotation[0] = XMVectorGetW(q);
-	m_instanceData.m_rotation[1] = XMVectorGetX(q);
-	m_instanceData.m_rotation[2] = XMVectorGetY(q);
-	m_instanceData.m_rotation[3] = XMVectorGetZ(q);
 }

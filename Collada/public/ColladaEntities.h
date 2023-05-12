@@ -58,8 +58,9 @@ namespace collada
 		std::string m_geometry;
 		std::list<std::string> m_materialOverrides;
 
+		void CalcPositionRotationScale(bool invertAxis);
+	private:
 		void InvertAxis();
-		void CalcPositionRotationScale();
 	};
 
 	struct InstanceBuffer
