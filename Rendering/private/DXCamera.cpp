@@ -104,6 +104,9 @@ rendering::DXCamera::DXCamera() :
 	using namespace DirectX;
 	m_position = XMVectorSet(0, 0, -5, 1);
 	m_target = XMVectorSet(0, 0, 0, 1);
+
+	Window* wnd = utils::GetWindow();
+	m_aspect = static_cast<float>(wnd->m_width) / wnd->m_height;
 }
 
 rendering::DXCamera::~DXCamera()
