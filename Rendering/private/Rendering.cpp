@@ -186,7 +186,7 @@ namespace
 				updater->Start();
 
 				DXMaterialRepo* repo = utils::GetMaterialRepo();
-				repo->LoadMaterials();
+				repo->EnableMaterialLoading();
 			}
 		};
 
@@ -211,16 +211,17 @@ namespace
 			void Do() override
 			{
 				DXScene* scene = utils::GetScene();
-
-#if true
-				{
-					collada::ColladaScene* tmpScene = scene->m_colladaScenes[scene->m_scenesLoaded];
-					std::string& matOverride = *(tmpScene->GetScene().m_objects.begin()->second.m_materialOverrides.begin());
-					matOverride = "yellow";
-				}
-#endif
-
+				int sceneIndex = scene->m_scenesLoaded;
 				++scene->m_scenesLoaded;
+
+				DXMaterialRepo* repo = utils::GetMaterialRepo();
+
+				const collada::Scene& justLoaded = scene->m_colladaScenes[sceneIndex]->GetScene();
+				for (auto it = justLoaded.m_materials.begin(); it != justLoaded.m_materials.end(); ++it)
+				{
+					const collada::ColladaMaterial& mat = it->second;
+					repo->LoadColladaMaterial(mat);
+				}
 			}
 		};
 

@@ -2,7 +2,10 @@
 
 #include "BaseObject.h"
 
+#include "ColladaEntities.h"
+
 #include <map>
+#include <list>
 #include <string>
 
 namespace rendering
@@ -13,6 +16,8 @@ namespace rendering
 	private:
 		std::map<std::string, DXMaterial*> m_repo;
 		void LoadErrorMaterial();
+		bool m_canLoadMaterials = false;
+		std::list<const collada::ColladaMaterial*> m_colladaMaterialsToLoad;
 
 	public:
 		DXMaterialRepo();
@@ -21,6 +26,7 @@ namespace rendering
 		DXMaterial* GetMaterial(const std::string& name) const;
 		void Register(const std::string& name, DXMaterial& material);
 
-		void LoadMaterials();
+		void EnableMaterialLoading();
+		void LoadColladaMaterial(const collada::ColladaMaterial& material);
 	};
 }

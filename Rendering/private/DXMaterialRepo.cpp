@@ -62,13 +62,14 @@ namespace
 		utils::RunSync(new CreateUnlitMaterial(ctx));
 	}
 
-	void LoadDeferredMaterial()
+	void LoadMaterial(const collada::ColladaMaterial& material)
 	{
 		using namespace rendering;
 
 		struct Context
 		{
 			DXDeferredMaterial* m_material = nullptr;
+			const collada::ColladaMaterial* m_colladaMaterial = nullptr;
 		};
 
 		class SettingsBufferReady : public jobs::Job
@@ -84,11 +85,22 @@ namespace
 			void Do() override
 			{
 				DXBuffer* buffer = m_ctx.m_material->GetSettingsBuffer();
-				float color[] = { 1, 1, 0, 1, 0.5, 0.3, 0.3, 64 };
+				float color[] =
+				{
+					m_ctx.m_colladaMaterial->m_diffuseColor[0],
+					m_ctx.m_colladaMaterial->m_diffuseColor[1],
+					m_ctx.m_colladaMaterial->m_diffuseColor[2],
+					m_ctx.m_colladaMaterial->m_diffuseColor[3],
+
+					0.3,
+					0.3,
+					0.3,
+					64
+				};
 				buffer->CopyData(color, _countof(color) * sizeof(float));
 
 				DXMaterialRepo* repo = utils::GetMaterialRepo();
-				repo->Register("yellow", *m_ctx.m_material);
+				repo->Register(m_ctx.m_colladaMaterial->m_name, *m_ctx.m_material);
 			}
 		};
 
@@ -109,9 +121,9 @@ namespace
 		};
 
 		Context ctx;
+		ctx.m_colladaMaterial = &material;
 		utils::RunSync(new CreateDeferredMaterial(ctx));
 	}
-
 }
 
 rendering::DXMaterialRepo::DXMaterialRepo() :
@@ -155,8 +167,34 @@ void rendering::DXMaterialRepo::LoadErrorMaterial()
 	Register("error", *errorMat);
 }
 
-void rendering::DXMaterialRepo::LoadMaterials()
+void rendering::DXMaterialRepo::EnableMaterialLoading()
 {
-	LoadCyanMaterial();
-	LoadDeferredMaterial();
+	m_canLoadMaterials = true;
+
+	std::list<const collada::ColladaMaterial*> cache = m_colladaMaterialsToLoad;
+	m_colladaMaterialsToLoad.clear();
+
+	for (auto it = cache.begin(); it != cache.end(); ++it)
+	{
+		LoadMaterial(*(*it));
+	}
+}
+
+void rendering::DXMaterialRepo::LoadColladaMaterial(const collada::ColladaMaterial& material)
+{
+	if (!m_canLoadMaterials)
+	{
+		m_colladaMaterialsToLoad.push_back(&material);
+		return;
+	}
+
+	std::list<const collada::ColladaMaterial*> cache = m_colladaMaterialsToLoad;
+	m_colladaMaterialsToLoad.clear();
+
+	for (auto it = cache.begin(); it != cache.end(); ++it)
+	{
+		LoadMaterial(*(*it));
+	}
+
+	LoadMaterial(material);
 }

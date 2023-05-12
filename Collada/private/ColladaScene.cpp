@@ -42,16 +42,6 @@ namespace
 
 		res = ConvertToScene(rootNodes, scene);
 
-		for (auto it = scene.m_objects.begin(); it != scene.m_objects.end(); ++it)
-		{
-			Object& cur = it->second;
-			const Geometry& geo = scene.m_geometries.find(cur.m_geometry)->second;
-			while (cur.m_materialOverrides.size() < geo.m_materials.size())
-			{
-				cur.m_materialOverrides.push_back("error");
-			}
-		}
-
 		return res;
 	}
 }
