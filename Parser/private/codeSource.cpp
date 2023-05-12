@@ -120,6 +120,7 @@ bool scripting::CodeSource::TokenizeForColladaReader()
 	StringTokenizer stringTokenizer;
 	BlankTokenizer blankTokenizer;
 	UnsignedNumberTokenizer numberTokenizer;
+	PoweredNumberTokenizer poweredNumberTokenizer;
 	NameTokenizer nameTokenizer;
 
 	std::vector<ISymbol*> symbols = newLineTokenizer.Tokenize(m_symbols);
@@ -192,8 +193,11 @@ bool scripting::CodeSource::TokenizeForColladaReader()
 		}
 	}
 
+
 	symbols = tmp;
 	tmp.clear();
+
+	symbols = poweredNumberTokenizer.Tokenize(symbols);
 
 	std::set<std::string> specialSymbols;
 	specialSymbols.insert("<");

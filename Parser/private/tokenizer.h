@@ -37,6 +37,11 @@ namespace scripting
 		std::vector<ISymbol*> Tokenize(std::vector<ISymbol*>& src) override;
 	};
 
+	struct PoweredNumberTokenizer : public ITokenizer
+	{
+		std::vector<ISymbol*> Tokenize(std::vector<ISymbol*>& src) override;
+	};
+
 	struct UnsignedNumberTokenizer : public ITokenizer
 	{
 		std::vector<ISymbol*> Tokenize(std::vector<ISymbol*>& src) override;

@@ -2,6 +2,7 @@
 #include "codeSource.h"
 
 #include <functional>
+#include <sstream>
 
 bool isBracket(const scripting::ISymbol& symbol)
 {
@@ -646,6 +647,114 @@ std::vector<scripting::ISymbol*> scripting::KeywordTokenizer::Tokenize(std::vect
 			src[i]->m_name = m_keyword;
 		}
 		res.push_back(src[i]);
+	}
+
+	return res;
+}
+
+std::vector<scripting::ISymbol*> scripting::PoweredNumberTokenizer::Tokenize(std::vector<ISymbol*>& src)
+{
+	CodeSource* codeSource = src[0]->m_codeSource;
+
+	std::function<CompositeSymbol* ()> createNumber = [&]() {
+		CompositeSymbol* name = codeSource->CreateCompositeSymbol();
+		name->m_name = "Number";
+		return name;
+	};
+
+	std::vector<ISymbol*> res;
+	CompositeSymbol* number = nullptr;
+
+	typedef std::function<void(ISymbol&)> handler;
+
+	handler* curHandler = nullptr;
+
+	scripting::ISymbol* numberRead = nullptr;
+	scripting::ISymbol* eRead = nullptr;
+
+	handler notInPN;
+	handler inPN;
+	handler finalNumber;
+
+	finalNumber = [&](ISymbol& symbol) {
+		if (symbol.m_name != "Number")
+		{
+			res.push_back(numberRead);
+			res.push_back(eRead);
+			res.push_back(&symbol);
+
+			numberRead = nullptr;
+			eRead = nullptr;
+
+			curHandler = &notInPN;
+			return;
+		}
+
+		std::stringstream ss;
+		ss << std::to_string(numberRead->m_symbolData.m_number) << "e" << std::to_string(symbol.m_symbolData.m_number);
+
+		scripting::CompositeSymbol* newNum = createNumber();
+		newNum->m_childSymbols.push_back(numberRead);
+		newNum->m_childSymbols.push_back(eRead);
+		newNum->m_childSymbols.push_back(&symbol);
+
+		ss >> newNum->m_symbolData.m_number;
+		res.push_back(newNum);
+
+		numberRead = nullptr;
+		eRead = nullptr;
+
+		curHandler = &notInPN;
+	};
+
+	inPN = [&](ISymbol& symbol) {
+		if (symbol.m_name == "Name" && symbol.m_symbolData.m_string == "e")
+		{
+			eRead = &symbol;
+			curHandler = &finalNumber;
+			return;
+		}
+
+		res.push_back(numberRead);
+		numberRead = nullptr;
+
+		if (symbol.m_name == "Number")
+		{
+			numberRead = &symbol;
+			return;
+		}
+
+		res.push_back(&symbol);
+		numberRead = nullptr;
+		eRead = nullptr;
+
+		curHandler = &notInPN;
+	};
+
+	notInPN = [&](ISymbol& symbol) {
+		if (symbol.m_name != "Number")
+		{
+			res.push_back(&symbol);
+			return;
+		}
+
+		numberRead = &symbol;
+		curHandler = &inPN;
+	};
+
+	curHandler = &notInPN;
+	for (auto it = src.begin(); it != src.end(); ++it)
+	{
+		(*curHandler)(*(*it));
+	}
+
+	if (curHandler != &notInPN)
+	{
+		SimpleSymbol* dummyString = codeSource->CreateSimpleSymbol();
+		dummyString->m_name = "String";
+
+		(*curHandler)(*dummyString);
+		res.pop_back();
 	}
 
 	return res;

@@ -283,9 +283,21 @@ namespace
 		ss >> stride;
 
 		std::vector<float> data;
+		{
+			ss = std::stringstream(arr->m_tagProps.find("count")->second);
+			int arraySize;
+			ss >> arraySize;
+
+			std::list<scripting::ISymbol*>::const_iterator it = arr->m_data.begin();
+			for (int i = 0; i < arraySize; ++i)
+			{
+				data.push_back((*it)->m_symbolData.m_number);
+				++it;
+			}
+		}
+
 		for (std::list<scripting::ISymbol*>::const_iterator it = arr->m_data.begin();
 			it != arr->m_data.end(); ++it) {
-			data.push_back((*it)->m_symbolData.m_number);
 		}
 
 		for (int i = 0; i < data.size(); i += stride) {
