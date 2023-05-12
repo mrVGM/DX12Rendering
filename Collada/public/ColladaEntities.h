@@ -68,11 +68,18 @@ namespace collada
 		std::list<GeometryInstanceData> m_data;
 	};
 
+	struct ColladaMaterial
+	{
+		std::string m_name;
+		float m_diffuseColor[4];
+	};
+
 	struct Scene
 	{
 		std::map<std::string, Geometry> m_geometries;
 		std::map<std::string, Object> m_objects;
 		std::map<std::string, int> m_objectInstanceMap;
 		std::map<std::string, InstanceBuffer> m_instanceBuffers;
+		std::map<std::string, ColladaMaterial> m_materials;
 	};
 }

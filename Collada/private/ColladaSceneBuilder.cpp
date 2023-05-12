@@ -163,7 +163,7 @@ namespace
 		return false;
 	}
 
-	bool ReadObjectAndGeometryFromNode(const ColladaNode* node, const ColladaNode* rootDataNode, Scene& scene)
+	Object* ReadObjectAndGeometryFromNode(const ColladaNode* node, const ColladaNode* rootDataNode, Scene& scene)
 	{
 		std::list<const ColladaNode*> matrixContainer;
 		FindChildNodes(node, [](const ColladaNode* x) {
@@ -184,7 +184,7 @@ namespace
 		}, matrixContainer);
 
 		if (matrixContainer.size() == 0) {
-			return false;
+			return nullptr;
 		}
 		const ColladaNode* matrix = *matrixContainer.begin();
 		const std::string& objectName = node->m_tagProps.find("id")->second;
@@ -201,7 +201,7 @@ namespace
 
 		const ColladaNode* instanceGeometry = FindChildTagByName("instance_geometry", node);
 		if (!instanceGeometry) {
-			return false;
+			return nullptr;
 		}
 
 		std::string geometryURL;
@@ -210,7 +210,7 @@ namespace
 				instanceGeometry->m_tagProps.find("url");
 
 			if (urlProp == instanceGeometry->m_tagProps.end()) {
-				return false;
+				return nullptr;
 			}
 
 			geometryURL = urlProp->second.substr(1);
@@ -220,16 +220,16 @@ namespace
 
 		const ColladaNode* geometry = FindChildTagByID(geometryURL, rootDataNode);
 		if (!geometry) {
-			return false;
+			return nullptr;
 		}
 
 		bool invertAxis = ShouldInvertAxis(rootDataNode);
 		if (!ReadGeometry(geometryURL, geometry, invertAxis, scene)) {
-			return false;
+			return nullptr;
 		}
 		obj.CalcPositionRotationScale(invertAxis);
 
-		return true;
+		return &obj;
 	}
 
 	struct Vector3
@@ -594,6 +594,97 @@ namespace
 		XMVECTOR res = XMQuaternionMultiply(q2, q1);
 		return res;
 	}
+
+	struct MaterialInfo
+	{
+		std::string m_id;
+		collada::ColladaMaterial m_material;
+	};
+
+	void ReadMaterials(const std::list<collada::ColladaNode*>& nodes, std::list<MaterialInfo>& materials)
+	{
+		const ColladaNode* libraryMaterialsTag = nullptr;
+		const ColladaNode* libraryEffectsTag = nullptr;
+
+		for (std::list<ColladaNode*>::const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
+			libraryMaterialsTag = FindChildTagByName("library_materials", *it);
+			if (libraryMaterialsTag) {
+				break;
+			}
+		}
+		if (!libraryMaterialsTag)
+		{
+			return;
+		}
+
+		for (std::list<ColladaNode*>::const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
+			libraryEffectsTag = FindChildTagByName("library_effects", *it);
+			if (libraryEffectsTag) {
+				break;
+			}
+		}
+		if (!libraryEffectsTag)
+		{
+			return;
+		}
+
+		std::map<std::string, const ColladaNode*> effectsMap;
+
+		for (auto effectIt = libraryEffectsTag->m_children.begin(); effectIt != libraryEffectsTag->m_children.end(); ++effectIt)
+		{
+			const ColladaNode* curEffect = *effectIt;
+			if (curEffect->m_tagName != "effect")
+			{
+				continue;
+			}
+
+			effectsMap[curEffect->m_tagProps.find("id")->second] = curEffect;
+		}
+
+		for (auto matIt = libraryMaterialsTag->m_children.begin(); matIt != libraryMaterialsTag->m_children.end(); ++matIt)
+		{
+			const ColladaNode* curMat = *matIt;
+
+			if (curMat->m_tagName != "material")
+			{
+				continue;
+			}
+			const ColladaNode* instance_effect = FindChildTagByName("instance_effect", curMat);
+			std::string url = instance_effect->m_tagProps.find("url")->second;
+
+			url = url.substr(1, url.size() - 1);
+
+			const ColladaNode* effect = effectsMap.find(url)->second;
+			const ColladaNode* diffuse = FindChildTagByName("diffuse", effect);
+			const ColladaNode* diffuseColor = FindChildTagByName("color", diffuse);
+
+			MaterialInfo matInfo;
+			matInfo.m_id = curMat->m_tagProps.find("id")->second;
+			matInfo.m_material.m_name = curMat->m_tagProps.find("name")->second;
+
+
+			auto it = diffuseColor->m_data.begin();
+			for (int i = 0; i < 4; ++i)
+			{
+				matInfo.m_material.m_diffuseColor[i] = (*it)->m_symbolData.m_number;
+				++it;
+			}
+
+			materials.push_back(matInfo);
+		}
+	}
+
+	void ReadMaterialsBindings(const collada::ColladaNode& objectNode, std::list<std::pair<std::string, std::string>>& bindings)
+	{
+		std::list<const ColladaNode*> found;
+		FindChildTagsByName("bind_material", &objectNode, found);
+
+		for (auto it = found.begin(); it != found.end(); ++it)
+		{
+			const ColladaNode* instanceMaterial = FindChildTagByName("instance_material", *it);
+			bindings.push_back(std::pair<std::string, std::string>(instanceMaterial->m_tagProps.find("symbol")->second, instanceMaterial->m_tagProps.find("target")->second));
+		}
+	}
 }
 
 bool collada::ConvertToScene(const std::list<collada::ColladaNode*>& nodes, collada::Scene& scene)
@@ -611,6 +702,14 @@ bool collada::ConvertToScene(const std::list<collada::ColladaNode*>& nodes, coll
 
 	if (!sceneTag) {
 		return false;
+	}
+
+	std::list<MaterialInfo> materials;
+	ReadMaterials(nodes, materials);
+
+	for (auto it = materials.begin(); it != materials.end(); ++it)
+	{
+		scene.m_materials[it->m_material.m_name] = it->m_material;
 	}
 
 	const ColladaNode* instanceVisualScene = FindChildTagByName("instance_visual_scene", sceneTag);
@@ -638,9 +737,40 @@ bool collada::ConvertToScene(const std::list<collada::ColladaNode*>& nodes, coll
 	FindChildTagsByName("node", visualScene, objectNodes);
 
 	for (std::list<const ColladaNode*>::const_iterator it = objectNodes.begin();
-		it != objectNodes.end(); ++it) {
-		if (!ReadObjectAndGeometryFromNode(*it, dataContainerTag, scene)) {
+		it != objectNodes.end(); ++it) 
+	{
+		Object* object = ReadObjectAndGeometryFromNode(*it, dataContainerTag, scene);
+		if (!object) {
 			return false;
+		}
+
+		std::list<std::pair<std::string, std::string>> bindings;
+		ReadMaterialsBindings(*(*it), bindings);
+
+		const Geometry& geo = scene.m_geometries.find(object->m_geometry)->second;
+		for (auto matIt = geo.m_materials.begin(); matIt != geo.m_materials.end(); ++matIt)
+		{
+			std::string overrideName = "error";
+			for (auto bindIt = bindings.begin(); bindIt != bindings.end(); ++bindIt)
+			{
+				if (bindIt->first == matIt->m_name)
+				{
+					overrideName = bindIt->second;
+					overrideName = overrideName.substr(1, overrideName.size() - 1);
+					break;
+				}
+			}
+
+			for (auto matInfoIt = materials.begin(); matInfoIt != materials.end(); ++matInfoIt)
+			{
+				if (matInfoIt->m_id == overrideName)
+				{
+					overrideName = matInfoIt->m_material.m_name;
+					break;
+				}
+			}
+
+			object->m_materialOverrides.push_back(overrideName);
 		}
 	}
 
