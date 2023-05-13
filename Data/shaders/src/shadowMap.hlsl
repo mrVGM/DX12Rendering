@@ -1,5 +1,4 @@
-float4 PSMain(float4 position : SV_POSITION) : SV_Target
+float4 PSMain(float4 position : SV_POSITION, float4 worldPosition : WORLD_POSITION) : SV_Target
 {
-    float depth = position.z / position.w;
-    return float4(depth, depth, depth, 1);
+    return float4(worldPosition.w, worldPosition.w, worldPosition.w, 1);
 }

@@ -3,6 +3,13 @@
 cbuffer MVCMatrix : register(b0)
 {
     float4x4 m_matrix;
+    float3 m_position;
+    float m_placeholder;
+
+    float m_farPlane;
+    float m_nearPlane;
+    float m_fov;
+    float m_aspect;
 };
 
 struct PSInput
@@ -29,7 +36,8 @@ PSInput VSMain(
     float3 pos = objectPosition + rotatedPos;
     result.position = mul(m_matrix, float4(pos, 1));
 
-    result.world_position = float4(pos, 1);
+    float depth = result.position.z / m_farPlane;
+    result.world_position = float4(pos, depth);
     result.normal = float4(rotatedNormal, 1);
     result.uv = uv;
 

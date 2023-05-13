@@ -66,7 +66,7 @@ void rendering::DXCamera::UpdateCamBuffer()
 {
 	using namespace DirectX;
 
-	float matrixCoefs[20];
+	float matrixCoefs[24];
 	DirectX::XMMATRIX mvp = DirectX::XMMatrixTranspose(GetMVPMatrix());
 
 	int index = 0;
@@ -86,6 +86,11 @@ void rendering::DXCamera::UpdateCamBuffer()
 	matrixCoefs[index++] = XMVectorGetY(m_position);
 	matrixCoefs[index++] = XMVectorGetZ(m_position);
 	matrixCoefs[index++] = 1;
+
+	matrixCoefs[index++] = m_farPlane;
+	matrixCoefs[index++] = m_nearPlane;
+	matrixCoefs[index++] = m_fov;
+	matrixCoefs[index++] = m_aspect;
 
 	CD3DX12_RANGE readRange(0, 0);
 	void* dst = nullptr;
