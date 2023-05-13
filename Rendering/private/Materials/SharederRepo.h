@@ -23,6 +23,7 @@ namespace rendering
 		DXShader* GetDeferredRPPostLightingPixelShader();
 
 		DXShader* GetShadowMapPixelShader();
+		DXShader* GetDisplayShadowMapPixelShader();
 
 		void LoadShaderPrograms();
 	}

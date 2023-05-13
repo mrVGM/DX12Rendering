@@ -136,8 +136,6 @@ ID3D12CommandList* rendering::DXShadowMapMaterial::GenerateCommandList(
     DXSwapChain* swapChain = utils::GetSwapChain();
     DXBuffer* camBuff = utils::GetCameraBuffer();
 
-    ID3D12Resource* curRT = swapChain->GetCurrentRenderTarget();
-
     m_commandLists.push_back(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>());
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList = m_commandLists.back();
 

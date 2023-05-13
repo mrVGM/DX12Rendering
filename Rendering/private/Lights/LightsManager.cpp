@@ -15,6 +15,7 @@
 #include "DXHeap.h"
 
 #include "DXDescriptorHeap.h"
+#include "DXDescriptorHeapMeta.h"
 #include "DXShadowMapDSDescriptorHeapMeta.h"
 
 namespace
@@ -203,6 +204,14 @@ void rendering::LightsManager::LoadShadowMapDSTex(jobs::Job* done)
 	utils::RunSync(new CreateTex(ctx));
 }
 
+void rendering::LightsManager::CreateDescriptorHeaps()
+{
+	std::list<DXTexture*> textures;
+	textures.push_back(m_shadowMap);
+	m_shadowMapRTV = DXDescriptorHeap::CreateRTVDescriptorHeap(DXDescriptorHeapMeta::GetInstance(), textures);
+	m_shadowMapSRV = DXDescriptorHeap::CreateSRVDescriptorHeap(DXDescriptorHeapMeta::GetInstance(), textures);
+}
+
 void rendering::LightsManager::LoadShadowMapTex(jobs::Job* done)
 {
 	struct Context
@@ -274,6 +283,7 @@ void rendering::LightsManager::LoadShadowMap(jobs::Job* done)
 {
 	struct Context
 	{
+		LightsManager* m_lightsManager = nullptr;
 		int m_itemsToLoad = 2;
 		jobs::Job* m_done = nullptr;
 	};
@@ -296,6 +306,8 @@ void rendering::LightsManager::LoadShadowMap(jobs::Job* done)
 				return;
 			}
 
+			m_ctx.m_lightsManager->CreateDescriptorHeaps();
+
 			utils::RunSync(m_ctx.m_done);
 			delete &m_ctx;
 		}
@@ -303,6 +315,7 @@ void rendering::LightsManager::LoadShadowMap(jobs::Job* done)
 
 
 	Context* ctx = new Context();
+	ctx->m_lightsManager = this;
 	ctx->m_done = done;
 
 	LoadShadowMapTex(new ItemDone(*ctx));
@@ -328,4 +341,14 @@ rendering::DXTexture* rendering::LightsManager::GetShadowMapDepthStencil()
 rendering::DXDescriptorHeap* rendering::LightsManager::GetShadowMapDSDescriptorHeap()
 {
 	return m_shadowMapDSDescriptorHeap;
+}
+
+rendering::DXDescriptorHeap* rendering::LightsManager::GetSMRTVHeap()
+{
+	return m_shadowMapRTV;
+}
+
+rendering::DXDescriptorHeap* rendering::LightsManager::GetSMSRVHeap()
+{
+	return m_shadowMapSRV;
 }

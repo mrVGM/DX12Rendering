@@ -176,7 +176,11 @@ add_library (Rendering
 	"private/Lights/DXShadowMapDSMeta.h"
 	"private/Lights/DXShadowMapDSMeta.cpp"
 	"private/Lights/DXShadowMapDSDescriptorHeapMeta.h"
-	"private/Lights/DXShadowMapDSDescriptorHeapMeta.cpp")
+	"private/Lights/DXShadowMapDSDescriptorHeapMeta.cpp"
+	"private/RenderPass/DXDisplaySMRPMeta.h"
+	"private/RenderPass/DXDisplaySMRPMeta.cpp"
+	"private/RenderPass/DXDisplaySMRP.h"
+	"private/RenderPass/DXDisplaySMRP.cpp")
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")

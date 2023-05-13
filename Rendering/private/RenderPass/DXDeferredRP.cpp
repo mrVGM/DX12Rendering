@@ -286,7 +286,7 @@ void rendering::DXDeferredRP::CreatePostLightingPipelineStageAndRootSignature()
             D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 
         CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
-        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 4, 0, 0);
+        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3, 0, 0);
         CD3DX12_ROOT_PARAMETER1 rootParameters[1];
         rootParameters[0].InitAsDescriptorTable(1, ranges, D3D12_SHADER_VISIBILITY_PIXEL);
 
@@ -512,7 +512,7 @@ void rendering::DXDeferredRP::CreateSRVLitHeap()
     {
         // Describe and create a render target view (RTV) descriptor heap.
         D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-        srvHeapDesc.NumDescriptors = 4;
+        srvHeapDesc.NumDescriptors = 3;
         srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
         srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
         THROW_ERROR(
@@ -564,19 +564,6 @@ void rendering::DXDeferredRP::CreateSRVLitHeap()
             device->GetDevice().CreateShaderResourceView(tex->GetTexture(), &srvDesc, srvHandle);
             srvHandle.Offset(1, m_srvDescriptorSize);
         }
-
-        {
-            DXTexture* tex = m_shadowMapTex;
-            D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-            srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-            srvDesc.Format = tex->GetTextureDescription().Format;
-            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-            srvDesc.Texture3D.MipLevels = 1;
-            srvDesc.Texture2D.MipLevels = 1;
-
-            device->GetDevice().CreateShaderResourceView(tex->GetTexture(), &srvDesc, srvHandle);
-            srvHandle.Offset(1, m_srvDescriptorSize);
-        }
     }
 }
 
@@ -594,9 +581,12 @@ void rendering::DXDeferredRP::PrepareEndList()
         m_endList->Reset(m_lightCalculationsAllocator.Get(), m_pipelineState.Get()),
         "Can't reset Command List!")
 
+    LightsManager* lightsManager = GetLightsManager();
+
     {
         CD3DX12_RESOURCE_BARRIER barrier[] =
         {
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(lightsManager->GetShadowMap()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferAmbientLitTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferDiffuseLitTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularLitTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET)
@@ -611,11 +601,9 @@ void rendering::DXDeferredRP::PrepareEndList()
         m_endList->ClearRenderTargetView(GetDescriptorHandleFor(GBufferLitTexType::SpecularLit), clearColor, 0, nullptr);
     }
 
-    LightsManager* lightsManager = GetLightsManager();
     {
         CD3DX12_RESOURCE_BARRIER barrier[] =
         {
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(lightsManager->GetShadowMap()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferDiffuseTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferNormalTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
@@ -659,7 +647,6 @@ void rendering::DXDeferredRP::PrepareEndList()
     {
         CD3DX12_RESOURCE_BARRIER barrier[] =
         {
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(lightsManager->GetShadowMap()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferDiffuseTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferNormalTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
@@ -743,13 +730,10 @@ void rendering::DXDeferredRP::PreparePostLightingList()
         m_postLightingList->Reset(m_postlightCalculationsAllocator.Get(), m_postLigtingPipelineState.Get()),
         "Can't reset Command List!")
 
-    LightsManager* lightsManager = GetLightsManager();
-
     {
         CD3DX12_RESOURCE_BARRIER barrier[] =
         {
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(swapChain->GetCurrentRenderTarget(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(lightsManager->GetShadowMap()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferAmbientLitTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferDiffuseLitTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularLitTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
@@ -787,7 +771,6 @@ void rendering::DXDeferredRP::PreparePostLightingList()
         CD3DX12_RESOURCE_BARRIER barrier[] =
         {
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(swapChain->GetCurrentRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(lightsManager->GetShadowMap()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferAmbientLitTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferDiffuseLitTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularLitTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT)
