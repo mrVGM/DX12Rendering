@@ -152,7 +152,7 @@ ID3D12CommandList* rendering::DXShadowMapMaterial::GenerateCommandList(
     commandList->RSSetScissorRects(1, &swapChain->GetScissorRect());
 
     DXDeferredRP* deferredRP = GetDeferredRP();
-    D3D12_CPU_DESCRIPTOR_HANDLE dsHandle = utils::GetDSVDescriptorHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+    D3D12_CPU_DESCRIPTOR_HANDLE dsHandle = utils::GetLightsManager()->GetShadowMapDSDescriptorHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
     D3D12_CPU_DESCRIPTOR_HANDLE handles[] =
     {
         deferredRP->GetDescriptorHandleFor(DXDeferredRP::GBufferLitTexType::ShadowMap)
