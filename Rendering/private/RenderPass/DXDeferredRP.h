@@ -23,15 +23,15 @@ namespace rendering
 			Diffuse = 0,
 			Specular = 1,
 			Normal = 2,
-			Position = 3,
-			ShadowMap = 4,
+			Position = 3
 		};
 
 		enum GBufferLitTexType
 		{
 			AmbientLit = 0,
 			DiffuseLit = 1,
-			SpecularLit = 2
+			SpecularLit = 2,
+			ShadowMap = 3,
 		};
 
 	private:
@@ -91,12 +91,12 @@ namespace rendering
 
 		void RenderDeferred();
 
-		D3D12_CPU_DESCRIPTOR_HANDLE GetDescriptorHandleFor(GBufferLitTexType texType);
 	public:
 		DXDeferredRP();
 		virtual ~DXDeferredRP();
 
 		D3D12_CPU_DESCRIPTOR_HANDLE GetDescriptorHandleFor(GBufferTexType texType);
+		D3D12_CPU_DESCRIPTOR_HANDLE GetDescriptorHandleFor(GBufferLitTexType texType);
 
 		void Prepare() override;
 		void Execute() override;
