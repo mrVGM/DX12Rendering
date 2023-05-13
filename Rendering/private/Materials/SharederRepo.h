@@ -22,6 +22,8 @@ namespace rendering
 		DXShader* GetDeferredRPVertexShader();
 		DXShader* GetDeferredRPPostLightingPixelShader();
 
+		DXShader* GetDisplayDepthPixelShader();
+
 		void LoadShaderPrograms();
 	}
 }

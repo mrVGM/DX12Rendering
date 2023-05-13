@@ -18,6 +18,8 @@ namespace
 	rendering::DXShader* m_deferredRPPixelShader = nullptr;
 	rendering::DXShader* m_deferredRPVertexShader = nullptr;
 	rendering::DXShader* m_deferredRPPostLightingPixelShader = nullptr;
+
+	rendering::DXShader* m_displayDepthPixelShader = nullptr;
 }
 
 rendering::DXShader* rendering::shader_repo::GetMainVertexShader()
@@ -55,6 +57,11 @@ rendering::DXShader* rendering::shader_repo::GetDeferredRPPostLightingPixelShade
 	return m_deferredRPPostLightingPixelShader;
 }
 
+rendering::DXShader* rendering::shader_repo::GetDisplayDepthPixelShader()
+{
+	return m_displayDepthPixelShader;
+}
+
 void rendering::shader_repo::LoadShaderPrograms()
 {
 	m_mainVertexShader = new DXShader(DXVertexShaderMeta::GetInstance(), "shaders/bin/vs_mainVS.fxc");
@@ -65,4 +72,6 @@ void rendering::shader_repo::LoadShaderPrograms()
 	m_deferredRPVertexShader = new DXShader(DXVertexShaderMeta::GetInstance(), "shaders/bin/vs_deferredRPVS.fxc");
 	m_deferredRPPixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_deferredRPPS.fxc");
 	m_deferredRPPostLightingPixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_deferredRPPostLightingPS.fxc");
+
+	m_displayDepthPixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_displayDepthPS.fxc");
 }
