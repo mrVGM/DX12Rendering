@@ -9,6 +9,7 @@ namespace rendering
 {
 	class DXBuffer;
 	class DXTexture;
+	class DXDescriptorHeap;
 
 	struct Light
 	{
@@ -23,6 +24,7 @@ namespace rendering
 		DXBuffer* m_lightsBuffer = nullptr;
 		DXTexture* m_shadowMap = nullptr;
 		DXTexture* m_shadowMapDepthStencil = nullptr;
+		rendering::DXDescriptorHeap* m_shadowMapDSDescriptorHeap = nullptr;
 
 		void LoadShadowMapTex(jobs::Job* done);
 		void LoadShadowMapDSTex(jobs::Job* done);
@@ -37,5 +39,6 @@ namespace rendering
 		DXBuffer* GetLightsBuffer();
 		DXTexture* GetShadowMap();
 		DXTexture* GetShadowMapDepthStencil();
+		DXDescriptorHeap* GetShadowMapDSDescriptorHeap();
 	};
 }

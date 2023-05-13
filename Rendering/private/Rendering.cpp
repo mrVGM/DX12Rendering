@@ -39,6 +39,7 @@
 #include "Deferred/DeferredRendering.h"
 
 #include "DXDepthStencilTextureMeta.h"
+#include "DXDepthStencilDescriptorHeapMeta.h"
 
 #include <iostream>
 
@@ -108,7 +109,7 @@ namespace
 				DXTexture* dsTex = utils::GetDepthStencilTexture();
 				dsTex->Place(*m_ctx.m_heap, 0);
 
-				DXDescriptorHeap::CreateDSVDescriptorHeap(*dsTex);
+				DXDescriptorHeap::CreateDSVDescriptorHeap(DXDepthStencilDescriptorHeapMeta::GetInstance(), *dsTex);
 				utils::GetDSVDescriptorHeap();
 
 				utils::RunSync(m_ctx.m_done);

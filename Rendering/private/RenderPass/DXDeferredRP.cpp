@@ -24,6 +24,26 @@ if (FAILED(hRes)) {\
 }
 
 
+
+namespace
+{
+    rendering::LightsManager* GetLightsManager()
+    {
+        using namespace rendering;
+
+        LightsManager* lightsManager = utils::GetLightsManager();
+        if (!lightsManager)
+        {
+            new LightsManager();
+        }
+        lightsManager = utils::GetLightsManager();
+
+        return lightsManager;
+    }
+}
+
+
+
 rendering::DXDeferredRP::DXDeferredRP() :
     RenderPass(DXDeferredRPMeta::GetInstance()),
     m_vertexShader(*rendering::shader_repo::GetDeferredRPVertexShader()),
@@ -591,9 +611,11 @@ void rendering::DXDeferredRP::PrepareEndList()
         m_endList->ClearRenderTargetView(GetDescriptorHandleFor(GBufferLitTexType::SpecularLit), clearColor, 0, nullptr);
     }
 
+    LightsManager* lightsManager = GetLightsManager();
     {
         CD3DX12_RESOURCE_BARRIER barrier[] =
         {
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(lightsManager->GetShadowMap()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferDiffuseTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferNormalTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
@@ -637,6 +659,7 @@ void rendering::DXDeferredRP::PrepareEndList()
     {
         CD3DX12_RESOURCE_BARRIER barrier[] =
         {
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(lightsManager->GetShadowMap()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferDiffuseTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferNormalTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
@@ -669,9 +692,11 @@ void rendering::DXDeferredRP::PrepareStartList()
         m_startList->Reset(m_lightCalculationsAllocator.Get(), nullptr),
         "Can't reset Command List!")
 
+    LightsManager* lightsManager = GetLightsManager();
     {
         CD3DX12_RESOURCE_BARRIER barrier[] =
         {
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(lightsManager->GetShadowMap()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferDiffuseTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferNormalTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
@@ -685,6 +710,11 @@ void rendering::DXDeferredRP::PrepareStartList()
     m_startList->ClearRenderTargetView(GetDescriptorHandleFor(GBufferTexType::Specular), clearColor, 0, nullptr);
     m_startList->ClearRenderTargetView(GetDescriptorHandleFor(GBufferTexType::Normal), clearColor, 0, nullptr);
     m_startList->ClearRenderTargetView(GetDescriptorHandleFor(GBufferTexType::Position), clearColor, 0, nullptr);
+
+
+    D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = lightsManager->GetShadowMapDSDescriptorHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+    m_startList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+
 
     THROW_ERROR(
         m_startList->Close(),
@@ -958,13 +988,7 @@ void rendering::DXDeferredRP::LoadLitTextures(jobs::Job* done)
 
 void rendering::DXDeferredRP::LoadLightsBuffer(jobs::Job* done)
 {
-    LightsManager* lightsManager = utils::GetLightsManager();
-    if (!lightsManager)
-    {
-        new LightsManager();
-    }
-    lightsManager = utils::GetLightsManager();
-
+    LightsManager* lightsManager = GetLightsManager();
     struct Context
     {
         DXDeferredRP* m_deferredRP = nullptr;
@@ -1001,12 +1025,7 @@ void rendering::DXDeferredRP::LoadLightsBuffer(jobs::Job* done)
 
 void rendering::DXDeferredRP::LoadShadowMap(jobs::Job* done)
 {
-    LightsManager* lightsManager = utils::GetLightsManager();
-    if (!lightsManager)
-    {
-        new LightsManager();
-    }
-    lightsManager = utils::GetLightsManager();
+    LightsManager* lightsManager = GetLightsManager();
 
     struct Context
     {

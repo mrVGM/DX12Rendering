@@ -20,7 +20,7 @@ namespace rendering
 		DXDescriptorHeap(const BaseObjectMeta& meta);
 		virtual ~DXDescriptorHeap();
 
-		static DXDescriptorHeap* CreateDSVDescriptorHeap(DXTexture& depthStencilTex);
+		static DXDescriptorHeap* CreateDSVDescriptorHeap(const BaseObjectMeta& meta, DXTexture& depthStencilTex);
 		ID3D12DescriptorHeap* GetDescriptorHeap();
 	};
 }

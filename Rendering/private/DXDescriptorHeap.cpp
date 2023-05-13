@@ -2,8 +2,6 @@
 
 #include "BaseObjectMeta.h"
 
-#include "DXDepthStencilDescriptorHeapMeta.h"
-
 #include "RenderUtils.h"
 
 #define THROW_ERROR(hRes, error) \
@@ -21,10 +19,10 @@ rendering::DXDescriptorHeap::~DXDescriptorHeap()
 }
 
 
-rendering::DXDescriptorHeap* rendering::DXDescriptorHeap::CreateDSVDescriptorHeap(rendering::DXTexture& depthStencilTex)
+rendering::DXDescriptorHeap* rendering::DXDescriptorHeap::CreateDSVDescriptorHeap(const BaseObjectMeta& meta, rendering::DXTexture& depthStencilTex)
 {
 	DXDevice* device = utils::GetDevice();
-	DXDescriptorHeap* res = new DXDescriptorHeap(DXDepthStencilDescriptorHeapMeta::GetInstance());
+	DXDescriptorHeap* res = new DXDescriptorHeap(meta);
 
 	{
 		D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};

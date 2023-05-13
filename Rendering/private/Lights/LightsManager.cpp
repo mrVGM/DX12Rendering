@@ -14,6 +14,9 @@
 #include "DXTexture.h"
 #include "DXHeap.h"
 
+#include "DXDescriptorHeap.h"
+#include "DXShadowMapDSDescriptorHeapMeta.h"
+
 namespace
 {
 	struct LightsBuffer
@@ -156,6 +159,9 @@ void rendering::LightsManager::LoadShadowMapDSTex(jobs::Job* done)
 		{
 			m_ctx.m_texture->Place(*m_ctx.m_heap, 0);
 			m_ctx.m_manager->m_shadowMapDepthStencil = m_ctx.m_texture;
+
+			m_ctx.m_manager->m_shadowMapDSDescriptorHeap = 
+				DXDescriptorHeap::CreateDSVDescriptorHeap(DXShadowMapDSDescriptorHeapMeta::GetInstance(), *m_ctx.m_manager->m_shadowMapDepthStencil);
 
 			utils::RunSync(m_ctx.m_done);
 		}
@@ -317,4 +323,9 @@ rendering::DXTexture* rendering::LightsManager::GetShadowMap()
 rendering::DXTexture* rendering::LightsManager::GetShadowMapDepthStencil()
 {
 	return m_shadowMapDepthStencil;
+}
+
+rendering::DXDescriptorHeap* rendering::LightsManager::GetShadowMapDSDescriptorHeap()
+{
+	return m_shadowMapDSDescriptorHeap;
 }
