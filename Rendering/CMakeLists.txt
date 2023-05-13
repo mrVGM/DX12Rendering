@@ -162,7 +162,11 @@ add_library (Rendering
 	"private/Deferred/DXGBufferDiffuseLitTexMeta.h"
 	"private/Deferred/DXGBufferDiffuseLitTexMeta.cpp"
 	"private/Deferred/DXGBufferSpecularLitTexMeta.h"
-	"private/Deferred/DXGBufferSpecularLitTexMeta.cpp")
+	"private/Deferred/DXGBufferSpecularLitTexMeta.cpp"
+	"private/Lights/LightsManagerMeta.h"
+	"private/Lights/LightsManagerMeta.cpp"
+	"private/Lights/LightsManager.h"
+	"private/Lights/LightsManager.cpp")
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")

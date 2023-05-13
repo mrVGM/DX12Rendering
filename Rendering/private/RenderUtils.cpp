@@ -30,6 +30,9 @@
 #include "DXMaterialRepo.h"
 #include "DXMaterialRepoMeta.h"
 
+#include "Lights/LightsManager.h"
+#include "Lights/LightsManagerMeta.h"
+
 namespace
 {
 	rendering::Updater* m_updater = nullptr;
@@ -52,6 +55,8 @@ namespace
 
 	rendering::DXUnlitErrorMaterial* m_unlitErrorMaterial = nullptr;
 	rendering::DXMaterialRepo* m_materialRepo = nullptr;
+
+	rendering::LightsManager* m_lightsManager = nullptr;
 
 
 	jobs::JobSystem* GetMainJobSystem()
@@ -291,6 +296,18 @@ rendering::DXMaterialRepo* rendering::utils::GetMaterialRepo()
 	BaseObject* obj = container.GetObjectOfClass(DXMaterialRepoMeta::GetInstance());
 	m_materialRepo = static_cast<DXMaterialRepo*>(obj);
 	return m_materialRepo;
+}
+
+rendering::LightsManager* rendering::utils::GetLightsManager()
+{
+	if (m_lightsManager)
+	{
+		return m_lightsManager;
+	}
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+	BaseObject* obj = container.GetObjectOfClass(LightsManagerMeta::GetInstance());
+	m_lightsManager = static_cast<LightsManager*>(obj);
+	return m_lightsManager;
 }
 
 void rendering::utils::CacheObjects()

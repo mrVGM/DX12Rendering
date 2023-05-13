@@ -855,82 +855,45 @@ void rendering::DXDeferredRP::LoadLitTextures(jobs::Job* done)
 
 void rendering::DXDeferredRP::LoadLightsBuffer(jobs::Job* done)
 {
+    LightsManager* lightsManager = utils::GetLightsManager();
+    if (!lightsManager)
+    {
+        new LightsManager();
+    }
+    lightsManager = utils::GetLightsManager();
+
     struct Context
     {
         DXDeferredRP* m_deferredRP = nullptr;
-        DXBuffer* m_buffer = nullptr;
-        DXHeap* m_heap = nullptr;
+        LightsManager* m_lightsManager = nullptr;
         jobs::Job* m_done = nullptr;
     };
 
-    class PlaceBuffer : public jobs::Job
+    class LoadBuffer : public jobs::Job
     {
     private:
         Context m_ctx;
     public:
-        PlaceBuffer(const Context& ctx) :
+        LoadBuffer(const Context& ctx) :
             m_ctx(ctx)
         {
         }
+
         void Do() override
         {
-            m_ctx.m_buffer->Place(m_ctx.m_heap, 0);
-
-            struct vec4 
-            {
-                float m_data[4];
-            };
-
-            void* dst = m_ctx.m_buffer->Map();
-            vec4* cur = static_cast<vec4*>(dst);
-            {
-                int* tmp = reinterpret_cast<int*>(cur);
-                *tmp = 1;
-
-                ++cur;
-                *cur = vec4{ 3, 3, -3, 30 };
-            }
-
-            m_ctx.m_deferredRP->m_lightsBuffer = m_ctx.m_buffer;
-
+            m_ctx.m_deferredRP->m_lightsBuffer = m_ctx.m_lightsManager->GetLightsBuffer();
             utils::RunSync(m_ctx.m_done);
-        }
-    };
-
-    class CreateHeapAndBuffer : public jobs::Job
-    {
-    private:
-        Context m_ctx;
-    public:
-        CreateHeapAndBuffer(const Context& ctx) :
-            m_ctx(ctx)
-        {
-        }
-
-        void Do()
-        {
-            m_ctx.m_buffer = new DXBuffer(DXBufferMeta::GetInstance());
-            m_ctx.m_buffer->SetBufferSizeAndFlags(256, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE);
-            m_ctx.m_buffer->SetBufferStride(256);
-
-            m_ctx.m_heap = new DXHeap();
-            m_ctx.m_heap->SetHeapSize(256);
-            m_ctx.m_heap->SetHeapType(D3D12_HEAP_TYPE_UPLOAD);
-            m_ctx.m_heap->SetHeapFlags(D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS);
-            m_ctx.m_heap->Create();
-
-            m_ctx.m_heap->MakeResident(new PlaceBuffer(m_ctx));
         }
     };
 
     Context ctx
     {
         this,
-        nullptr,
-        nullptr,
+        lightsManager,
         done
     };
-    utils::RunSync(new CreateHeapAndBuffer(ctx));
+
+    lightsManager->LoadLightsBuffer(new LoadBuffer(ctx));
 }
 
 

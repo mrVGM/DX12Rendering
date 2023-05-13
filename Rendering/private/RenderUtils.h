@@ -13,6 +13,7 @@
 #include "DXRenderer.h"
 #include "DXMaterialRepo.h"
 #include "DXTexture.h"
+#include "Lights/LightsManager.h"
 
 #include "Materials/DXUnlitErrorMaterial.h"
 
@@ -44,6 +45,8 @@ namespace rendering
 
 		rendering::DXUnlitErrorMaterial* GetUnlitErrorMaterial();
 		rendering::DXMaterialRepo* GetMaterialRepo();
+
+		rendering::LightsManager* GetLightsManager();
 
 		void RunSync(jobs::Job* job);
 		void RunAsync(jobs::Job* job);
