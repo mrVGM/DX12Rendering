@@ -38,6 +38,8 @@
 
 #include "Deferred/DeferredRendering.h"
 
+#include "DXDepthStencilTextureMeta.h"
+
 #include <iostream>
 
 namespace
@@ -125,7 +127,7 @@ namespace
 			void Do() override
 			{
 				Window* wnd = utils::GetWindow();
-				DXTexture::CreateDepthStencilTexture(wnd->m_width, wnd->m_height);
+				DXTexture::CreateDepthStencilTexture(DXDepthStencilTextureMeta::GetInstance(), wnd->m_width, wnd->m_height);
 				DXTexture* dsTex = utils::GetDepthStencilTexture();
 
 				D3D12_RESOURCE_ALLOCATION_INFO allocInfo = dsTex->GetTextureAllocationInfo();

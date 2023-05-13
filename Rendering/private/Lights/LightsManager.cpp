@@ -3,6 +3,7 @@
 #include "Lights/LightsManagerMeta.h"
 
 #include "Lights/DXShadowMapMeta.h"
+#include "Lights/DXShadowMapDSMeta.h"
 
 #include "RenderUtils.h"
 
@@ -130,7 +131,73 @@ void rendering::LightsManager::LoadLightsBuffer(jobs::Job* done)
 	utils::RunSync(new CreateObjects(ctx));
 }
 
-void rendering::LightsManager::LoadShadowMap(jobs::Job* done)
+void rendering::LightsManager::LoadShadowMapDSTex(jobs::Job* done)
+{
+	struct Context
+	{
+		LightsManager* m_manager = nullptr;
+		DXTexture* m_texture = nullptr;
+		DXHeap* m_heap = nullptr;
+
+		jobs::Job* m_done = nullptr;
+	};
+
+	class PlaceTexture : public jobs::Job
+	{
+	private:
+		Context m_ctx;
+	public:
+		PlaceTexture(const Context& ctx) :
+			m_ctx(ctx)
+		{
+		}
+
+		void Do() override
+		{
+			m_ctx.m_texture->Place(*m_ctx.m_heap, 0);
+			m_ctx.m_manager->m_shadowMapDepthStencil = m_ctx.m_texture;
+
+			utils::RunSync(m_ctx.m_done);
+		}
+	};
+
+	class CreateTex : public jobs::Job
+	{
+	private:
+		Context m_ctx;
+	public:
+		CreateTex(const Context& ctx) :
+			m_ctx(ctx)
+		{
+		}
+
+		void Do()
+		{
+			m_ctx.m_texture = DXTexture::CreateDepthStencilTexture(DXShadowMapDSMeta::GetInstance(), 600, 600);
+
+			m_ctx.m_heap = new DXHeap();
+			m_ctx.m_heap->SetHeapSize(m_ctx.m_texture->GetTextureAllocationInfo().SizeInBytes);
+			m_ctx.m_heap->SetHeapType(D3D12_HEAP_TYPE_DEFAULT);
+			m_ctx.m_heap->SetHeapFlags(D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES);
+
+			m_ctx.m_heap->Create();
+
+			m_ctx.m_heap->MakeResident(new PlaceTexture(m_ctx));
+		}
+	};
+
+	Context ctx
+	{
+		this,
+		nullptr,
+		nullptr,
+		done
+	};
+
+	utils::RunSync(new CreateTex(ctx));
+}
+
+void rendering::LightsManager::LoadShadowMapTex(jobs::Job* done)
 {
 	struct Context
 	{
@@ -196,6 +263,47 @@ void rendering::LightsManager::LoadShadowMap(jobs::Job* done)
 	utils::RunSync(new CreateTex(ctx));
 }
 
+
+void rendering::LightsManager::LoadShadowMap(jobs::Job* done)
+{
+	struct Context
+	{
+		int m_itemsToLoad = 2;
+		jobs::Job* m_done = nullptr;
+	};
+
+	class ItemDone : public jobs::Job
+	{
+	private:
+		Context& m_ctx;
+	public:
+		ItemDone(Context& ctx) :
+			m_ctx(ctx)
+		{
+		}
+
+		void Do() override
+		{
+			--m_ctx.m_itemsToLoad;
+			if (m_ctx.m_itemsToLoad > 0)
+			{
+				return;
+			}
+
+			utils::RunSync(m_ctx.m_done);
+			delete &m_ctx;
+		}
+	};
+
+
+	Context* ctx = new Context();
+	ctx->m_done = done;
+
+	LoadShadowMapTex(new ItemDone(*ctx));
+	LoadShadowMapDSTex(new ItemDone(*ctx));
+}
+
+
 rendering::DXBuffer* rendering::LightsManager::GetLightsBuffer()
 {
 	return m_lightsBuffer;
@@ -204,4 +312,9 @@ rendering::DXBuffer* rendering::LightsManager::GetLightsBuffer()
 rendering::DXTexture* rendering::LightsManager::GetShadowMap()
 {
 	return m_shadowMap;
+}
+
+rendering::DXTexture* rendering::LightsManager::GetShadowMapDepthStencil()
+{
+	return m_shadowMapDepthStencil;
 }

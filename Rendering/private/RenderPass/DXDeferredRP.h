@@ -14,6 +14,7 @@ namespace rendering
 	class DXShader;
 	class DXBuffer;
 	class DXTexture;
+	class DXMaterial;
 
 	class DXDeferredRP : public RenderPass
 	{
@@ -60,6 +61,8 @@ namespace rendering
 		DXBuffer* m_lightsBuffer = nullptr;
 		DXTexture* m_shadowMapTex = nullptr;
 
+		DXMaterial* m_shadowMapMaterial = nullptr;
+
 		UINT m_rtvDescriptorSize = 0;
 		UINT m_srvDescriptorSize = 0;
 
@@ -89,6 +92,7 @@ namespace rendering
 		void LoadShadowMap(jobs::Job* done);
 		void LoadLitTextures(jobs::Job* done);
 
+		void RenderShadowMap();
 		void RenderDeferred();
 
 	public:

@@ -22,7 +22,10 @@ namespace rendering
 		std::list<Light> m_lights;
 		DXBuffer* m_lightsBuffer = nullptr;
 		DXTexture* m_shadowMap = nullptr;
+		DXTexture* m_shadowMapDepthStencil = nullptr;
 
+		void LoadShadowMapTex(jobs::Job* done);
+		void LoadShadowMapDSTex(jobs::Job* done);
 	public:
 		LightsManager();
 		virtual ~LightsManager();
@@ -33,5 +36,6 @@ namespace rendering
 
 		DXBuffer* GetLightsBuffer();
 		DXTexture* GetShadowMap();
+		DXTexture* GetShadowMapDepthStencil();
 	};
 }

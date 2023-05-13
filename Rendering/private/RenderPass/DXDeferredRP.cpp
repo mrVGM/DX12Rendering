@@ -8,8 +8,13 @@
 
 #include "Materials/DXDeferredMaterialMetaTag.h"
 
+#include "Materials/DXShadowMapMaterial.h"
+#include "Materials/DXShadowMapMaterialMeta.h"
+
 #include "DXBufferMeta.h"
 #include "DXHeap.h"
+
+#include "BaseObjectContainer.h"
 
 #include <set>
 
@@ -71,6 +76,18 @@ rendering::DXDeferredRP::DXDeferredRP() :
 
     CreateRTVHeap();
     CreateSRVHeap();
+    
+    {
+        BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+        BaseObject* obj = container.GetObjectOfClass(DXShadowMapMaterialMeta::GetInstance());
+
+        if (!obj)
+        {
+            obj = new DXShadowMapMaterial(*shader_repo::GetMainVertexShader(), *shader_repo::GetShadowMapPixelShader());
+        }
+
+        m_shadowMapMaterial = static_cast<DXShadowMapMaterial*>(obj);
+    }
 }
 
 rendering::DXDeferredRP::~DXDeferredRP()
@@ -740,6 +757,76 @@ void rendering::DXDeferredRP::PreparePostLightingList()
     THROW_ERROR(
         m_postLightingList->Close(),
         "Can't close Command List!")
+}
+
+void rendering::DXDeferredRP::RenderShadowMap()
+{
+    DXScene* scene = utils::GetScene();
+    DXMaterialRepo* repo = utils::GetMaterialRepo();
+
+    m_shadowMapMaterial->ResetCommandLists();
+
+    std::list<ID3D12CommandList*> deferredLists;
+    for (int i = 0; i < scene->m_scenesLoaded; ++i)
+    {
+        collada::ColladaScene& curColladaScene = *scene->m_colladaScenes[i];
+        const DXScene::SceneResources& curSceneResources = scene->m_sceneResources[i];
+
+        collada::Scene& s = curColladaScene.GetScene();
+
+        for (auto it = s.m_objects.begin(); it != s.m_objects.end(); ++it)
+        {
+            collada::Object& obj = it->second;
+            collada::Geometry& geo = s.m_geometries[obj.m_geometry];
+            int instanceIndex = s.m_objectInstanceMap[it->first];
+            auto matOverrideIt = obj.m_materialOverrides.begin();
+
+            for (auto it = geo.m_materials.begin(); it != geo.m_materials.end(); ++it)
+            {
+                DXMaterial* mat = repo->GetMaterial(*matOverrideIt);
+                ++matOverrideIt;
+
+                DXBuffer* vertBuf = curSceneResources.m_vertexBuffers.find(obj.m_geometry)->second;
+                DXBuffer* indexBuf = curSceneResources.m_indexBuffers.find(obj.m_geometry)->second;
+                DXBuffer* instanceBuf = curSceneResources.m_instanceBuffers.find(obj.m_geometry)->second;
+
+                if (!mat)
+                {
+                    continue;
+                }
+
+                if (!mat->GetMeta().HasTag(DXDeferredMaterialMetaTag::GetInstance()))
+                {
+                    continue;
+                }
+
+                deferredLists.push_back(m_shadowMapMaterial->GenerateCommandList(
+                    *vertBuf,
+                    *indexBuf,
+                    *instanceBuf,
+                    (*it).indexOffset,
+                    (*it).indexCount,
+                    instanceIndex));
+            }
+        }
+    }
+
+    int numLists = deferredLists.size();
+    if (m_numCommandLists < numLists)
+    {
+        delete[] m_commandListsCache;
+        m_commandListsCache = new ID3D12CommandList * [numLists];
+        m_numCommandLists = numLists;
+    }
+
+    int index = 0;
+    for (auto it = deferredLists.begin(); it != deferredLists.end(); ++it)
+    {
+        m_commandListsCache[index++] = *it;
+    }
+
+    DXCommandQueue* commandQueue = utils::GetCommandQueue();
+    commandQueue->GetCommandQueue()->ExecuteCommandLists(numLists, m_commandListsCache);
 }
 
 void rendering::DXDeferredRP::RenderDeferred()

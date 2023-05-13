@@ -296,7 +296,7 @@ const D3D12_RESOURCE_DESC& rendering::DXTexture::GetTextureDescription() const
 	return m_description;
 }
 
-rendering::DXTexture* rendering::DXTexture::CreateDepthStencilTexture(UINT width, UINT height)
+rendering::DXTexture* rendering::DXTexture::CreateDepthStencilTexture(const BaseObjectMeta& meta, UINT width, UINT height)
 {
 	D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 	DXGI_FORMAT format = DXGI_FORMAT_D32_FLOAT;
@@ -312,7 +312,7 @@ rendering::DXTexture* rendering::DXTexture::CreateDepthStencilTexture(UINT width
 		0,
 		flags);
 
-	DXTexture* res = new DXTexture(DXDepthStencilTextureMeta::GetInstance(), textureDesc);
+	DXTexture* res = new DXTexture(meta, textureDesc);
 	return res;
 }
 
