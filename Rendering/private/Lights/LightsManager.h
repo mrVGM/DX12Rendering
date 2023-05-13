@@ -8,6 +8,7 @@
 namespace rendering
 {
 	class DXBuffer;
+	class DXTexture;
 
 	struct Light
 	{
@@ -18,8 +19,9 @@ namespace rendering
 	class LightsManager : public BaseObject
 	{
 	private:
-		DXBuffer* m_lightsBuffer = nullptr;
 		std::list<Light> m_lights;
+		DXBuffer* m_lightsBuffer = nullptr;
+		DXTexture* m_shadowMap = nullptr;
 
 	public:
 		LightsManager();
@@ -27,6 +29,9 @@ namespace rendering
 
 		void AddLight(const Light& light);
 		void LoadLightsBuffer(jobs::Job* done);
+		void LoadShadowMap(jobs::Job* done);
+
 		DXBuffer* GetLightsBuffer();
+		DXTexture* GetShadowMap();
 	};
 }

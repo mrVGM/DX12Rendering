@@ -2,11 +2,15 @@
 
 #include "Lights/LightsManagerMeta.h"
 
+#include "Lights/DXShadowMapMeta.h"
+
 #include "RenderUtils.h"
 
 #include "DXBuffer.h"
 #include "DXBufferMeta.h"
 
+#include "DXHeap.h"
+#include "DXTexture.h"
 #include "DXHeap.h"
 
 namespace
@@ -126,7 +130,78 @@ void rendering::LightsManager::LoadLightsBuffer(jobs::Job* done)
 	utils::RunSync(new CreateObjects(ctx));
 }
 
+void rendering::LightsManager::LoadShadowMap(jobs::Job* done)
+{
+	struct Context
+	{
+		LightsManager* m_manager = nullptr;
+		DXTexture* m_texture = nullptr;
+		DXHeap* m_heap = nullptr;
+
+		jobs::Job* m_done = nullptr;
+	};
+
+	class PlaceTexture : public jobs::Job
+	{
+	private:
+		Context m_ctx;
+	public:
+		PlaceTexture(const Context& ctx) :
+			m_ctx(ctx)
+		{
+		}
+
+		void Do() override
+		{
+			m_ctx.m_texture->Place(*m_ctx.m_heap, 0);
+			m_ctx.m_manager->m_shadowMap = m_ctx.m_texture;
+
+			utils::RunSync(m_ctx.m_done);
+		}
+	};
+
+	class CreateTex : public jobs::Job
+	{
+	private:
+		Context m_ctx;
+	public:
+		CreateTex(const Context& ctx) :
+			m_ctx(ctx)
+		{
+		}
+
+		void Do()
+		{
+			m_ctx.m_texture = DXTexture::CreateRenderTargetTexture(DXShadowMapMeta::GetInstance(), 600, 600);
+			
+			m_ctx.m_heap = new DXHeap();
+			m_ctx.m_heap->SetHeapSize(m_ctx.m_texture->GetTextureAllocationInfo().SizeInBytes);
+			m_ctx.m_heap->SetHeapType(D3D12_HEAP_TYPE_DEFAULT);
+			m_ctx.m_heap->SetHeapFlags(D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES);
+
+			m_ctx.m_heap->Create();
+
+			m_ctx.m_heap->MakeResident(new PlaceTexture(m_ctx));
+		}
+	};
+
+	Context ctx
+	{
+		this,
+		nullptr,
+		nullptr,
+		done
+	};
+
+	utils::RunSync(new CreateTex(ctx));
+}
+
 rendering::DXBuffer* rendering::LightsManager::GetLightsBuffer()
 {
 	return m_lightsBuffer;
+}
+
+rendering::DXTexture* rendering::LightsManager::GetShadowMap()
+{
+	return m_shadowMap;
 }

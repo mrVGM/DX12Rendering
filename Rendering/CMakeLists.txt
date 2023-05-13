@@ -166,7 +166,11 @@ add_library (Rendering
 	"private/Lights/LightsManagerMeta.h"
 	"private/Lights/LightsManagerMeta.cpp"
 	"private/Lights/LightsManager.h"
-	"private/Lights/LightsManager.cpp")
+	"private/Lights/LightsManager.cpp"
+	"private/Lights/DXShadowMapMeta.h"
+	"private/Lights/DXShadowMapMeta.cpp"
+	"private/RenderPass/DXShadowMapRPMeta.h"
+	"private/RenderPass/DXShadowMapRPMeta.cpp")
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")

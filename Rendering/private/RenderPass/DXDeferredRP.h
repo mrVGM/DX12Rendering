@@ -13,6 +13,7 @@ namespace rendering
 {
 	class DXShader;
 	class DXBuffer;
+	class DXTexture;
 
 	class DXDeferredRP : public RenderPass
 	{
@@ -22,7 +23,8 @@ namespace rendering
 			Diffuse = 0,
 			Specular = 1,
 			Normal = 2,
-			Position = 3
+			Position = 3,
+			ShadowMap = 4,
 		};
 
 		enum GBufferLitTexType
@@ -56,6 +58,7 @@ namespace rendering
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> m_postLigtingRootSignature;
 
 		DXBuffer* m_lightsBuffer = nullptr;
+		DXTexture* m_shadowMapTex = nullptr;
 
 		UINT m_rtvDescriptorSize = 0;
 		UINT m_srvDescriptorSize = 0;
@@ -83,6 +86,7 @@ namespace rendering
 		void PreparePostLightingList();
 
 		void LoadLightsBuffer(jobs::Job* done);
+		void LoadShadowMap(jobs::Job* done);
 		void LoadLitTextures(jobs::Job* done);
 
 		void RenderDeferred();

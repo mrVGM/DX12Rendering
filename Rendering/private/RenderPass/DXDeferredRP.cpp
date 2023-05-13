@@ -320,7 +320,7 @@ void rendering::DXDeferredRP::CreateRTVHeap()
     {
         // Describe and create a render target view (RTV) descriptor heap.
         D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-        rtvHeapDesc.NumDescriptors = 4;
+        rtvHeapDesc.NumDescriptors = 5;
         rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
         rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
         THROW_ERROR(
@@ -896,13 +896,56 @@ void rendering::DXDeferredRP::LoadLightsBuffer(jobs::Job* done)
     lightsManager->LoadLightsBuffer(new LoadBuffer(ctx));
 }
 
+void rendering::DXDeferredRP::LoadShadowMap(jobs::Job* done)
+{
+    LightsManager* lightsManager = utils::GetLightsManager();
+    if (!lightsManager)
+    {
+        new LightsManager();
+    }
+    lightsManager = utils::GetLightsManager();
+
+    struct Context
+    {
+        DXDeferredRP* m_deferredRP = nullptr;
+        LightsManager* m_lightsManager = nullptr;
+        jobs::Job* m_done = nullptr;
+    };
+
+    class LoadShadowMapTex : public jobs::Job
+    {
+    private:
+        Context m_ctx;
+    public:
+        LoadShadowMapTex(const Context& ctx) :
+            m_ctx(ctx)
+        {
+        }
+
+        void Do() override
+        {
+            m_ctx.m_deferredRP->m_shadowMapTex = m_ctx.m_lightsManager->GetShadowMap();
+            utils::RunSync(m_ctx.m_done);
+        }
+    };
+
+    Context ctx
+    {
+        this,
+        lightsManager,
+        done
+    };
+
+    lightsManager->LoadShadowMap(new LoadShadowMapTex(ctx));
+}
+
 
 void rendering::DXDeferredRP::Load(jobs::Job* done)
 {
     struct Context
     {
         DXDeferredRP* m_deferredRP = nullptr;
-        int m_itemsLeft = 2;
+        int m_itemsLeft = 3;
 
         jobs::Job* m_done = nullptr;
     };
@@ -938,6 +981,7 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
     ctx->m_done = done;
 
     LoadLightsBuffer(new ItemReady(*ctx));
+    LoadShadowMap(new ItemReady(*ctx));
     LoadLitTextures(new ItemReady(*ctx));
 }
 
