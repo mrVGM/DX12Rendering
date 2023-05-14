@@ -10,6 +10,7 @@
 
 #include "DXBufferMeta.h"
 #include "DXHeap.h"
+#include "DXTexture.h"
 
 #include "BaseObjectContainer.h"
 
@@ -136,6 +137,7 @@ ID3D12CommandList* rendering::DXShadowMapMaterial::GenerateCommandList(
     DXSwapChain* swapChain = utils::GetSwapChain();
     DXBuffer* camBuff = utils::GetCameraBuffer();
     LightsManager* lightsManager = utils::GetLightsManager();
+    DXTexture* shadowMapTexture = lightsManager->GetShadowMap();
 
     m_commandLists.push_back(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>());
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList = m_commandLists.back();
@@ -146,9 +148,17 @@ ID3D12CommandList* rendering::DXShadowMapMaterial::GenerateCommandList(
 
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
     commandList->SetGraphicsRootConstantBufferView(0, camBuff->GetBuffer()->GetGPUVirtualAddress());
+    
+    {
+        UINT texWidth = shadowMapTexture->GetTextureDescription().Width;
+        UINT texHeight = shadowMapTexture->GetTextureDescription().Height;
 
-    commandList->RSSetViewports(1, &swapChain->GetViewport());
-    commandList->RSSetScissorRects(1, &swapChain->GetScissorRect());
+        CD3DX12_VIEWPORT viewport(0.0f, 0.0f, texWidth, texHeight);
+        CD3DX12_RECT scissorRect(0, 0, texWidth, texHeight);
+
+        commandList->RSSetViewports(1, &viewport);
+        commandList->RSSetScissorRects(1, &scissorRect);
+    }
 
     DXDeferredRP* deferredRP = GetDeferredRP();
     D3D12_CPU_DESCRIPTOR_HANDLE dsHandle = lightsManager->GetShadowMapDSDescriptorHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
