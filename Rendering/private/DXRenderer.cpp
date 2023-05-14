@@ -166,7 +166,7 @@ void rendering::DXRenderer::Render(jobs::Job* done)
 	clearDST->Prepare();
 	deferredRP->Prepare();
 	unlitRP->Prepare();
-	displaySMPR->Prepare();
+	//displaySMPR->Prepare();
 
 	DXFence* fence = GetRenderFence();
 	WaitFence waitFence(*fence);
@@ -175,7 +175,7 @@ void rendering::DXRenderer::Render(jobs::Job* done)
 	clearDST->Execute();
 	deferredRP->Execute();
 	unlitRP->Execute();
-	displaySMPR->Execute();
+	//displaySMPR->Execute();
 
 	DXCommandQueue* commandQueue = utils::GetCommandQueue();
 	commandQueue->GetCommandQueue()->Signal(fence->GetFence(), m_counter);

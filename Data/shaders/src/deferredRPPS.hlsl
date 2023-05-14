@@ -18,10 +18,21 @@ cbuffer LigthsData : register(b1)
     Light m_lights[15];
 };
 
-Texture2D p_diffuse     : register(t0);
-Texture2D p_specular    : register(t1);
-Texture2D p_normal      : register(t2);
-Texture2D p_position    : register(t3);
+cbuffer ShadowMapSettings : register(b2)
+{
+    float4x4 m_smMatrix;
+    float3 m_smPos[4];
+    float m_smFarPlane;
+    float m_smNearPlane;
+    float m_smFov;
+    float m_smAspect;
+};
+
+Texture2D p_diffuse      : register(t0);
+Texture2D p_specular     : register(t1);
+Texture2D p_normal       : register(t2);
+Texture2D p_position     : register(t3);
+Texture2D p_shadowMap    : register(t4);
 
 SamplerState p_sampler  : register(s0);
 

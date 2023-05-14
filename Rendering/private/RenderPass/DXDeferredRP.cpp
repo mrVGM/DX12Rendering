@@ -95,12 +95,6 @@ rendering::DXDeferredRP::DXDeferredRP() :
             "Can't close Command List!")
     }
     
-    CreateLightCalculationsPipelineStageAndRootSignature();
-    CreatePostLightingPipelineStageAndRootSignature();
-
-    CreateRTVHeap();
-    CreateSRVHeap();
-    
     {
         BaseObjectContainer& container = BaseObjectContainer::GetInstance();
         BaseObject* obj = container.GetObjectOfClass(DXShadowMapMaterialMeta::GetInstance());
@@ -174,11 +168,12 @@ void rendering::DXDeferredRP::CreateLightCalculationsPipelineStageAndRootSignatu
             D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 
         CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
-        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 4, 0, 0);
-        CD3DX12_ROOT_PARAMETER1 rootParameters[3];
+        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 5, 0, 0);
+        CD3DX12_ROOT_PARAMETER1 rootParameters[4];
         rootParameters[0].InitAsConstantBufferView(0, 0);
         rootParameters[1].InitAsConstantBufferView(1, 0);
-        rootParameters[2].InitAsDescriptorTable(1, ranges, D3D12_SHADER_VISIBILITY_PIXEL);
+        rootParameters[2].InitAsConstantBufferView(2, 0);
+        rootParameters[3].InitAsDescriptorTable(1, ranges, D3D12_SHADER_VISIBILITY_PIXEL);
 
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
         rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, &sampler, rootSignatureFlags);
@@ -356,11 +351,14 @@ void rendering::DXDeferredRP::CreateRTVHeap()
 
 void rendering::DXDeferredRP::CreateSRVHeap()
 {
+    LightsManager* lightsManager = GetLightsManager();
+
     std::list<DXTexture*> textures;
     textures.push_back(rendering::deferred::GetGBufferDiffuseTex());
     textures.push_back(rendering::deferred::GetGBufferSpecularTex());
     textures.push_back(rendering::deferred::GetGBufferNormalTex());
     textures.push_back(rendering::deferred::GetGBufferPositionTex());
+    textures.push_back(lightsManager->GetShadowMap());
 
     m_srvHeap = DXDescriptorHeap::CreateSRVDescriptorHeap(DXDescriptorHeapMeta::GetInstance(), textures);
 }
@@ -436,7 +434,8 @@ void rendering::DXDeferredRP::PrepareEndList()
 
     m_endList->SetGraphicsRootConstantBufferView(0, utils::GetCameraBuffer()->GetBuffer()->GetGPUVirtualAddress());
     m_endList->SetGraphicsRootConstantBufferView(1, m_lightsBuffer->GetBuffer()->GetGPUVirtualAddress());
-    m_endList->SetGraphicsRootDescriptorTable(2, descriptorHeaps[0]->GetGPUDescriptorHandleForHeapStart());
+    m_endList->SetGraphicsRootConstantBufferView(2, lightsManager->GetSMSettingsBuffer()->GetBuffer()->GetGPUVirtualAddress());
+    m_endList->SetGraphicsRootDescriptorTable(3, descriptorHeaps[0]->GetGPUDescriptorHandleForHeapStart());
 
     m_endList->RSSetViewports(1, &swapChain->GetViewport());
     m_endList->RSSetScissorRects(1, &swapChain->GetScissorRect());
@@ -902,6 +901,12 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
             {
                 return;
             }
+
+            m_ctx.m_deferredRP->CreateLightCalculationsPipelineStageAndRootSignature();
+            m_ctx.m_deferredRP->CreatePostLightingPipelineStageAndRootSignature();
+            
+            m_ctx.m_deferredRP->CreateRTVHeap();
+            m_ctx.m_deferredRP->CreateSRVHeap();
 
             m_ctx.m_deferredRP->CreateRTVLitHeap();
             m_ctx.m_deferredRP->CreateSRVLitHeap();

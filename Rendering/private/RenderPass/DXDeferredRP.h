@@ -25,7 +25,8 @@ namespace rendering
 			Diffuse = 0,
 			Specular = 1,
 			Normal = 2,
-			Position = 3
+			Position = 3,
+			ShadowMap = 4
 		};
 
 		enum GBufferLitTexType
