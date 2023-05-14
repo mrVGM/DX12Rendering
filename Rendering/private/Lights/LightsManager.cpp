@@ -689,6 +689,17 @@ void rendering::LightsManager::LoadShadowMap(jobs::Job* done)
 
 void rendering::LightsManager::UpdateShadowMapSettings()
 {
+	using namespace DirectX;
+	float farPlane, nearPlane;
+
+	void* data = m_shadowMapSettingsBuffer->Map();
+	ShadowMapSettings* settingsData = static_cast<ShadowMapSettings*>(data);
+
+	GetShadowMapSettings(m_lights.front(), *settingsData);
+
+	m_shadowMapSettingsBuffer->Unmap();
+	
+	return;
 }
 
 

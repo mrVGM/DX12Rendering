@@ -128,6 +128,9 @@ namespace
 		cam->m_target = DirectX::XMVectorAdd(cam->m_position, fwdVector);
 
 		cam->UpdateCamBuffer();
+
+		LightsManager* lightsManager = utils::GetLightsManager();
+		lightsManager->UpdateShadowMapSettings();
 	}
 
 	class UpdateCameraPositionJob : public jobs::Job
