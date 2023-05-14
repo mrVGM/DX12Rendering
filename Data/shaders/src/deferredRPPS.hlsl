@@ -72,7 +72,7 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
     float4 normalTex = p_normal.Sample(p_sampler, uv);
     float4 positionTex = p_position.Sample(p_sampler, uv);
 
-    output.m_ambientLit = float4(0.2,0,0,1);
+    output.m_ambientLit = float4(0,0,0,0);
     output.m_diffuseLit = float4(0,0,0,0);
     output.m_specularLit = float4(0,0,0,0);
 
@@ -81,7 +81,7 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
         return output;
     }
 
-    output.m_ambientLit = float4(0.2 * diffuseTex.xyz, 1);
+    output.m_ambientLit = float4(0.3 * diffuseTex.xyz, 1);
 
     float3 color = float3(0, 0, 0);
     float3 specularColor = float3(0, 0, 0);
@@ -108,38 +108,6 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
             reflectedEyeDir = tmp.xyz;
         }
     }
-
-    output.m_ambientLit = float4(positionTex.xyz, 1);
-
-    {
-        float shadowTest = testForShadow(positionTex.xyz);
-
-        output.m_ambientLit = float4(1, 1, 1, 1);
-        if (shadowTest > 0)
-        {
-            output.m_ambientLit = float4(0.7, 0.7, 0.7, 1);
-        }
-        return output;
-
-        float4 testedPoint = float4(positionTex.xyz, 1);
-        testedPoint = mul(m_smMatrix, testedPoint);
-        testedPoint /= testedPoint.w;
-        float2 coord = (testedPoint.xy + 1) / 2;
-
-        if (coord.x < 0 || coord.x > 1 || coord.y < 0 || coord.y > 1)
-        {
-            output.m_ambientLit = float4(0, 0, 0.2, 1);
-        }
-        else
-        {
-            coord = float2(coord.x, 1 - coord.y);
-            float4 shadowMap = p_shadowMap.Sample(p_sampler, coord);
-            output.m_ambientLit = shadowMap;
-        }
-
-    }
-
-    return output;
 
     for (int i = 0; i < 3; ++i)
     {

@@ -11,7 +11,6 @@ float4 PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
     float4 specularTex = p_specular.Sample(p_sampler, uv);
 
     float4 res = ambientTex + diffuseTex + specularTex;
-    res = ambientTex;
     res = clamp(res, 0, 1);
     return res;
 }
