@@ -135,6 +135,7 @@ ID3D12CommandList* rendering::DXShadowMapMaterial::GenerateCommandList(
     DXDevice* device = utils::GetDevice();
     DXSwapChain* swapChain = utils::GetSwapChain();
     DXBuffer* camBuff = utils::GetCameraBuffer();
+    LightsManager* lightsManager = utils::GetLightsManager();
 
     m_commandLists.push_back(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>());
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList = m_commandLists.back();
@@ -150,10 +151,10 @@ ID3D12CommandList* rendering::DXShadowMapMaterial::GenerateCommandList(
     commandList->RSSetScissorRects(1, &swapChain->GetScissorRect());
 
     DXDeferredRP* deferredRP = GetDeferredRP();
-    D3D12_CPU_DESCRIPTOR_HANDLE dsHandle = utils::GetLightsManager()->GetShadowMapDSDescriptorHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+    D3D12_CPU_DESCRIPTOR_HANDLE dsHandle = lightsManager->GetShadowMapDSDescriptorHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
     D3D12_CPU_DESCRIPTOR_HANDLE handles[] =
     {
-        deferredRP->GetDescriptorHandleFor(DXDeferredRP::GBufferLitTexType::ShadowMap)
+        lightsManager->GetSMRTVHeap()->GetDescriptorHandle(0)
     };
     commandList->OMSetRenderTargets(_countof(handles), handles, FALSE, &dsHandle);
 

@@ -15,6 +15,7 @@ namespace rendering
 	class DXBuffer;
 	class DXTexture;
 	class DXMaterial;
+	class DXDescriptorHeap;
 
 	class DXDeferredRP : public RenderPass
 	{
@@ -31,8 +32,7 @@ namespace rendering
 		{
 			AmbientLit = 0,
 			DiffuseLit = 1,
-			SpecularLit = 2,
-			ShadowMap = 3,
+			SpecularLit = 2
 		};
 
 	private:
@@ -46,11 +46,11 @@ namespace rendering
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pipelineState;
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature;
 
-		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
-		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_srvHeap;
+		DXDescriptorHeap* m_rtvHeap;
+		DXDescriptorHeap* m_srvHeap;
 
-		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_rtvLitHeap;
-		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_srvLitHeap;
+		DXDescriptorHeap* m_rtvLitHeap;
+		DXDescriptorHeap* m_srvLitHeap;
 
 		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_postlightCalculationsAllocator;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_postLightingList;
