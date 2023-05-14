@@ -40,6 +40,8 @@ namespace rendering
 		DXCamera();
 		virtual ~DXCamera();
 
+		void GetFrustrumCorners(std::list<DirectX::XMVECTOR>& corners);
+
 		void InitBuffer(jobs::Job* done);
 		void UpdateCamBuffer();
 	};

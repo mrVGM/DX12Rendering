@@ -162,3 +162,25 @@ void rendering::DXCamera::InitBuffer(jobs::Job* done)
 
 	heap->MakeResident(new InitBufferJob(jobContext));
 }
+
+void rendering::DXCamera::GetFrustrumCorners(std::list<DirectX::XMVECTOR>& corners)
+{
+	using namespace DirectX;
+
+	XMVECTOR right, fwd, up;
+	GetCoordinateVectors(right, fwd, up);
+
+	float fovRad = DirectX::XMConvertToRadians(m_fov);
+	float h = tan(fovRad / 2);
+	float w = m_aspect * h;
+
+	XMVECTOR bottomLeft = fwd - h * up - w * right;
+	XMVECTOR bottomRight = fwd - h * up + w * right;
+	XMVECTOR topRight = fwd + h * up + w * right;
+	XMVECTOR topLeft = fwd + h * up - w * right;
+
+	corners.push_back(m_position + m_nearPlane * bottomLeft);
+	corners.push_back(m_position + m_nearPlane * bottomRight);
+	corners.push_back(m_position + m_nearPlane * topRight);
+	corners.push_back(m_position + m_nearPlane * topLeft);
+}

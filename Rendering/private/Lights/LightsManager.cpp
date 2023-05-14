@@ -41,20 +41,24 @@ namespace
 		float m_aspect;
 	};
 
-	void GetShadowMapSettings(const rendering::Light& light, ShadowMapSettings& settings)
+	DirectX::XMMATRIX GetTransformMatrix(
+		DirectX::XMVECTOR origin,
+		DirectX::XMVECTOR target,
+		DirectX::XMVECTOR frustrumSettings,
+		DirectX::XMVECTOR &outRight,
+		DirectX::XMVECTOR &outFwd,
+		DirectX::XMVECTOR &outUp)
 	{
 		using namespace DirectX;
 
 		float eps = 0.0000001f;
-		float fov = 120;
-		float aspect = 1;
-		float farPlane = 30;
-		float nearPlane = 5;
 
-		XMVECTOR origin{ 0, 0, 0, 0 };
-		XMVECTOR lightPos{ light.m_position[0], light.m_position[1], light.m_position[2], 0 };
+		float farPlane = XMVectorGetX(frustrumSettings);
+		float nearPlane = XMVectorGetY(frustrumSettings);
+		float fov = XMVectorGetZ(frustrumSettings);
+		float aspect = XMVectorGetW(frustrumSettings);
 
-		XMVECTOR fwd = origin - lightPos;
+		XMVECTOR fwd = target - origin;
 
 		fwd = XMVector3Normalize(fwd);
 
@@ -67,12 +71,16 @@ namespace
 			{
 				right = XMVECTOR{ 1, 0, 0, 0 };
 			}
-			
+
 			right = XMVector3Normalize(right);
 			up = XMVector3Cross(fwd, right);
 
 			up = XMVector3Normalize(up);
 		}
+
+		outRight = right;
+		outFwd = fwd;
+		outUp = up;
 
 		float fovRad = DirectX::XMConvertToRadians(fov);
 
@@ -80,9 +88,9 @@ namespace
 		float w = aspect * h;
 
 		DirectX::XMMATRIX translate(
-			DirectX::XMVECTOR{ 1, 0, 0, -light.m_position[0] },
-			DirectX::XMVECTOR{ 0, 1, 0, -light.m_position[1] },
-			DirectX::XMVECTOR{ 0, 0, 1, -light.m_position[2] },
+			DirectX::XMVECTOR{ 1, 0, 0, -XMVectorGetX(origin) },
+			DirectX::XMVECTOR{ 0, 1, 0, -XMVectorGetY(origin) },
+			DirectX::XMVECTOR{ 0, 0, 1, -XMVectorGetZ(origin) },
 			DirectX::XMVECTOR{ 0, 0, 0, 1 }
 		);
 
@@ -102,8 +110,28 @@ namespace
 		);
 
 
-		DirectX::XMMATRIX mvp =  project * view * translate;
+		DirectX::XMMATRIX mvp = project * view * translate;
 		mvp = DirectX::XMMatrixTranspose(mvp);
+
+		return mvp;
+	}
+
+	void GetShadowMapSettings(const rendering::Light& light, ShadowMapSettings& settings)
+	{
+		using namespace DirectX;
+
+		float farPlane = 30;
+		float nearPlane = 5;
+		float fov = 120;
+		float aspect = 1;
+
+		XMVECTOR tmp;
+
+		XMMATRIX mvp = GetTransformMatrix(
+			XMVectorSet(light.m_position[0], light.m_position[1], light.m_position[2], 0),
+			XMVectorSet(0, 0, 0, 0),
+			XMVectorSet(farPlane, nearPlane, fov, aspect),
+			tmp, tmp, tmp);
 
 		int index = 0;
 		for (int r = 0; r < 4; ++r) {
