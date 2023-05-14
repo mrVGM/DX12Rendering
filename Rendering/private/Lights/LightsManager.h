@@ -24,6 +24,7 @@ namespace rendering
 		DXBuffer* m_lightsBuffer = nullptr;
 		DXTexture* m_shadowMap = nullptr;
 		DXTexture* m_shadowMapDepthStencil = nullptr;
+		DXBuffer* m_shadowMapSettingsBuffer = nullptr;
 
 		rendering::DXDescriptorHeap* m_shadowMapDSDescriptorHeap = nullptr;
 		rendering::DXDescriptorHeap* m_shadowMapRTV = nullptr;
@@ -31,6 +32,7 @@ namespace rendering
 
 		void LoadShadowMapTex(jobs::Job* done);
 		void LoadShadowMapDSTex(jobs::Job* done);
+		void LoadShadowMapSettingsBuffer(jobs::Job* done);
 
 		void CreateDescriptorHeaps();
 	public:
@@ -41,6 +43,8 @@ namespace rendering
 		void LoadLightsBuffer(jobs::Job* done);
 		void LoadShadowMap(jobs::Job* done);
 
+		void UpdateShadowMapSettings();
+
 		DXBuffer* GetLightsBuffer();
 		DXTexture* GetShadowMap();
 		DXTexture* GetShadowMapDepthStencil();
@@ -48,5 +52,6 @@ namespace rendering
 		DXDescriptorHeap* GetShadowMapDSDescriptorHeap();
 		DXDescriptorHeap* GetSMRTVHeap();
 		DXDescriptorHeap* GetSMSRVHeap();
+		DXBuffer* GetSMSettingsBuffer();
 	};
 }

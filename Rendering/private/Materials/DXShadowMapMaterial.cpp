@@ -147,7 +147,8 @@ ID3D12CommandList* rendering::DXShadowMapMaterial::GenerateCommandList(
         "Can't reset Command List!")
 
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
-    commandList->SetGraphicsRootConstantBufferView(0, camBuff->GetBuffer()->GetGPUVirtualAddress());
+    //commandList->SetGraphicsRootConstantBufferView(0, camBuff->GetBuffer()->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootConstantBufferView(0, lightsManager->GetSMSettingsBuffer()->GetBuffer()->GetGPUVirtualAddress());
     
     {
         UINT texWidth = shadowMapTexture->GetTextureDescription().Width;
