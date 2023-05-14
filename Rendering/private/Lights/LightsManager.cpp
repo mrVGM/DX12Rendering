@@ -46,7 +46,7 @@ namespace
 		using namespace DirectX;
 
 		float eps = 0.0000001f;
-		float fov = 60;
+		float fov = 120;
 		float aspect = 1;
 		float farPlane = 30;
 		float nearPlane = 5;
@@ -135,9 +135,9 @@ rendering::LightsManager::LightsManager() :
 {
 
 	Light l;
-	l.m_position[0] = 10;
+	l.m_position[0] = 0;
 	l.m_position[1] = 10;
-	l.m_position[2] = -3;
+	l.m_position[2] = -2;
 	l.m_range = 30;
 
 	AddLight(l);

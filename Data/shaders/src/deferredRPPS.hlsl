@@ -21,7 +21,7 @@ cbuffer LigthsData : register(b1)
 cbuffer ShadowMapSettings : register(b2)
 {
     float4x4 m_smMatrix;
-    float3 m_smPos[4];
+    float4 m_smPos;
     float m_smFarPlane;
     float m_smNearPlane;
     float m_smFov;
@@ -43,6 +43,25 @@ struct PS_OUTPUT
     float4 m_specularLit: SV_Target2;
 };
 
+float testForShadow(float3 position)
+{
+    float4 testedPoint = float4(position, 1);
+    testedPoint = mul(m_smMatrix, testedPoint);
+    float pointDepth = testedPoint.z / m_smFarPlane;
+
+    testedPoint /= testedPoint.w;
+    float2 coord = (testedPoint.xy + 1) / 2;
+
+    if (coord.x < 0 || coord.x > 1 || coord.y < 0 || coord.y > 1)
+    {
+        return 0;
+    }
+
+    coord = float2(coord.x, 1 - coord.y);
+    float4 shadowMap = p_shadowMap.Sample(p_sampler, coord);
+    return pointDepth - shadowMap.x;
+}
+
 PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
 {
     PS_OUTPUT output;
@@ -53,7 +72,7 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
     float4 normalTex = p_normal.Sample(p_sampler, uv);
     float4 positionTex = p_position.Sample(p_sampler, uv);
 
-    output.m_ambientLit = float4(0,0,0,0);
+    output.m_ambientLit = float4(0.2,0,0,1);
     output.m_diffuseLit = float4(0,0,0,0);
     output.m_specularLit = float4(0,0,0,0);
 
@@ -90,8 +109,49 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
         }
     }
 
-    for (int i = 0; i < m_numLights; ++i)
+    output.m_ambientLit = float4(positionTex.xyz, 1);
+
     {
+        float shadowTest = testForShadow(positionTex.xyz);
+
+        output.m_ambientLit = float4(1, 1, 1, 1);
+        if (shadowTest > 0)
+        {
+            output.m_ambientLit = float4(0.7, 0.7, 0.7, 1);
+        }
+        return output;
+
+        float4 testedPoint = float4(positionTex.xyz, 1);
+        testedPoint = mul(m_smMatrix, testedPoint);
+        testedPoint /= testedPoint.w;
+        float2 coord = (testedPoint.xy + 1) / 2;
+
+        if (coord.x < 0 || coord.x > 1 || coord.y < 0 || coord.y > 1)
+        {
+            output.m_ambientLit = float4(0, 0, 0.2, 1);
+        }
+        else
+        {
+            coord = float2(coord.x, 1 - coord.y);
+            float4 shadowMap = p_shadowMap.Sample(p_sampler, coord);
+            output.m_ambientLit = shadowMap;
+        }
+
+    }
+
+    return output;
+
+    for (int i = 0; i < 3; ++i)
+    {
+        if (i == 0)
+        {
+            float shadowTest = testForShadow(positionTex.xyz);
+            if (shadowTest > 0.05)
+            {
+                continue;
+            }
+        }
+
         Light cur = m_lights[i];
         float3 offset = cur.m_position - positionTex;
 
