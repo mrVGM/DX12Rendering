@@ -116,6 +116,165 @@ namespace
 		return mvp;
 	}
 
+	DirectX::XMVECTOR FindPerp(const DirectX::XMVECTOR& vector)
+	{
+		using namespace DirectX;
+
+		XMVECTOR x{ 1, 0, 0, 0 };
+		XMVECTOR y{ 0, 1, 0, 0 };
+
+		XMVECTOR res = XMVector3Cross(vector, x);
+		XMVECTOR tmp = XMVector3Dot(res, res);
+
+		if (XMVectorGetX(tmp) > 0)
+		{
+			return XMVector3Normalize(res);
+		}
+		
+		res = XMVector3Cross(vector, y);
+		return XMVector3Normalize(res);
+	}
+
+	DirectX::XMVECTOR ProjectToPlane(const DirectX::XMVECTOR& vector, const DirectX::XMVECTOR& planeNormal)
+	{
+		using namespace DirectX;
+
+		XMVECTOR normal = XMVector3Normalize(planeNormal);
+		XMVECTOR perp1 = FindPerp(normal);
+		XMVECTOR perp2 = XMVector3Cross(normal, perp1);
+
+		float c1 = XMVectorGetX(XMVector3Dot(vector, perp1));
+		float c2 = XMVectorGetX(XMVector3Dot(vector, perp2));
+
+		return c1 * perp1 + c2 * perp2;
+	}
+
+	DirectX::XMVECTOR FindShadowMapDirection(DirectX::XMVECTOR& origin, float& nearPlane, float& farPlane)
+	{
+		using namespace DirectX;
+		using namespace rendering;
+
+		float eps = 0.000001f;
+
+		DXCamera* cam = utils::GetCamera();
+		std::list<XMVECTOR> corners;
+		cam->GetFrustrumCorners(corners);
+
+		XMVECTOR up{ 0, 1, 0, 0 };
+		
+		XMVECTOR fst;
+		XMVECTOR snd;
+
+		for (auto it = corners.begin(); it != corners.end(); ++it)
+		{
+			const XMVECTOR& cur = *it - origin;
+			XMVECTOR tmp = ProjectToPlane(cur, up);
+
+			XMVECTOR dot = XMVector3Dot(tmp, tmp);
+			if (XMVectorGetX(dot) > 0)
+			{
+				fst = snd = XMVector3Normalize(tmp);
+			}
+		}
+
+		for (auto it = corners.begin(); it != corners.end(); ++it)
+		{
+			const XMVECTOR& cur = *it - origin;
+			{
+				XMVECTOR cross = XMVector3Cross(cur, fst);
+				XMVECTOR dot = XMVector3Dot(up, cross);
+
+				if (XMVectorGetX(dot) > 0) 
+				{
+					fst = XMVector3Normalize(ProjectToPlane(cur, up));
+				}
+			}
+
+			{
+				XMVECTOR cross = XMVector3Cross(cur, snd);
+				XMVECTOR dot = XMVector3Dot(up, cross);
+
+				if (XMVectorGetX(dot) < 0)
+				{
+					snd = XMVector3Normalize(ProjectToPlane(cur, up));
+				}
+			}
+		}
+
+		XMVECTOR horizontalDir = (fst + snd) / 2;
+		horizontalDir = XMVector3Normalize(horizontalDir);
+
+		up = XMVector3Cross(up, horizontalDir);
+		up = XMVector3Normalize(up);
+
+		for (auto it = corners.begin(); it != corners.end(); ++it)
+		{
+			const XMVECTOR& cur = *it - origin;
+			XMVECTOR tmp = ProjectToPlane(cur, up);
+
+			XMVECTOR dot = XMVector3Dot(tmp, tmp);
+			if (XMVectorGetX(dot) > 0)
+			{
+				fst = snd = XMVector3Normalize(tmp);
+			}
+		}
+
+		for (auto it = corners.begin(); it != corners.end(); ++it)
+		{
+			const XMVECTOR& cur = *it - origin;
+			{
+				XMVECTOR cross = XMVector3Cross(cur, fst);
+				XMVECTOR dot = XMVector3Dot(up, cross);
+
+				if (XMVectorGetX(dot) > 0)
+				{
+					fst = XMVector3Normalize(ProjectToPlane(cur, up));
+				}
+			}
+
+			{
+				XMVECTOR cross = XMVector3Cross(cur, snd);
+				XMVECTOR dot = XMVector3Dot(up, cross);
+
+				if (XMVectorGetX(dot) < 0)
+				{
+					snd = XMVector3Normalize(ProjectToPlane(cur, up));
+				}
+			}
+		}
+
+		XMVECTOR verticalDir = (fst + snd) / 2;
+		verticalDir = XMVector3Normalize(verticalDir);
+
+		farPlane = -1;
+		for (auto it = corners.begin(); it != corners.end(); ++it)
+		{
+			const XMVECTOR& cur = *it - origin;
+			XMVECTOR tmp = XMVector3Dot(cur, verticalDir);
+			float d = XMVectorGetX(tmp);
+
+			if (d > farPlane)
+			{
+				farPlane = d;
+			}
+		}
+
+		nearPlane = farPlane;
+		for (auto it = corners.begin(); it != corners.end(); ++it)
+		{
+			const XMVECTOR& cur = *it - origin;
+			XMVECTOR tmp = XMVector3Dot(cur, verticalDir);
+			float d = XMVectorGetX(tmp);
+
+			if (d < nearPlane)
+			{
+				nearPlane = d;
+			}
+		}
+
+		return verticalDir;
+	}
+
 	void GetShadowMapSettings(const rendering::Light& light, ShadowMapSettings& settings)
 	{
 		using namespace DirectX;
