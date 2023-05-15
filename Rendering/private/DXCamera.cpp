@@ -188,4 +188,10 @@ void rendering::DXCamera::GetFrustrumCorners(std::list<DirectX::XMVECTOR>& corne
 	corners.push_back(m_position + m_farPlane * bottomRight);
 	corners.push_back(m_position + m_farPlane * topRight);
 	corners.push_back(m_position + m_farPlane * topLeft);
+
+	for (auto it = corners.begin(); it != corners.end(); ++it)
+	{
+		XMVECTOR& cur = *it;
+		cur = XMVectorSet(XMVectorGetX(cur), XMVectorGetY(cur), XMVectorGetZ(cur), 1);
+	}
 }

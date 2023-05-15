@@ -44,10 +44,7 @@ namespace
 	DirectX::XMMATRIX GetTransformMatrix(
 		DirectX::XMVECTOR origin,
 		DirectX::XMVECTOR target,
-		DirectX::XMVECTOR frustrumSettings,
-		DirectX::XMVECTOR &outRight,
-		DirectX::XMVECTOR &outFwd,
-		DirectX::XMVECTOR &outUp)
+		DirectX::XMVECTOR frustrumSettings)
 	{
 		using namespace DirectX;
 
@@ -77,10 +74,6 @@ namespace
 
 			up = XMVector3Normalize(up);
 		}
-
-		outRight = right;
-		outFwd = fwd;
-		outUp = up;
 
 		float fovRad = DirectX::XMConvertToRadians(fov);
 
@@ -278,19 +271,52 @@ namespace
 	void GetShadowMapSettings(const rendering::Light& light, ShadowMapSettings& settings)
 	{
 		using namespace DirectX;
+		using namespace rendering;
+
 
 		float farPlane = 30;
 		float nearPlane = 5;
 		float fov = 120;
 		float aspect = 1;
 
-		XMVECTOR tmp;
+		XMVECTOR origin = XMVectorSet(light.m_position[0], light.m_position[1], light.m_position[2], 0);
+		XMVECTOR dir = FindShadowMapDirection(
+			origin,
+			nearPlane,
+			farPlane);
+
+		float maxV = 0, maxH = 0;
+		{
+			DXCamera* cam = utils::GetCamera();
+
+			std::list<XMVECTOR> corners;
+			cam->GetFrustrumCorners(corners);
+
+			XMMATRIX mvp = GetTransformMatrix(
+				XMVectorSet(light.m_position[0], light.m_position[1], light.m_position[2], 0),
+				origin + dir,
+				XMVectorSet(farPlane, nearPlane, 90, 1));
+
+			float maxV = 0, maxH = 0;
+			for (auto it = corners.begin(); it != corners.end(); ++it)
+			{
+				const XMVECTOR& cur = *it;
+				XMVECTOR tmp = XMVector4Transform(cur, mvp);
+
+				tmp /= XMVectorGetW(tmp);
+				maxH = max(abs(XMVectorGetX(tmp)), maxH);
+				maxV = max(abs(XMVectorGetY(tmp)), maxV);
+			}
+
+			fov = atan(maxV);
+			fov = 2 * XMConvertToDegrees(fov);
+			aspect = maxH / maxV;
+		}
 
 		XMMATRIX mvp = GetTransformMatrix(
 			XMVectorSet(light.m_position[0], light.m_position[1], light.m_position[2], 0),
-			XMVectorSet(0, 0, 0, 0),
-			XMVectorSet(farPlane, nearPlane, fov, aspect),
-			tmp, tmp, tmp);
+			origin + dir,
+			XMVectorSet(farPlane, nearPlane, fov, aspect));
 
 		int index = 0;
 		for (int r = 0; r < 4; ++r) {

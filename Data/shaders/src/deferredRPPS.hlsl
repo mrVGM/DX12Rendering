@@ -114,7 +114,7 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
         if (i == 0)
         {
             float shadowTest = testForShadow(positionTex.xyz);
-            if (shadowTest > 0.05)
+            if (shadowTest > 0.01)
             {
                 continue;
             }
