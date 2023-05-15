@@ -41,10 +41,14 @@ namespace
 		float m_aspect;
 	};
 
-	DirectX::XMMATRIX GetTransformMatrix(
-		DirectX::XMVECTOR origin,
-		DirectX::XMVECTOR target,
-		DirectX::XMVECTOR frustrumSettings)
+	
+
+	DirectX::XMMATRIX GetTransformMatrixFromVectors(
+		const DirectX::XMVECTOR& origin,
+		const DirectX::XMVECTOR& target,
+		const DirectX::XMVECTOR& right,
+		const DirectX::XMVECTOR& up,
+		const DirectX::XMVECTOR& frustrumSettings)
 	{
 		using namespace DirectX;
 
@@ -58,22 +62,6 @@ namespace
 		XMVECTOR fwd = target - origin;
 
 		fwd = XMVector3Normalize(fwd);
-
-		XMVECTOR right, up;
-		{
-			XMVECTOR tmp{ 0, 1, 0, 0 };
-
-			right = XMVector3Cross(tmp, fwd);
-			if (XMVectorGetX(XMVector3LengthSq(right)) < eps)
-			{
-				right = XMVECTOR{ 1, 0, 0, 0 };
-			}
-
-			right = XMVector3Normalize(right);
-			up = XMVector3Cross(fwd, right);
-
-			up = XMVector3Normalize(up);
-		}
 
 		float fovRad = DirectX::XMConvertToRadians(fov);
 
@@ -105,6 +93,45 @@ namespace
 
 		DirectX::XMMATRIX mvp = project * view * translate;
 		mvp = DirectX::XMMatrixTranspose(mvp);
+
+		return mvp;
+	}
+
+	DirectX::XMMATRIX GetTransformMatrix(
+		const DirectX::XMVECTOR& origin,
+		const DirectX::XMVECTOR& target,
+		const DirectX::XMVECTOR& frustrumSettings)
+	{
+		using namespace DirectX;
+
+		float eps = 0.0000001f;
+
+		XMVECTOR fwd = target - origin;
+
+		fwd = XMVector3Normalize(fwd);
+
+		XMVECTOR right, up;
+		{
+			XMVECTOR tmp{ 0, 1, 0, 0 };
+
+			right = XMVector3Cross(tmp, fwd);
+			if (XMVectorGetX(XMVector3LengthSq(right)) < eps)
+			{
+				right = XMVECTOR{ 1, 0, 0, 0 };
+			}
+
+			right = XMVector3Normalize(right);
+			up = XMVector3Cross(fwd, right);
+
+			up = XMVector3Normalize(up);
+		}
+
+		XMMATRIX mvp = GetTransformMatrixFromVectors(
+			origin,
+			target,
+			right,
+			up,
+			frustrumSettings);
 
 		return mvp;
 	}
@@ -153,7 +180,10 @@ namespace
 		std::list<XMVECTOR> corners;
 		cam->GetFrustrumCorners(corners);
 
-		XMVECTOR up{ 0, 1, 0, 0 };
+		XMVECTOR camFwd = cam->m_target - cam->m_position;
+		camFwd = XMVector3Normalize(camFwd);
+
+		XMVECTOR up = camFwd;
 		
 		XMVECTOR fst;
 		XMVECTOR snd;
