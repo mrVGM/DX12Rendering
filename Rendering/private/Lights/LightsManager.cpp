@@ -35,10 +35,6 @@ namespace
 	{
 		float m_matrix[16];
 		float m_position[4];
-		float m_farPlane;
-		float m_nearPlane;
-		float m_fov;
-		float m_aspect;
 	};
 
 	
@@ -365,11 +361,6 @@ namespace
 		settings.m_position[1] = light.m_position[1];
 		settings.m_position[2] = light.m_position[2];
 		settings.m_position[3] = 1;
-
-		settings.m_farPlane = farPlane;
-		settings.m_nearPlane = nearPlane;
-		settings.m_fov = fov;
-		settings.m_aspect = aspect;
 	}
 }
 

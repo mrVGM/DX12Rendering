@@ -24,4 +24,11 @@ struct CameraBuffer
     float m_placeholder;
 };
 
+struct SMBuffer
+{
+    float4x4 m_matrix;
+    float3 m_position;
+    float m_placeholder;
+};
+
 #endif // __COMMON_BUFFERS_LIB_HLSL__

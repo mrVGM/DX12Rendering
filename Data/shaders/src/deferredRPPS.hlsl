@@ -19,14 +19,9 @@ cbuffer LigthsData : register(b1)
     Light m_lights[15];
 };
 
-cbuffer ShadowMapSettings : register(b2)
+cbuffer SMBuff : register(b2)
 {
-    float4x4 m_smMatrix;
-    float4 m_smPos;
-    float m_smFarPlane;
-    float m_smNearPlane;
-    float m_smFov;
-    float m_smAspect;
+    SMBuffer m_smBuffer;
 };
 
 Texture2D p_diffuse      : register(t0);
@@ -47,8 +42,8 @@ struct PS_OUTPUT
 float testForShadow(float3 position)
 {
     float4 testedPoint = float4(position, 1);
-    testedPoint = mul(m_smMatrix, testedPoint);
-    float pointDepth = testedPoint.z / m_smFarPlane;
+    testedPoint = mul(m_smBuffer.m_matrix, testedPoint);
+    float pointDepth = testedPoint.z / testedPoint.w;
 
     testedPoint /= testedPoint.w;
     float2 coord = (testedPoint.xy + 1) / 2;

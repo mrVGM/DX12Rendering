@@ -1,15 +1,9 @@
 #include "objects_lib.hlsl"
+#include "common_buffers_lib.hlsl"
 
-cbuffer MVCMatrix : register(b0)
+cbuffer SMBuff : register(b0)
 {
-    float4x4 m_matrix;
-    float3 m_position;
-    float m_placeholder;
-
-    float m_farPlane;
-    float m_nearPlane;
-    float m_fov;
-    float m_aspect;
+    SMBuffer m_smBuff;
 };
 
 struct PSInput
@@ -42,7 +36,7 @@ PSInput VSMain(
         worldPos,
         worldNormal);
 
-    result.position = mul(m_matrix, float4(worldPos, 1));
+    result.position = mul(m_smBuff.m_matrix, float4(worldPos, 1));
 
     float depth = result.position.z / result.position.w;
     result.world_position = float4(worldPos, depth);
