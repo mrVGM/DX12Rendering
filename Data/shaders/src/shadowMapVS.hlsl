@@ -2,7 +2,12 @@
 #include "common_buffers_lib.hlsl"
 #include "shadow_map_lib.hlsl"
 
-cbuffer SMBuff : register(b0)
+cbuffer CamBuff : register(b0)
+{
+    CameraBuffer m_camBuff;
+};
+
+cbuffer SMBuff : register(b1)
 {
     SMBuffer m_smBuff;
 };

@@ -67,8 +67,9 @@ rendering::DXShadowMapMaterial::DXShadowMapMaterial(const rendering::DXShader& v
             D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-        CD3DX12_ROOT_PARAMETER1 rootParameters[1];
+        CD3DX12_ROOT_PARAMETER1 rootParameters[2];
         rootParameters[0].InitAsConstantBufferView(0, 0);
+        rootParameters[1].InitAsConstantBufferView(1, 0);
 
         rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 0, nullptr, rootSignatureFlags);
 
@@ -147,8 +148,8 @@ ID3D12CommandList* rendering::DXShadowMapMaterial::GenerateCommandList(
         "Can't reset Command List!")
 
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
-    //commandList->SetGraphicsRootConstantBufferView(0, camBuff->GetBuffer()->GetGPUVirtualAddress());
-    commandList->SetGraphicsRootConstantBufferView(0, lightsManager->GetSMSettingsBuffer()->GetBuffer()->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootConstantBufferView(0, camBuff->GetBuffer()->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootConstantBufferView(1, lightsManager->GetSMSettingsBuffer()->GetBuffer()->GetGPUVirtualAddress());
     
     {
         UINT texWidth = shadowMapTexture->GetTextureDescription().Width;
