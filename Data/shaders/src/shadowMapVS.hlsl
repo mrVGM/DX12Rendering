@@ -1,5 +1,4 @@
 #include "objects_lib.hlsl"
-#include "common_buffers_lib.hlsl"
 
 cbuffer MVCMatrix : register(b0)
 {
@@ -21,28 +20,34 @@ struct PSInput
     float2 uv               : UV;
 };
 
-PSInput VSMain(VertexInput3D vertexInput)
+PSInput VSMain(
+    float3 position : POSITION,
+    float3 normal : NORMAL,
+    float2 uv : UV,
+    float3 objectPosition : OBJECT_POSITION,
+    float4 objectRotation : OBJECT_ROTATION,
+    float3 objectScale : OBJECT_SCALE)
 {
     PSInput result;
 
     float3 worldPos;
     float3 worldNormal;
     GetWorldPositonAndNormal(
-        vertexInput.position,
-        vertexInput.normal,
-        vertexInput.objectPosition,
-        vertexInput.objectRotation,
-        vertexInput.objectScale,
+        position,
+        normal,
+        objectPosition,
+        objectRotation,
+        objectScale,
 
         worldPos,
         worldNormal);
 
     result.position = mul(m_matrix, float4(worldPos, 1));
 
-    float depth = result.position.z / m_farPlane;
+    float depth = result.position.z / result.position.w;
     result.world_position = float4(worldPos, depth);
     result.normal = float4(worldNormal, 1);
-    result.uv = vertexInput.uv;
+    result.uv = uv;
 
     return result;
 }

@@ -101,7 +101,7 @@ rendering::DXDeferredRP::DXDeferredRP() :
 
         if (!obj)
         {
-            obj = new DXShadowMapMaterial(*shader_repo::GetMainVertexShader(), *shader_repo::GetShadowMapPixelShader());
+            obj = new DXShadowMapMaterial(*shader_repo::GetShadowMapVertexShader(), *shader_repo::GetShadowMapPixelShader());
         }
 
         m_shadowMapMaterial = static_cast<DXShadowMapMaterial*>(obj);
