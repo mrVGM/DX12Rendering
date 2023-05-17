@@ -373,15 +373,17 @@ namespace
 	}
 }
 
+int rendering::LightsManager::m_shadowMapResolution = 2048;
+
 rendering::LightsManager::LightsManager() :
 	BaseObject(LightsManagerMeta::GetInstance())
 {
 
 	Light l;
 	l.m_position[0] = 0;
-	l.m_position[1] = 10;
+	l.m_position[1] = 100000;
 	l.m_position[2] = -2;
-	l.m_range = 30;
+	l.m_range = 300000;
 
 	AddLight(l);
 }
@@ -524,7 +526,7 @@ void rendering::LightsManager::LoadShadowMapDSTex(jobs::Job* done)
 
 		void Do()
 		{
-			m_ctx.m_texture = DXTexture::CreateDepthStencilTexture(DXShadowMapDSMeta::GetInstance(), 600, 600);
+			m_ctx.m_texture = DXTexture::CreateDepthStencilTexture(DXShadowMapDSMeta::GetInstance(), m_shadowMapResolution, m_shadowMapResolution);
 
 			m_ctx.m_heap = new DXHeap();
 			m_ctx.m_heap->SetHeapSize(m_ctx.m_texture->GetTextureAllocationInfo().SizeInBytes);
@@ -674,7 +676,7 @@ void rendering::LightsManager::LoadShadowMapTex(jobs::Job* done)
 
 		void Do()
 		{
-			m_ctx.m_texture = DXTexture::CreateRenderTargetTexture(DXShadowMapMeta::GetInstance(), 600, 600);
+			m_ctx.m_texture = DXTexture::CreateRenderTargetTexture(DXShadowMapMeta::GetInstance(), m_shadowMapResolution, m_shadowMapResolution);
 			
 			m_ctx.m_heap = new DXHeap();
 			m_ctx.m_heap->SetHeapSize(m_ctx.m_texture->GetTextureAllocationInfo().SizeInBytes);

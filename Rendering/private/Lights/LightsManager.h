@@ -20,6 +20,8 @@ namespace rendering
 	class LightsManager : public BaseObject
 	{
 	private:
+		static int m_shadowMapResolution;
+
 		std::list<Light> m_lights;
 		DXBuffer* m_lightsBuffer = nullptr;
 		DXTexture* m_shadowMap = nullptr;
