@@ -22,11 +22,6 @@ struct CameraBuffer
     float4x4 m_matrix;
     float3 m_position;
     float m_placeholder;
-
-    float m_farPlane;
-    float m_nearPlane;
-    float m_fov;
-    float m_aspect;
 };
 
 #endif // __COMMON_BUFFERS_LIB_HLSL__
