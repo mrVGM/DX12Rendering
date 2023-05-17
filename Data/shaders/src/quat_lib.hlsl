@@ -1,3 +1,7 @@
+#ifndef __QUAT_LIB_HLSL__
+#define __QUAT_LIB_HLSL__
+
+
 float4 multiplyQuat(float4 q1, float4 q2)
 {
     float a = q1.x * q2.x - q1.y * q2.y - q1.z * q2.z - q1.w * q2.w;
@@ -21,3 +25,5 @@ float3 rotateVector(float3 v, float4 rotation)
 
     return float3(rotatedVQ.y, rotatedVQ.z, rotatedVQ.w);
 }
+
+#endif // __QUAT_LIB_HLSL__

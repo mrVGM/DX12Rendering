@@ -1,4 +1,4 @@
-#include "quat_lib.hlsl"
+#include "objects_lib.hlsl"
 
 cbuffer MVCMatrix : register(b0)
 {
@@ -29,16 +29,24 @@ PSInput VSMain(
     float3 objectScale : OBJECT_SCALE)
 {
     PSInput result;
-    float3 scaledPos = objectScale * position;
-    float3 rotatedPos = rotateVector(scaledPos, objectRotation);
-    float3 rotatedNormal = rotateVector(normal, objectRotation);
 
-    float3 pos = objectPosition + rotatedPos;
-    result.position = mul(m_matrix, float4(pos, 1));
+    float3 worldPos;
+    float3 worldNormal;
+    GetWorldPositonAndNormal(
+        position,
+        normal,
+        objectPosition,
+        objectRotation,
+        objectScale,
+
+        worldPos,
+        worldNormal);
+
+    result.position = mul(m_matrix, float4(worldPos, 1));
 
     float depth = result.position.z / m_farPlane;
-    result.world_position = float4(pos, depth);
-    result.normal = float4(rotatedNormal, 1);
+    result.world_position = float4(worldPos, depth);
+    result.normal = float4(worldNormal, 1);
     result.uv = uv;
 
     return result;
