@@ -46,7 +46,8 @@ DirectX::XMMATRIX rendering::DXCamera::GetMVPMatrix() const
 	);
 
 
-	return project * view * translate;
+	DirectX::XMMATRIX mvp = project * view * translate;
+	return DirectX::XMMatrixTranspose(mvp);
 }
 
 void rendering::DXCamera::GetCoordinateVectors(DirectX::XMVECTOR& right, DirectX::XMVECTOR& fwd, DirectX::XMVECTOR& up) const
@@ -67,7 +68,7 @@ void rendering::DXCamera::UpdateCamBuffer()
 	using namespace DirectX;
 
 	float matrixCoefs[20];
-	DirectX::XMMATRIX mvp = DirectX::XMMatrixTranspose(GetMVPMatrix());
+	DirectX::XMMATRIX mvp = GetMVPMatrix();
 
 	int index = 0;
 	for (int r = 0; r < 4; ++r) {
