@@ -1,13 +1,14 @@
+#include "common_buffers_lib.hlsl"
+
 struct Light
 {
     float3 m_position;
     float m_range;
 };
 
-cbuffer MVCMatrix : register(b0)
+cbuffer CamBuff : register(b0)
 {
-    float4x4 m_matrix;
-    float4 m_camPos;
+    CameraBuffer m_camBuff;
 };
 
 cbuffer LigthsData : register(b1)
@@ -88,7 +89,7 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
 
     float3 reflectedEyeDir = float3(0, 0, 0);
     {
-        float3 eyeDir = normalize(m_camPos - positionTex.xyz);
+        float3 eyeDir = normalize(m_camBuff.m_position - positionTex.xyz);
         reflectedEyeDir = eyeDir;
 
         if (dot(eyeDir, normalTex.xyz) < 1)

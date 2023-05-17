@@ -1,16 +1,9 @@
 #include "objects_lib.hlsl"
 #include "common_buffers_lib.hlsl"
 
-cbuffer MVCMatrix : register(b0)
+cbuffer CamBuff : register(b0)
 {
-    float4x4 m_matrix;
-    float3 m_position;
-    float m_placeholder;
-
-    float m_farPlane;
-    float m_nearPlane;
-    float m_fov;
-    float m_aspect;
+    CameraBuffer m_camBuff;
 };
 
 struct PSInput
@@ -37,10 +30,9 @@ PSInput VSMain(VertexInput3D vertexInput)
         worldPos,
         worldNormal);
 
-    result.position = mul(m_matrix, float4(worldPos, 1));
+    result.position = mul(m_camBuff.m_matrix, float4(worldPos, 1));
 
-    float depth = result.position.z / m_farPlane;
-    result.world_position = float4(worldPos, depth);
+    result.world_position = float4(worldPos, 1);
     result.normal = float4(worldNormal, 1);
     result.uv = vertexInput.uv;
 
