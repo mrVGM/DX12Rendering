@@ -1,4 +1,5 @@
 #include "common_buffers_lib.hlsl"
+#include "shadow_map_lib.hlsl"
 
 struct Light
 {
@@ -41,11 +42,10 @@ struct PS_OUTPUT
 
 float testForShadow(float3 position)
 {
-    float4 testedPoint = float4(position, 1);
-    testedPoint = mul(m_smBuffer.m_matrix, testedPoint);
-    float pointDepth = testedPoint.z / testedPoint.w;
-
+    float4 testedPoint = CalculateShadowMap(m_smBuffer, position);
     testedPoint /= testedPoint.w;
+    float pointDepth = testedPoint.z;
+
     float2 coord = (testedPoint.xy + 1) / 2;
 
     if (coord.x < 0 || coord.x > 1 || coord.y < 0 || coord.y > 1)

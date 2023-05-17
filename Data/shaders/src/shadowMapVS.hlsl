@@ -1,5 +1,6 @@
 #include "objects_lib.hlsl"
 #include "common_buffers_lib.hlsl"
+#include "shadow_map_lib.hlsl"
 
 cbuffer SMBuff : register(b0)
 {
@@ -8,10 +9,8 @@ cbuffer SMBuff : register(b0)
 
 struct PSInput
 {
-    float4 position         : SV_POSITION;
-    float4 world_position   : WORLD_POSITION;
-    float4 normal           : NORMAL;
-    float2 uv               : UV;
+    float4 position     : SV_POSITION;
+    float depth       : DEPTH;
 };
 
 PSInput VSMain(
@@ -36,12 +35,10 @@ PSInput VSMain(
         worldPos,
         worldNormal);
 
-    result.position = mul(m_smBuff.m_matrix, float4(worldPos, 1));
+    result.position = CalculateShadowMap(m_smBuff, worldPos);
 
     float depth = result.position.z / result.position.w;
-    result.world_position = float4(worldPos, depth);
-    result.normal = float4(worldNormal, 1);
-    result.uv = uv;
-
+    result.depth = depth;
+    
     return result;
 }
