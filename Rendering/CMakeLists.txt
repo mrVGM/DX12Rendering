@@ -48,14 +48,14 @@ add_library (Rendering
 	"private/RenderPassMeta.cpp"
 	"private/RenderPass.h"
 	"private/RenderPass.cpp"
-	"public/MainJobSystemMeta.h"
-	"private/MainJobSystemMeta.cpp"
+	
+	
 	"public/DXHeap.h"
 	"private/DXHeap.cpp"
 	"public/DXHeapMeta.h"
 	"private/DXHeapMeta.cpp"
-	"private/LoadJobSystemMeta.h"
-	"private/LoadJobSystemMeta.cpp"
+	
+	
 	
 	
 	"public/DXBuffer.h"

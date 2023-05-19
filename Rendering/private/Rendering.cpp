@@ -13,6 +13,8 @@
 #include "JobSystem.h"
 #include "Job.h"
 
+#include "RenderingCore.h"
+
 #include "DXHeap.h"
 
 #include "ResourceUtils/DXCopyBuffers.h"
@@ -252,14 +254,9 @@ namespace
 	{
 		using namespace rendering;
 
-		new jobs::JobSystem(LoadJobSystemMeta::GetInstance(), 5);
-		new jobs::JobSystem(MainJobSystemMeta::GetInstance(), 1);
+		core::Boot();
 
-		new rendering::Window();
-		new DXDevice();
-		new DXCommandQueue();
 		new DXCopyCommandQueue();
-		new DXSwapChain();
 		new DXRenderer();
 		new DXCopyBuffers();
 		new Updater();
