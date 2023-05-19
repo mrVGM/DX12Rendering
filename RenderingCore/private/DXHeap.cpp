@@ -5,8 +5,56 @@
 #include "DXFenceMeta.h"
 #include "WaitFence.h"
 
+#include "JobSystem.h"
+
+#include "BaseObjectContainer.h"
+
+#include "DXResidentHeapFenceMeta.h"
+#include "ResidentHeapJobSystemMeta.h"
+
 #include "CoreUtils.h"
 
+namespace
+{
+	int m_fenceProgress = 0;
+	rendering::DXFence* m_residentHeapFence = nullptr;
+	jobs::JobSystem* m_residentHeapJobSystem = nullptr;
+	rendering::DXDevice* m_device = nullptr;
+
+	void CacheObjects()
+	{
+		if (!m_device)
+		{
+			m_device = rendering::core::utils::GetDevice();
+		}
+
+		if (!m_residentHeapFence)
+		{
+			BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+			BaseObject* obj = container.GetObjectOfClass(rendering::DXResidentHeapFenceMeta::GetInstance());
+
+			if (!obj)
+			{
+				throw "Can't find Resident Heap Fence!";
+			}
+
+			m_residentHeapFence = static_cast<rendering::DXFence*>(obj);
+		}
+
+		if (!m_residentHeapJobSystem)
+		{
+			BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+			BaseObject* obj = container.GetObjectOfClass(rendering::ResidentHeapJobSystemMeta::GetInstance());
+
+			if (!obj)
+			{
+				throw "Can't find Resident Heap Job System!";
+			}
+
+			m_residentHeapJobSystem = static_cast<jobs::JobSystem*>(obj);
+		}
+	}
+}
 
 void rendering::DXHeap::MakeResident(jobs::Job* done)
 {
@@ -17,7 +65,6 @@ void rendering::DXHeap::MakeResident(jobs::Job* done)
 	struct JobContext
 	{
 		DXHeap* m_heap = nullptr;
-		DXFence* m_fence = nullptr;
 		jobs::Job* m_done = nullptr;
 		int m_signal = 0;
 	};
@@ -27,51 +74,48 @@ void rendering::DXHeap::MakeResident(jobs::Job* done)
 	private:
 		JobContext m_jobContext;
 	public:
-		WaitJob(JobContext jobContext) :
+		WaitJob(const JobContext& jobContext) :
 			m_jobContext(jobContext)
 		{
 		}
 
 		void Do() override
 		{
-			WaitFence waitFence(*m_jobContext.m_fence);
+			WaitFence waitFence(*m_residentHeapFence);
 			waitFence.Wait(m_jobContext.m_signal);
 			m_jobContext.m_heap->m_resident = true;
 
 			core::utils::RunSync(m_jobContext.m_done);
-			core::utils::DisposeBaseObject(*m_jobContext.m_fence);
 		}
 	};
 
-	class CreateFenceJob : public jobs::Job
+	class EnqueJob : public jobs::Job
 	{
 	private:
 		JobContext m_jobContext;
 	public:
-		CreateFenceJob(JobContext jobContext) :
+		EnqueJob(const JobContext& jobContext) :
 			m_jobContext(jobContext)
 		{
 		}
+
 		void Do() override
 		{
-			m_jobContext.m_fence = new DXFence(DXFenceMeta::GetInstance());
-
-			DXDevice* device = core::utils::GetDevice();
 			ID3D12Device3* device3;
-			HRESULT hr = device->GetDevice().QueryInterface(IID_PPV_ARGS(&device3));
+			HRESULT hr = m_device->GetDevice().QueryInterface(IID_PPV_ARGS(&device3));
 			if (FAILED(hr))
 			{
 				throw "Can't Query ID3D12Device3!";
 			}
-			const UINT64 signal = 1;
+			const UINT64 signal = m_fenceProgress++;
 			ID3D12Pageable* tmp = m_jobContext.m_heap->GetHeap();
-			DXFence* fence = static_cast<DXFence*>(m_jobContext.m_fence);
-			hr = device3->EnqueueMakeResident(D3D12_RESIDENCY_FLAGS::D3D12_RESIDENCY_FLAG_DENY_OVERBUDGET, 1, &tmp, fence->GetFence(), signal);
+			hr = device3->EnqueueMakeResident(D3D12_RESIDENCY_FLAGS::D3D12_RESIDENCY_FLAG_DENY_OVERBUDGET, 1, &tmp, m_residentHeapFence->GetFence(), signal);
 			if (FAILED(hr))
 			{
 				throw "Can't make the heap resident!";
 			}
 
+			m_jobContext.m_signal = signal;
 			WaitJob* waitJob = new WaitJob(m_jobContext);
 			core::utils::RunAsync(waitJob);
 		}
@@ -81,7 +125,7 @@ void rendering::DXHeap::MakeResident(jobs::Job* done)
 	jobContext.m_heap = this;
 	jobContext.m_done = done;
 
-	core::utils::RunSync(new CreateFenceJob(jobContext));
+	m_residentHeapJobSystem->ScheduleJob(new EnqueJob(jobContext));
 }
 
 void rendering::DXHeap::Evict()
@@ -115,6 +159,8 @@ ID3D12Heap* rendering::DXHeap::GetHeap() const
 rendering::DXHeap::DXHeap() :
 	BaseObject(DXHeapMeta::GetInstance())
 {
+	CacheObjects();
+
 	m_heapDescription.SizeInBytes = 256;
 	m_heapDescription.Properties.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_DEFAULT;
 	m_heapDescription.Properties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
