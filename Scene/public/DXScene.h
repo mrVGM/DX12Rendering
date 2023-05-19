@@ -19,14 +19,21 @@ namespace rendering
 	{
 	public:
 		int m_scenesLoaded = 0;
+		struct GeometryResources
+		{
+			DXBuffer* m_vertexBuffer = nullptr;
+			DXBuffer* m_indexBuffer = nullptr;
+			DXBuffer* m_instanceBuffer = nullptr;
+		};
 		struct SceneResources
 		{
-			std::map<std::string, DXBuffer*> m_vertexBuffers;
-			std::map<std::string, DXBuffer*> m_indexBuffers;
-			std::map<std::string, DXBuffer*> m_instanceBuffers;
+			std::map<std::string, GeometryResources> m_geometryResources;
 		};
 
 	private:
+		void LoadGeometryBuffers(int sceneIndex, const std::string& geometryName, SceneResources& sceneResources, jobs::Job* done);
+		
+		void LoadBuffers(int sceneIndex, jobs::Job* done);
 	public:
 		std::vector<collada::ColladaScene*> m_colladaScenes;
 		std::vector<SceneResources> m_sceneResources;
@@ -35,6 +42,5 @@ namespace rendering
 		virtual ~DXScene();
 
 		void LoadColladaScene(const std::string& filePath, jobs::Job* done);
-		void LoadVertexBuffers(int sceneIndex, jobs::Job* done);
 	};
 }

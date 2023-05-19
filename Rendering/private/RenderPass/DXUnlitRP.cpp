@@ -187,9 +187,10 @@ void rendering::DXUnlitRP::RenderUnlit()
                 DXMaterial* mat = repo->GetMaterial(*matOverrideIt);
                 ++matOverrideIt;
 
-                DXBuffer* vertBuf = curSceneResources.m_vertexBuffers.find(obj.m_geometry)->second;
-                DXBuffer* indexBuf = curSceneResources.m_indexBuffers.find(obj.m_geometry)->second;
-                DXBuffer* instanceBuf = curSceneResources.m_instanceBuffers.find(obj.m_geometry)->second;
+                const DXScene::GeometryResources& geometryResources = curSceneResources.m_geometryResources.find(obj.m_geometry)->second;
+                DXBuffer* vertBuf = geometryResources.m_vertexBuffer;
+                DXBuffer* indexBuf = geometryResources.m_indexBuffer;
+                DXBuffer* instanceBuf = geometryResources.m_instanceBuffer;
 
                 if (!mat)
                 {
