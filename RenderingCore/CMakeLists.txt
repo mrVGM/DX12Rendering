@@ -1,7 +1,7 @@
 ﻿cmake_minimum_required (VERSION 3.8)
 
 add_library (RenderingCore
-	"private/d3dx12.h"
+	"public/d3dx12.h"
 	"public/Window.h"
 	"private/Window.cpp"
 	"public/WindowMeta.h"
@@ -16,7 +16,7 @@ add_library (RenderingCore
 	"public/DXSwapChainMeta.h"
 	"private/DXSwapChain.cpp"
 	"private/DXSwapChainMeta.cpp"
-	"private/CoreUtils.h"
+	"public/CoreUtils.h"
 	"private/CoreUtils.cpp"
 	"public/DXCommandQueue.h"
 	"public/DXCommandQueueMeta.h"

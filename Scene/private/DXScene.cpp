@@ -2,7 +2,7 @@
 
 #include "DXSceneMeta.h"
 
-#include "RenderUtils.h"
+#include "CoreUtils.h"
 
 #include "Job.h"
 
@@ -46,7 +46,7 @@ namespace
 
 				*m_ctx.m_outBuffer = m_ctx.m_buffer;
 
-				utils::RunSync(m_ctx.m_done);
+				core::utils::RunSync(m_ctx.m_done);
 				delete& m_ctx;
 			}
 		};
@@ -87,7 +87,7 @@ namespace
 		ctx->m_size = size;
 		ctx->m_done = done;
 
-		utils::RunSync(new Create(*ctx));
+		core::utils::RunSync(new Create(*ctx));
 	}
 
 	template<typename T>
@@ -123,7 +123,7 @@ namespace
 				}
 
 				m_ctx.m_buffer->Unmap();
-				utils::RunSync(m_ctx.m_done);
+				core::utils::RunSync(m_ctx.m_done);
 			}
 		};
 
@@ -132,7 +132,7 @@ namespace
 		ctx.m_data = &data;
 		ctx.m_done = done;
 
-		utils::RunAsync(new UploadData(ctx));
+		core::utils::RunAsync(new UploadData(ctx));
 	}
 
 	template<typename T>
@@ -176,11 +176,11 @@ namespace
 
 			void Do() override
 			{
-				utils::RunSync(m_ctx.m_done);
+				core::utils::RunSync(m_ctx.m_done);
 
 				DXHeap* heap = m_ctx.m_uploadBuffer->GetResidentHeap();
-				utils::DisposeBaseObject(*m_ctx.m_uploadBuffer);
-				utils::DisposeBaseObject(*heap);
+				core::utils::DisposeBaseObject(*m_ctx.m_uploadBuffer);
+				core::utils::DisposeBaseObject(*heap);
 				delete &m_ctx;
 			}
 		};
@@ -224,7 +224,7 @@ namespace
 			void Do() override
 			{
 				m_ctx.m_uploadBufferReady = true;
-				utils::RunSync(new ExecuteCopy(m_ctx));
+				core::utils::RunSync(new ExecuteCopy(m_ctx));
 			}
 		};
 
@@ -256,7 +256,7 @@ namespace
 			void Do() override
 			{
 				m_ctx.m_defaultBufferReady = true;
-				utils::RunSync(new ExecuteCopy(m_ctx));
+				core::utils::RunSync(new ExecuteCopy(m_ctx));
 			}
 		};
 
@@ -302,7 +302,7 @@ namespace
 			void Do() override
 			{
 				*m_ctx.m_buffer = m_ctx.m_uploadBuffer;
-				utils::RunSync(m_ctx.m_done);
+				core::utils::RunSync(m_ctx.m_done);
 			}
 		};
 
@@ -406,12 +406,12 @@ void rendering::DXScene::LoadColladaScene(const std::string& filePath, jobs::Job
 		void Do() override
 		{
 			m_context.m_scene->Load(m_context.m_filePath);
-			utils::RunSync(new PostLoadColladaSceneJob(m_context));
+			core::utils::RunSync(new PostLoadColladaSceneJob(m_context));
 		}
 	};
 
 	JobContext ctx{ this, filePath, new collada::ColladaScene(), done };
-	utils::RunAsync(new LoadColladaSceneJob(ctx));
+	core::utils::RunAsync(new LoadColladaSceneJob(ctx));
 }
 
 
@@ -449,7 +449,7 @@ void rendering::DXScene::LoadVertexBuffers(int sceneIndex, jobs::Job* done)
 				return;
 			}
 
-			utils::RunSync(m_ctx.m_done);
+			core::utils::RunSync(m_ctx.m_done);
 			delete& m_ctx;
 		}
 	};

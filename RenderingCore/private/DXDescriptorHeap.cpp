@@ -6,6 +6,8 @@
 
 #include "CoreUtils.h"
 
+#include "d3dx12.h"
+
 #define THROW_ERROR(hRes, error) \
 if (FAILED(hRes)) {\
     throw error;\

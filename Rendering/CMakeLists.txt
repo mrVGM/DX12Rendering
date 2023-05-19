@@ -1,7 +1,7 @@
 ﻿cmake_minimum_required (VERSION 3.8)
 
 add_library (Rendering
-	"public/d3dx12.h"
+	
 	
 	"public/Rendering.h"
 	"private/Rendering.cpp"
@@ -64,10 +64,10 @@ add_library (Rendering
 	"private/Materials/DXUnlitErrorMaterial.cpp"
 	
 	
-	"public/DXScene.h"
-	"private/DXScene.cpp"
-	"public/DXSceneMeta.h"
-	"private/DXSceneMeta.cpp"
+	
+	
+	
+	
 	"private/Materials/DXUnlitErrorMaterialMeta.h"
 	"private/Materials/DXUnlitErrorMaterialMeta.cpp"
 	
@@ -157,7 +157,7 @@ add_library (Rendering
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(Rendering INTERFACE PUBLIC Jobs DataLib Collada RenderingCore)
+target_link_libraries(Rendering INTERFACE PUBLIC Jobs DataLib Collada RenderingCore Scene)
 
 target_link_libraries(Rendering PRIVATE "d3d12.lib" "dxgi.lib" "d3dcompiler.lib" "dxguid.lib")
 

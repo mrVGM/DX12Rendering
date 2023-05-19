@@ -7,8 +7,6 @@
 #include <wrl.h>
 #include <string>
 
-#include "d3dx12.h"
-
 namespace rendering
 {
 	class DXDevice : public BaseObject
