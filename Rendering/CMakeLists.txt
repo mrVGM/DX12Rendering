@@ -91,10 +91,10 @@ add_library (Rendering
 	
 	
 	
-	"public/DXDescriptorHeapMeta.h"
-	"private/DXDescriptorHeapMeta.cpp"
-	"public/DXDescriptorHeap.h"
-	"private/DXDescriptorHeap.cpp"
+	
+	
+	
+	
 	"private/DXDepthStencilDescriptorHeapMeta.cpp"
 	"private/DXDepthStencilDescriptorHeapMeta.h"
 	"private/RenderPass/DXClearDSTRPMeta.h"

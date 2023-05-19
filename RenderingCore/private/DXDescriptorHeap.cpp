@@ -2,16 +2,32 @@
 
 #include "BaseObjectMeta.h"
 
-#include "RenderUtils.h"
+#include "DXTexture.h"
+
+#include "CoreUtils.h"
 
 #define THROW_ERROR(hRes, error) \
 if (FAILED(hRes)) {\
     throw error;\
 }
 
+namespace
+{
+	rendering::DXDevice* m_device = nullptr;
+
+	void CacheObjects()
+	{
+		if (!m_device)
+		{
+			m_device = rendering::core::utils::GetDevice();
+		}
+	}
+}
+
 rendering::DXDescriptorHeap::DXDescriptorHeap(const BaseObjectMeta& meta) :
 	BaseObject(meta)
 {
+	CacheObjects();
 }
 
 rendering::DXDescriptorHeap::~DXDescriptorHeap()
@@ -21,7 +37,6 @@ rendering::DXDescriptorHeap::~DXDescriptorHeap()
 
 rendering::DXDescriptorHeap* rendering::DXDescriptorHeap::CreateDSVDescriptorHeap(const BaseObjectMeta& meta, rendering::DXTexture& depthStencilTex)
 {
-	DXDevice* device = utils::GetDevice();
 	DXDescriptorHeap* res = new DXDescriptorHeap(meta);
 
 	{
@@ -30,7 +45,7 @@ rendering::DXDescriptorHeap* rendering::DXDescriptorHeap::CreateDSVDescriptorHea
 		dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 		dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 		THROW_ERROR(
-			device->GetDevice().CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&res->m_descriptorHeap)),
+			m_device->GetDevice().CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&res->m_descriptorHeap)),
 			"Can't Create DSV Heap!"
 		);
 	}
@@ -43,7 +58,7 @@ rendering::DXDescriptorHeap* rendering::DXDescriptorHeap::CreateDSVDescriptorHea
 
 		CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(res->m_descriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
-		device->GetDevice().CreateDepthStencilView(depthStencilTex.GetTexture(), &depthStencilDesc, dsvHandle);
+		m_device->GetDevice().CreateDepthStencilView(depthStencilTex.GetTexture(), &depthStencilDesc, dsvHandle);
 	}
 
 	return res;
@@ -53,8 +68,6 @@ rendering::DXDescriptorHeap* rendering::DXDescriptorHeap::CreateRTVDescriptorHea
 {
 	using Microsoft::WRL::ComPtr;
 
-	DXDevice* device = utils::GetDevice();
-
 	DXDescriptorHeap* res = new DXDescriptorHeap(meta);
 
 	{
@@ -63,10 +76,10 @@ rendering::DXDescriptorHeap* rendering::DXDescriptorHeap::CreateRTVDescriptorHea
 		rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 		rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 		THROW_ERROR(
-			device->GetDevice().CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&res->m_descriptorHeap)),
+			m_device->GetDevice().CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&res->m_descriptorHeap)),
 			"Can't create a descriptor heap!")
 
-		res->m_descriptorSize = device->GetDevice().GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+		res->m_descriptorSize = m_device->GetDevice().GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	}
 
 	{
@@ -74,7 +87,7 @@ rendering::DXDescriptorHeap* rendering::DXDescriptorHeap::CreateRTVDescriptorHea
 
 		for (auto it = textures.begin(); it != textures.end(); ++it)
 		{
-			device->GetDevice().CreateRenderTargetView((*it)->GetTexture(), nullptr, rtvHandle);
+			m_device->GetDevice().CreateRenderTargetView((*it)->GetTexture(), nullptr, rtvHandle);
 			rtvHandle.Offset(1, res->m_descriptorSize);
 		}
 	}
@@ -86,8 +99,6 @@ rendering::DXDescriptorHeap* rendering::DXDescriptorHeap::CreateSRVDescriptorHea
 {
 	using Microsoft::WRL::ComPtr;
 
-    DXDevice* device = utils::GetDevice();
-
     DXDescriptorHeap* res = new DXDescriptorHeap(meta);
 
     {
@@ -96,10 +107,10 @@ rendering::DXDescriptorHeap* rendering::DXDescriptorHeap::CreateSRVDescriptorHea
         srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
         srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
         THROW_ERROR(
-            device->GetDevice().CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&res->m_descriptorHeap)),
+            m_device->GetDevice().CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&res->m_descriptorHeap)),
             "Can't create a descriptor heap!")
 
-        res->m_descriptorSize = device->GetDevice().GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        res->m_descriptorSize = m_device->GetDevice().GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     }
 
     // Create frame resources.
@@ -116,7 +127,7 @@ rendering::DXDescriptorHeap* rendering::DXDescriptorHeap::CreateSRVDescriptorHea
             srvDesc.Texture3D.MipLevels = 1;
             srvDesc.Texture2D.MipLevels = 1;
 
-            device->GetDevice().CreateShaderResourceView(tex->GetTexture(), &srvDesc, srvHandle);
+            m_device->GetDevice().CreateShaderResourceView(tex->GetTexture(), &srvDesc, srvHandle);
             srvHandle.Offset(1, res->m_descriptorSize);
         }
     }
