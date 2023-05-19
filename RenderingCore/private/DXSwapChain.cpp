@@ -1,8 +1,7 @@
 #include "DXSwapChain.h"
-
 #include "DXSwapChainMeta.h"
 
-#include "RenderUtils.h"
+#include "CoreUtils.h"
 
 #include <iostream>
 

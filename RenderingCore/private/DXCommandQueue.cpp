@@ -2,7 +2,7 @@
 
 #include "DXCommandQueueMeta.h"
 
-#include "RenderUtils.h"
+#include "CoreUtils.h"
 
 #include <iostream>
 
