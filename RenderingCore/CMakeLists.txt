@@ -44,7 +44,7 @@ add_library (RenderingCore
 	"private/DXHeapMeta.cpp"
 	"private/DXResidentHeapFenceMeta.h"
 	"private/DXResidentHeapFenceMeta.cpp"
- "private/ResidentHeapJobSystemMeta.h" "private/ResidentHeapJobSystemMeta.cpp")
+ "private/ResidentHeapJobSystemMeta.h" "private/ResidentHeapJobSystemMeta.cpp" "private/DXBuffer.cpp" "private/DXBufferMeta.cpp" "public/DXBuffer.h" "public/DXBufferMeta.h" "private/ResourceUtils/DXCopyBuffers.cpp" "private/ResourceUtils/DXCopyBuffers.h" "private/ResourceUtils/DXCopyBuffersMeta.cpp" "private/ResourceUtils/DXCopyBuffersMeta.h" "private/ResourceUtils/DXCopyFenceMeta.cpp" "private/ResourceUtils/DXCopyFenceMeta.h" "private/ResourceUtils/CopyJobSystemMeta.h" "private/ResourceUtils/CopyJobSystemMeta.cpp")
 
 target_include_directories(RenderingCore INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(RenderingCore PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")

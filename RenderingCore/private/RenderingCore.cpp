@@ -12,6 +12,7 @@
 #include "DXCopyCommandQueue.h"
 #include "DXSwapChain.h"
 #include "DXFence.h"
+#include "ResourceUtils/DXCopyBuffers.h"
 
 #include "DXResidentHeapFenceMeta.h"
 
@@ -29,6 +30,7 @@ void rendering::core::Boot()
 	new DXCopyCommandQueue();
 	new DXSwapChain();
 	new DXFence(DXResidentHeapFenceMeta::GetInstance());
+	new DXCopyBuffers();
 
 	utils::CacheJobSystems();
 }

@@ -1,14 +1,43 @@
 #include "DXBuffer.h"
 
+#include "BaseObjectContainer.h"
+
 #include "DXBufferMeta.h"
-#include "RenderUtils.h"
+#include "CoreUtils.h"
 
 #include "DXHeap.h"
 
 #include "ResourceUtils/DXCopyBuffers.h"
+#include "ResourceUtils/DXCopyBuffersMeta.h"
 
 #include <list>
 
+
+namespace
+{
+	rendering::DXDevice* m_device = nullptr;
+	rendering::DXCopyBuffers* m_copyBuffers = nullptr;
+
+	void CacheObjects()
+	{
+		if (!m_device)
+		{
+			m_device = rendering::core::utils::GetDevice();
+		}
+
+		if (!m_copyBuffers)
+		{
+			BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+			BaseObject* obj = container.GetObjectOfClass(rendering::DXCopyBuffersMeta::GetInstance());
+
+			if (!obj)
+			{
+				throw "Can't find Copy Buffers!";
+			}
+			m_copyBuffers = static_cast<rendering::DXCopyBuffers*>(obj);
+		}
+	}
+}
 
 void rendering::DXBuffer::SetBufferSizeAndFlags(UINT64 size, D3D12_RESOURCE_FLAGS flags)
 {
@@ -24,6 +53,7 @@ void rendering::DXBuffer::SetBufferStride(UINT64 stride)
 rendering::DXBuffer::DXBuffer(const BaseObjectMeta& meta) :
 	BaseObject(meta)
 {
+	CacheObjects();
 }
 
 rendering::DXBuffer::~DXBuffer()
@@ -49,7 +79,6 @@ void rendering::DXBuffer::CopyData(void* data, int dataSize)
 
 void rendering::DXBuffer::Place(DXHeap* heap, UINT64 heapOffset)
 {
-	DXDevice* device = rendering::utils::GetDevice();
 	D3D12_HEAP_TYPE heapType = heap->GetDescription().Properties.Type;
 
 	D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PRESENT;
@@ -62,7 +91,7 @@ void rendering::DXBuffer::Place(DXHeap* heap, UINT64 heapOffset)
 		initialState = D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST;
 	}
 
-	HRESULT hRes = device->GetDevice().CreatePlacedResource(heap->GetHeap(), heapOffset, &m_bufferDescription, initialState, nullptr, IID_PPV_ARGS(&m_buffer));
+	HRESULT hRes = m_device->GetDevice().CreatePlacedResource(heap->GetHeap(), heapOffset, &m_bufferDescription, initialState, nullptr, IID_PPV_ARGS(&m_buffer));
 	if (FAILED(hRes))
 	{
 		throw "Can't place buffer in the heap!";
@@ -96,8 +125,7 @@ void rendering::DXBuffer::CopyBuffer(
 	rendering::DXBuffer& destination,
 	jobs::Job* done) const
 {
-	DXCopyBuffers* copyBuffers = utils::GetCopyBuffers();
-	copyBuffers->Execute(destination, *this, done);
+	m_copyBuffers->Execute(destination, *this, done);
 }
 
 void* rendering::DXBuffer::Map()

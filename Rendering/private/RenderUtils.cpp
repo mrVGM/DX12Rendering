@@ -13,7 +13,6 @@
 #include "LoadJobSystemMeta.h"
 #include "DXCameraMeta.h"
 #include "DXCameraBufferMeta.h"
-#include "ResourceUtils/DXCopyBuffersMeta.h"
 #include "DXSceneMeta.h"
 #include "UpdaterMeta.h"
 #include "DXRendererMeta.h"
@@ -51,7 +50,6 @@ namespace
 	rendering::DXDescriptorHeap* m_dsvDescriptorHeap = nullptr;
 
 	rendering::DXScene* m_scene = nullptr;
-	rendering::DXCopyBuffers* m_copyBuffers = nullptr;
 
 	rendering::DXUnlitErrorMaterial* m_unlitErrorMaterial = nullptr;
 	rendering::DXMaterialRepo* m_materialRepo = nullptr;
@@ -182,18 +180,6 @@ rendering::DXScene* rendering::utils::GetScene()
 	return m_scene;
 }
 
-rendering::DXCopyBuffers* rendering::utils::GetCopyBuffers()
-{
-	if (m_copyBuffers)
-	{
-		return m_copyBuffers;
-	}
-	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-	BaseObject* obj = container.GetObjectOfClass(DXCopyBuffersMeta::GetInstance());
-	m_copyBuffers = static_cast<DXCopyBuffers*>(obj);
-	return m_copyBuffers;
-}
-
 rendering::DXTexture* rendering::utils::GetDepthStencilTexture()
 {
 	if (m_depthStencilTexture)
@@ -319,7 +305,6 @@ void rendering::utils::CacheObjects()
 	GetCopyCommandQueue();
 	GetMainJobSystem();
 	GetLoadJobSystem();
-	GetCopyBuffers();
 	GetRenderer();
 
 	return;

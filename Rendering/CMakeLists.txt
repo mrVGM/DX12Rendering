@@ -3,38 +3,16 @@
 add_library (Rendering
 	"public/d3dx12.h"
 	
-	
-	
-	
-	"../RenderingCore/private/WindowUpdateJobSystemMeta.h"
-	"../RenderingCore/private/WindowUpdateJobSystemMeta.cpp"
-	"../RenderingCore/public/DXDevice.h"
-	"../RenderingCore/private/DXDevice.cpp"
-	
-	
 	"public/Rendering.h"
 	"private/Rendering.cpp"
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 	"public/DXRendererMeta.h"
 	"private/DXRendererMeta.cpp"
 	"public/DXRenderer.h"
 	"private/DXRenderer.cpp"
-	"private/ResourceUtils/DXCopyBuffers.h"
+	
 	"private/RenderPass/DXClearRTRP.cpp"
-	"private/ResourceUtils/DXCopyBuffersMeta.h"
+	
 	"private/RenderPass/DXClearRTRPMeta.cpp"
 	"private/RenderPassMeta.cpp"
 	"private/RenderPass.cpp"
@@ -58,10 +36,10 @@ add_library (Rendering
 	
 	
 	
-	"public/DXBuffer.h"
-	"private/DXBuffer.cpp"
-	"public/DXBufferMeta.h"
-	"private/DXBufferMeta.cpp"
+	
+	
+	
+	
 	"public/DXCameraMeta.h"
 	"private/DXCameraMeta.cpp"
 	"public/DXCamera.h"
@@ -86,19 +64,13 @@ add_library (Rendering
 	"private/Materials/DXUnlitErrorMaterial.cpp"
 	
 	
-	
-	
-	"private/ResourceUtils/DXCopyBuffers.h"
-	"private/ResourceUtils/DXCopyBuffers.cpp"
-	"private/ResourceUtils/DXCopyBuffersMeta.h"
-	"private/ResourceUtils/DXCopyBuffersMeta.cpp"
 	"public/DXScene.h"
 	"private/DXScene.cpp"
 	"public/DXSceneMeta.h"
 	"private/DXSceneMeta.cpp"
 	"private/Materials/DXUnlitErrorMaterialMeta.h"
 	"private/Materials/DXUnlitErrorMaterialMeta.cpp"
-	"private/ResourceUtils/DXCopyFenceMeta.cpp"
+	
 	"private/Materials/DXUnlitErrorMaterial.h"
 	"private/Materials/DXUnlitErrorMaterial.cpp"
 	"public/UpdaterMeta.h"

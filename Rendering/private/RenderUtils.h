@@ -17,8 +17,6 @@
 
 #include "Materials/DXUnlitErrorMaterial.h"
 
-#include "ResourceUtils/DXCopyBuffers.h"
-
 #include "DXDescriptorHeap.h"
 
 #include "JobSystem.h"
@@ -39,7 +37,6 @@ namespace rendering
 		rendering::DXCamera* GetCamera();
 		rendering::DXBuffer* GetCameraBuffer();
 		rendering::DXScene* GetScene();
-		rendering::DXCopyBuffers* GetCopyBuffers();
 		rendering::DXTexture* GetDepthStencilTexture();
 		rendering::DXDescriptorHeap* GetDSVDescriptorHeap();
 

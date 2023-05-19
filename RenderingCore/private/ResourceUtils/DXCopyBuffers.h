@@ -13,9 +13,13 @@ namespace rendering
 {
 	class DXBuffer;
 	class DXFence;
+	class DXCopyCommandQueue;
 
 	class DXCopyBuffers : public BaseObject
 	{
+		DXCopyCommandQueue* m_copyCommandQueue = nullptr;
+
+		jobs::JobSystem* m_copyJobSytem = nullptr;
 		DXFence* m_copyFence = nullptr;
 		UINT64 m_copyCounter = 0;
 

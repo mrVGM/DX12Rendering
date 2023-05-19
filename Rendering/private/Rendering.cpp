@@ -17,8 +17,6 @@
 
 #include "DXHeap.h"
 
-#include "ResourceUtils/DXCopyBuffers.h"
-
 #include "DXScene.h"
 
 #include "RenderUtils.h"
@@ -257,7 +255,6 @@ namespace
 		core::Boot();
 
 		new DXRenderer();
-		new DXCopyBuffers();
 		new Updater();
 		new DXMaterialRepo();
 

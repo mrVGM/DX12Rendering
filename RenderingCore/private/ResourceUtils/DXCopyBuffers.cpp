@@ -8,8 +8,9 @@
 #include "DXFenceMeta.h"
 #include "WaitFence.h"
 #include "Job.h"
+#include "CopyJobSystemMeta.h"
 
-#include "RenderUtils.h"
+#include "CoreUtils.h"
 
 #define THROW_ERROR(hRes, error) \
 if (FAILED(hRes)) {\
@@ -28,7 +29,7 @@ namespace
             using Microsoft::WRL::ComPtr;
             using namespace rendering;
 
-            DXDevice* device = rendering::utils::GetDevice();
+            DXDevice* device = core::utils::GetDevice();
             if (!device)
             {
                 throw "No device found!";
@@ -50,6 +51,7 @@ namespace
         void Execute(
             rendering::DXBuffer& dst,
             const rendering::DXBuffer& src,
+            rendering::DXCopyCommandQueue* commandQueue,
             ID3D12Fence* fence,
             UINT64 signal)
         {
@@ -70,7 +72,6 @@ namespace
                 "Can't close Command List!")
 
 
-            DXCopyCommandQueue* commandQueue = rendering::utils::GetCopyCommandQueue();
             ID3D12CommandList* copyCommandList[] = { m_commandList.Get() };
             commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(copyCommandList), copyCommandList);
 
@@ -83,6 +84,9 @@ namespace
 rendering::DXCopyBuffers::DXCopyBuffers() :
     BaseObject(DXCopyBuffersMeta::GetInstance())
 {
+    m_copyCommandQueue = core::utils::GetCopyCommandQueue();
+
+    m_copyJobSytem = new jobs::JobSystem(CopyJobSystemMeta::GetInstance(), 1);
     m_copyFence = new DXFence(DXCopyFenceMeta::GetInstance());
 }
 
@@ -107,21 +111,6 @@ void rendering::DXCopyBuffers::Execute(
 
     JobContext ctx{ this, &dst, &src, new CopyCommandList(), -1, done };
 
-    class Clear : public jobs::Job
-    {
-    private:
-        JobContext m_jobContext;
-    public:
-        Clear(const JobContext& jobContext) :
-            m_jobContext(jobContext)
-        {
-        }
-        void Do()
-        {
-            delete m_jobContext.m_copyCommandList;
-        }
-    };
-
     class WaitJob : public jobs::Job
     {
     private:
@@ -137,8 +126,8 @@ void rendering::DXCopyBuffers::Execute(
             WaitFence waitFence(*m_jobContext.m_dxCopyBuffers->m_copyFence);
             waitFence.Wait(m_jobContext.m_signal);
 
-            utils::RunSync(m_jobContext.m_done);
-            utils::RunSync(new Clear(m_jobContext));
+            core::utils::RunSync(m_jobContext.m_done);
+            delete m_jobContext.m_copyCommandList;
         }
     };
 
@@ -155,15 +144,16 @@ void rendering::DXCopyBuffers::Execute(
         void Do() override
         {
             DXFence* fence = m_jobContext.m_dxCopyBuffers->m_copyFence;
+            DXCopyCommandQueue* commandQueue = m_jobContext.m_dxCopyBuffers->m_copyCommandQueue;
             UINT64 signal = m_jobContext.m_dxCopyBuffers->m_copyCounter++;
             m_jobContext.m_signal = signal;
 
-            m_jobContext.m_copyCommandList->Execute(*m_jobContext.m_dst, *m_jobContext.m_src, fence->GetFence(), signal);
-            utils::RunAsync(new WaitJob(m_jobContext));
+            m_jobContext.m_copyCommandList->Execute(*m_jobContext.m_dst, *m_jobContext.m_src, commandQueue, fence->GetFence(), signal);
+            core::utils::RunAsync(new WaitJob(m_jobContext));
         }
     };
     
-    utils::RunSync(new CopyJob(ctx));
+    m_copyJobSytem->ScheduleJob(new CopyJob(ctx));
 }
 
 #undef THROW_ERROR
