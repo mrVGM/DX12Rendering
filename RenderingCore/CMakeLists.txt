@@ -62,6 +62,12 @@ add_library (RenderingCore
 	"public/DXShaderMeta.h"
 	"private/DXShader.cpp"
 	"private/DXShaderMeta.cpp"
+	"public/DXTexture.h"
+	"public/DXTextureMeta.h"
+	"private/DXTexture.cpp"
+	"private/DXTextureMeta.cpp"
+	"private/DXDepthStencilTextureMeta.cpp"
+	"public/DXDepthStencilTextureMeta.h"
 )
 
 target_include_directories(RenderingCore INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

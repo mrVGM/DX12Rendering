@@ -85,12 +85,12 @@ add_library (Rendering
 	"private/DXMaterialRepo.cpp"
 	"public/DXMaterialRepoMeta.h"
 	"private/DXMaterialRepoMeta.cpp"
-	"private/DXTexture.cpp"
-	"public/DXTexture.h"
-	"private/DXTextureMeta.cpp"
-	"public/DXTextureMeta.h"
-	"private/DXDepthStencilTextureMeta.h"
-	"private/DXDepthStencilTextureMeta.cpp"
+	
+	
+	
+	
+	
+	
 	"public/DXDescriptorHeapMeta.h"
 	"private/DXDescriptorHeapMeta.cpp"
 	"public/DXDescriptorHeap.h"
