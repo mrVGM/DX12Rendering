@@ -6,7 +6,7 @@
 
 void rendering::DXFence::Create()
 {
-	DXDevice* device = utils::GetDevice();
+	DXDevice* device = core::utils::GetDevice();
 	if (!device)
 	{
 		throw "No Device found!";

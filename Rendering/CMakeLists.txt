@@ -50,10 +50,10 @@ add_library (Rendering
 	"private/RenderPass.cpp"
 	
 	
-	"public/DXHeap.h"
-	"private/DXHeap.cpp"
-	"public/DXHeapMeta.h"
-	"private/DXHeapMeta.cpp"
+	
+	
+	
+	
 	
 	
 	

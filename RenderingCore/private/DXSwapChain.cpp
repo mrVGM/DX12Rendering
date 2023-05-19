@@ -14,18 +14,18 @@ void rendering::DXSwapChain::Create()
 {
     using Microsoft::WRL::ComPtr;
 
-    Window* window = utils::GetWindow();
+    Window* window = core::utils::GetWindow();
     if (!window)
     {
         throw "No Window found!";
     }
 
-    DXDevice* device = utils::GetDevice();
+    DXDevice* device = core::utils::GetDevice();
     if (!device)
     {
         throw "No Device found!";
     }
-    DXCommandQueue* commandQueue = utils::GetCommandQueue();
+    DXCommandQueue* commandQueue = core::utils::GetCommandQueue();
     if (!commandQueue)
     {
         throw "No Command Queue found!";

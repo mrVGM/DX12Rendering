@@ -11,6 +11,8 @@
 #include "DXCopyCommandQueue.h"
 #include "DXSwapChain.h"
 
+#include "CoreUtils.h"
+
 void rendering::core::Boot()
 {
 	new jobs::JobSystem(MainJobSystemMeta::GetInstance(), 1);
@@ -22,5 +24,5 @@ void rendering::core::Boot()
 	new DXCopyCommandQueue();
 	new DXSwapChain();
 
-
+	utils::CacheJobSystems();
 }

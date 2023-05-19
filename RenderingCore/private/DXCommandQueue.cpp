@@ -15,7 +15,7 @@ void rendering::DXCommandQueue::Create()
 {
     using Microsoft::WRL::ComPtr;
 
-    DXDevice* dxDevice = rendering::utils::GetDevice();
+    DXDevice* dxDevice = core::utils::GetDevice();
     if (!dxDevice)
     {
         throw "No device found!";

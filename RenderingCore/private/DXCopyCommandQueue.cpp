@@ -22,7 +22,7 @@ rendering::DXCopyCommandQueue::~DXCopyCommandQueue()
 
 void rendering::DXCopyCommandQueue::Create()
 {
-    DXDevice* dxDevice = utils::GetDevice();
+    DXDevice* dxDevice = core::utils::GetDevice();
     if (!dxDevice)
     {
         throw "No device found!";

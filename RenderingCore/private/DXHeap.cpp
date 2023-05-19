@@ -5,7 +5,7 @@
 #include "DXFenceMeta.h"
 #include "WaitFence.h"
 
-#include "RenderUtils.h"
+#include "CoreUtils.h"
 
 
 void rendering::DXHeap::MakeResident(jobs::Job* done)
@@ -38,8 +38,8 @@ void rendering::DXHeap::MakeResident(jobs::Job* done)
 			waitFence.Wait(m_jobContext.m_signal);
 			m_jobContext.m_heap->m_resident = true;
 
-			utils::RunSync(m_jobContext.m_done);
-			utils::DisposeBaseObject(*m_jobContext.m_fence);
+			core::utils::RunSync(m_jobContext.m_done);
+			core::utils::DisposeBaseObject(*m_jobContext.m_fence);
 		}
 	};
 
@@ -56,7 +56,7 @@ void rendering::DXHeap::MakeResident(jobs::Job* done)
 		{
 			m_jobContext.m_fence = new DXFence(DXFenceMeta::GetInstance());
 
-			DXDevice* device = rendering::utils::GetDevice();
+			DXDevice* device = core::utils::GetDevice();
 			ID3D12Device3* device3;
 			HRESULT hr = device->GetDevice().QueryInterface(IID_PPV_ARGS(&device3));
 			if (FAILED(hr))
@@ -73,7 +73,7 @@ void rendering::DXHeap::MakeResident(jobs::Job* done)
 			}
 
 			WaitJob* waitJob = new WaitJob(m_jobContext);
-			utils::RunAsync(waitJob);
+			core::utils::RunAsync(waitJob);
 		}
 	};
 
@@ -81,7 +81,7 @@ void rendering::DXHeap::MakeResident(jobs::Job* done)
 	jobContext.m_heap = this;
 	jobContext.m_done = done;
 
-	utils::RunSync(new CreateFenceJob(jobContext));
+	core::utils::RunSync(new CreateFenceJob(jobContext));
 }
 
 void rendering::DXHeap::Evict()
@@ -90,7 +90,7 @@ void rendering::DXHeap::Evict()
 		throw "The heap is not Resident yet!";
 	}
 
-	DXDevice* device = rendering::utils::GetDevice();
+	DXDevice* device = core::utils::GetDevice();
 	ID3D12Device3* device3;
 	HRESULT hr = device->GetDevice().QueryInterface(IID_PPV_ARGS(&device3));
 	if (FAILED(hr)) {
@@ -152,7 +152,7 @@ void rendering::DXHeap::SetHeapFlags(D3D12_HEAP_FLAGS flags)
 
 void rendering::DXHeap::Create()
 {
-	DXDevice* device = rendering::utils::GetDevice();
+	DXDevice* device = core::utils::GetDevice();
 	HRESULT hr = device->GetDevice().CreateHeap(&m_heapDescription, IID_PPV_ARGS(&m_heap));
 	if (FAILED(hr))
 	{
