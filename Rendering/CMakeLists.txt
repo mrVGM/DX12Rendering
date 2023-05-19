@@ -46,10 +46,10 @@ add_library (Rendering
 	"private/DXCamera.cpp"
 	"public/DXCameraBufferMeta.h"
 	"private/DXCameraBufferMeta.cpp"
-	"public/DXShader.h"
-	"private/DXShader.cpp"
-	"public/DXShaderMeta.h"
-	"private/DXShaderMeta.cpp"
+	
+	
+	
+	
 	"private/DXVertexShaderMeta.h"
 	"private/DXVertexShaderMeta.cpp"
 	"private/DXPixelShaderMeta.h"

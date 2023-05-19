@@ -44,12 +44,30 @@ add_library (RenderingCore
 	"private/DXHeapMeta.cpp"
 	"private/DXResidentHeapFenceMeta.h"
 	"private/DXResidentHeapFenceMeta.cpp"
- "private/ResidentHeapJobSystemMeta.h" "private/ResidentHeapJobSystemMeta.cpp" "private/DXBuffer.cpp" "private/DXBufferMeta.cpp" "public/DXBuffer.h" "public/DXBufferMeta.h" "private/ResourceUtils/DXCopyBuffers.cpp" "private/ResourceUtils/DXCopyBuffers.h" "private/ResourceUtils/DXCopyBuffersMeta.cpp" "private/ResourceUtils/DXCopyBuffersMeta.h" "private/ResourceUtils/DXCopyFenceMeta.cpp" "private/ResourceUtils/DXCopyFenceMeta.h" "private/ResourceUtils/CopyJobSystemMeta.h" "private/ResourceUtils/CopyJobSystemMeta.cpp")
+	"private/ResidentHeapJobSystemMeta.h"
+	"private/ResidentHeapJobSystemMeta.cpp"
+	"private/DXBuffer.cpp"
+	"private/DXBufferMeta.cpp"
+	"public/DXBuffer.h"
+	"public/DXBufferMeta.h"
+	"private/ResourceUtils/DXCopyBuffers.cpp"
+	"private/ResourceUtils/DXCopyBuffers.h"
+	"private/ResourceUtils/DXCopyBuffersMeta.cpp"
+	"private/ResourceUtils/DXCopyBuffersMeta.h"
+	"private/ResourceUtils/DXCopyFenceMeta.cpp"
+	"private/ResourceUtils/DXCopyFenceMeta.h"
+	"private/ResourceUtils/CopyJobSystemMeta.h"
+	"private/ResourceUtils/CopyJobSystemMeta.cpp"
+	"public/DXShader.h"
+	"public/DXShaderMeta.h"
+	"private/DXShader.cpp"
+	"private/DXShaderMeta.cpp"
+)
 
 target_include_directories(RenderingCore INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(RenderingCore PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(RenderingCore INTERFACE PUBLIC Base Jobs)
+target_link_libraries(RenderingCore INTERFACE PUBLIC Base Jobs DataLib)
 
 target_link_libraries(RenderingCore PRIVATE "d3d12.lib" "dxgi.lib" "d3dcompiler.lib" "dxguid.lib")
 
