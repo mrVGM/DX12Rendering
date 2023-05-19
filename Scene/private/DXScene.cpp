@@ -638,3 +638,60 @@ void rendering::DXScene::LoadBuffers(int sceneIndex, jobs::Job* done)
 		LoadGeometryBuffers(sceneIndex, it->first, sceneResources, new ItemReady(*ctx));
 	}
 }
+
+void rendering::DXScene::GetSceneBB(DirectX::XMVECTOR& minPoint, DirectX::XMVECTOR& maxPoint)
+{
+	using namespace DirectX;
+
+	minPoint = maxPoint = XMVectorSet(0, 0, 0, 0);
+
+	for (int i = 0; i < m_scenesLoaded; ++i)
+	{
+		collada::ColladaScene* cur = m_colladaScenes[i];
+
+		const collada::Scene& curScene = cur->GetScene();
+		for (auto it = curScene.m_objects.begin(); it != curScene.m_objects.end(); ++it)
+		{
+			const collada::Object& obj = it->second;
+			const collada::Geometry& objGeo = curScene.m_geometries.find(obj.m_geometry)->second;
+
+			for (auto vertexIt = objGeo.m_vertices.begin(); vertexIt != objGeo.m_vertices.end(); ++vertexIt)
+			{
+				XMVECTOR point = XMVectorSet(
+					(*vertexIt).m_position[0],
+					(*vertexIt).m_position[1],
+					(*vertexIt).m_position[2],
+					0);
+
+				XMVECTOR rotation = XMVectorSet(
+					obj.m_instanceData.m_rotation[1],
+					obj.m_instanceData.m_rotation[2],
+					obj.m_instanceData.m_rotation[3],
+					obj.m_instanceData.m_rotation[0]);
+
+				XMVECTOR rotationConj = XMQuaternionConjugate(rotation);
+
+				XMVECTOR rotated = XMQuaternionMultiply(rotation, point);
+				rotated = XMQuaternionMultiply(rotated, rotationConj);
+
+				XMVECTOR scale = XMVectorSet(
+					obj.m_instanceData.m_scale[0],
+					obj.m_instanceData.m_scale[1],
+					obj.m_instanceData.m_scale[2],
+					0);
+
+				XMVECTOR offset = XMVectorSet(
+					obj.m_instanceData.m_position[0],
+					obj.m_instanceData.m_position[1],
+					obj.m_instanceData.m_position[2],
+					0);
+
+				rotated *= scale;
+				rotated += offset;
+
+				minPoint = XMVectorMin(minPoint, rotated);
+				maxPoint = XMVectorMax(maxPoint, rotated);
+			}
+		}
+	}
+}

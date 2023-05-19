@@ -10,6 +10,8 @@
 #include <string>
 #include <map>
 
+#include <DirectXMath.h>
+
 class BaseObjectMeta;
 
 namespace rendering
@@ -42,5 +44,7 @@ namespace rendering
 		virtual ~DXScene();
 
 		void LoadColladaScene(const std::string& filePath, jobs::Job* done);
+
+		void GetSceneBB(DirectX::XMVECTOR& minPoint, DirectX::XMVECTOR& maxPoint);
 	};
 }
