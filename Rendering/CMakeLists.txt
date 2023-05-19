@@ -22,12 +22,12 @@ add_library (Rendering
 	
 	
 	
-	"public/DXFenceMeta.h"
-	"private/DXFenceMeta.cpp"
-	"public/DXFence.h"
-	"private/DXFence.cpp"
-	"public/WaitFence.h"
-	"private/WaitFence.cpp"
+	
+	
+	
+	
+	
+	
 	"public/DXRendererMeta.h"
 	"private/DXRendererMeta.cpp"
 	"public/DXRenderer.h"
@@ -84,10 +84,10 @@ add_library (Rendering
 	"public/DXMaterialMeta.h"
 	"private/DXMaterialMeta.cpp"
 	"private/Materials/DXUnlitErrorMaterial.cpp"
-	"public/DXCopyCommandQueue.h"
-	"private/DXCopyCommandQueue.cpp"
-	"public/DXCopyCommandQueueMeta.h"
-	"private/DXCopyCommandQueueMeta.cpp"
+	
+	
+	
+	
 	"private/ResourceUtils/DXCopyBuffers.h"
 	"private/ResourceUtils/DXCopyBuffers.cpp"
 	"private/ResourceUtils/DXCopyBuffersMeta.h"

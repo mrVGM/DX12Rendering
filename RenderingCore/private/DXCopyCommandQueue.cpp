@@ -2,7 +2,7 @@
 
 #include "DXCopyCommandQueueMeta.h"
 
-#include "RenderUtils.h"
+#include "CoreUtils.h"
 
 
 #define THROW_ERROR(hRes, error) \
@@ -22,7 +22,7 @@ rendering::DXCopyCommandQueue::~DXCopyCommandQueue()
 
 void rendering::DXCopyCommandQueue::Create()
 {
-    DXDevice* dxDevice = rendering::utils::GetDevice();
+    DXDevice* dxDevice = utils::GetDevice();
     if (!dxDevice)
     {
         throw "No device found!";

@@ -256,7 +256,6 @@ namespace
 
 		core::Boot();
 
-		new DXCopyCommandQueue();
 		new DXRenderer();
 		new DXCopyBuffers();
 		new Updater();

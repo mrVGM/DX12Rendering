@@ -23,7 +23,7 @@ add_library (RenderingCore
 	"private/DXCommandQueue.cpp"
 	"private/DXCommandQueueMeta.cpp"
 	"public/RenderingCore.h"
- "private/RenderingCore.cpp" "public/MainJobSystemMeta.h" "private/MainJobSystemMeta.cpp" "private/LoadJobSystemMeta.cpp" "public/LoadJobSystemMeta.h")
+ "private/RenderingCore.cpp" "public/MainJobSystemMeta.h" "private/MainJobSystemMeta.cpp" "private/LoadJobSystemMeta.cpp" "public/LoadJobSystemMeta.h" "public/WaitFence.h" "private/WaitFence.cpp" "public/DXFence.h" "private/DXFence.cpp" "public/DXFenceMeta.h" "private/DXFenceMeta.cpp" "private/DXCopyCommandQueue.cpp" "private/DXCopyCommandQueueMeta.cpp" "public/DXCopyCommandQueue.h" "public/DXCopyCommandQueueMeta.h")
 
 target_include_directories(RenderingCore INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(RenderingCore PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")

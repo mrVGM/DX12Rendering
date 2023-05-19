@@ -1,6 +1,6 @@
 #include "DXFence.h"
 
-#include "RenderUtils.h"
+#include "CoreUtils.h"
 
 #include <iostream>
 
