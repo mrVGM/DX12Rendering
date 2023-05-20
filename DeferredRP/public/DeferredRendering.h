@@ -19,7 +19,6 @@ namespace rendering
 		DXTexture* GetGBufferSpecularLitTex();
 
 		DXBuffer* GetLightsBuffer();
-		DXBuffer* GetShadowMapTexture();
 
 		DXBuffer* GetRenderTextureVertexBuffer();
 

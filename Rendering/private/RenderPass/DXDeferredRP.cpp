@@ -19,6 +19,8 @@
 
 #include "BaseObjectContainer.h"
 
+#include "DXLightsCalculationsMaterial.h"
+
 #include <set>
 #include <list>
 
@@ -45,8 +47,6 @@ namespace
         return lightsManager;
     }
 }
-
-
 
 rendering::DXDeferredRP::DXDeferredRP() :
     RenderPass(DXDeferredRPMeta::GetInstance()),

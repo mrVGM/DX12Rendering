@@ -19,6 +19,7 @@
 #include "DXShadowMapDSDescriptorHeapMeta.h"
 
 #include "DXLightsBufferMeta.h"
+#include "DXSMSettingsBufferMeta.h"
 
 #include <DirectXMath.h>
 
@@ -593,7 +594,7 @@ void rendering::LightsManager::LoadShadowMapSettingsBuffer(jobs::Job* done)
 
 		void Do()
 		{
-			m_ctx.m_buffer = new DXBuffer(DXBufferMeta::GetInstance());
+			m_ctx.m_buffer = new DXBuffer(DXSMSettingsBufferMeta::GetInstance());
 			m_ctx.m_buffer->SetBufferSizeAndFlags(256, D3D12_RESOURCE_FLAG_NONE);
 			m_ctx.m_buffer->SetBufferStride(256);
 
