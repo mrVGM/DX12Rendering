@@ -35,26 +35,26 @@ add_library (Rendering
 	"private/Materials/DXUnlitMaterial.cpp"
 	"private/Deferred/DeferredRendering.h"
 	"private/Deferred/DeferredRendering.cpp"
-	"private/Deferred/DXGBufferDuffuseTexMeta.h"
-	"private/Deferred/DXGBufferDiffuseTexMeta.cpp"
-	"private/Deferred/DXGBufferNormalTexMeta.h"
-	"private/Deferred/DXGBufferNormalTexMeta.cpp"
-	"private/Deferred/DXGBufferPositionTexMeta.h"
-	"private/Deferred/DXGBufferPositionTexMeta.cpp"
+	
+	
+	
+	
+	
+	
 	"private/RenderPass/DXDeferredRP.h"
 	"private/RenderPass/DXDeferredRP.cpp"
 	"private/Materials/DXDeferredMaterial.h"
 	"private/Materials/DXDeferredMaterial.cpp"
 	"private/Materials/DXDeferredMaterialMeta.h"
 	"private/Materials/DXDeferredMaterialMeta.cpp"
-	"private/Deferred/DXGBufferSpecularTexMeta.h"
-	"private/Deferred/DXGBufferSpecularTexMeta.cpp"
-	"private/Deferred/DXGBufferAmbientLitTexMeta.h"
-	"private/Deferred/DXGBufferAmbientLitTexMeta.cpp"
-	"private/Deferred/DXGBufferDiffuseLitTexMeta.h"
-	"private/Deferred/DXGBufferDiffuseLitTexMeta.cpp"
-	"private/Deferred/DXGBufferSpecularLitTexMeta.h"
-	"private/Deferred/DXGBufferSpecularLitTexMeta.cpp"
+	
+	
+	
+	
+	
+	
+	
+	
 	"private/Lights/LightsManagerMeta.h"
 	"private/Lights/LightsManagerMeta.cpp"
 	"private/Lights/LightsManager.h"

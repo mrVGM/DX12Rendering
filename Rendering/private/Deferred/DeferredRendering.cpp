@@ -1,15 +1,15 @@
-#include "Deferred/DeferredRendering.h"
+#include "DeferredRendering.h"
 
 #include "RenderUtils.h"
 
-#include "Deferred/DXGBufferDuffuseTexMeta.h"
-#include "Deferred/DXGBufferNormalTexMeta.h"
-#include "Deferred/DXGBufferPositionTexMeta.h"
-#include "Deferred/DXGBufferSpecularTexMeta.h"
+#include "DXGBufferDuffuseTexMeta.h"
+#include "DXGBufferNormalTexMeta.h"
+#include "DXGBufferPositionTexMeta.h"
+#include "DXGBufferSpecularTexMeta.h"
 
-#include "Deferred/DXGBufferAmbientLitTexMeta.h"
-#include "Deferred/DXGBufferDiffuseLitTexMeta.h"
-#include "Deferred/DXGBufferSpecularLitTexMeta.h"
+#include "DXGBufferAmbientLitTexMeta.h"
+#include "DXGBufferDiffuseLitTexMeta.h"
+#include "DXGBufferSpecularLitTexMeta.h"
 
 #include "DXHeap.h"
 #include "DXBufferMeta.h"

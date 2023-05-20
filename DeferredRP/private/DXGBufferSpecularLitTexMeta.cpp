@@ -1,4 +1,4 @@
-#include "Deferred/DXGBufferSpecularLitTexMeta.h"
+#include "DXGBufferSpecularLitTexMeta.h"
 
 #include "DXTextureMeta.h"
 

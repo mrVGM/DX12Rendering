@@ -2,8 +2,8 @@
 
 add_library (DeferredRP
 	"public/DXDeferredRPMeta.h"
-	"public/DXDeferredRPMeta.cpp"
-)
+	"private/DXDeferredRPMeta.cpp"
+ "private/DXGBufferAmbientLitTexMeta.cpp" "public/DXGBufferAmbientLitTexMeta.h" "private/DXGBufferDiffuseLitTexMeta.cpp" "public/DXGBufferDiffuseLitTexMeta.h" "private/DXGBufferDiffuseTexMeta.cpp" "public/DXGBufferDuffuseTexMeta.h" "private/DXGBufferNormalTexMeta.cpp" "public/DXGBufferNormalTexMeta.h" "private/DXGBufferPositionTexMeta.cpp" "public/DXGBufferPositionTexMeta.h" "private/DXGBufferSpecularLitTexMeta.cpp" "public/DXGBufferSpecularLitTexMeta.h" "private/DXGBufferSpecularTexMeta.cpp" "public/DXGBufferSpecularTexMeta.h")
 
 target_include_directories(DeferredRP INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(DeferredRP PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
