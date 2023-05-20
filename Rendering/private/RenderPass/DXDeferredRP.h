@@ -49,25 +49,10 @@ namespace rendering
 		DXDescriptorHeap* m_rtvLitHeap;
 		DXDescriptorHeap* m_srvLitHeap;
 
-		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_postlightCalculationsAllocator;
-		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_postLightingList;
-
-		Microsoft::WRL::ComPtr<ID3D12PipelineState> m_postLigtingPipelineState;
-		Microsoft::WRL::ComPtr<ID3D12RootSignature> m_postLigtingRootSignature;
-
 		DXMaterial* m_shadowMapMaterial = nullptr;
 
-		UINT m_rtvDescriptorSize = 0;
-		UINT m_srvDescriptorSize = 0;
-
 		bool m_startListPrepared = false;
-		bool m_endListPrepared = false;
-
-		const DXShader& m_postLightingVertexShader;
-		const DXShader& m_postLightingPixelShader;
-
-		void CreatePostLightingPipelineStageAndRootSignature();
-
+		
 		void CreateRTVHeap();
 		void CreateSRVHeap();
 
@@ -75,7 +60,6 @@ namespace rendering
 		void CreateSRVLitHeap();
 
 		void PrepareStartList();
-		void PreparePostLightingList();
 
 		void LoadLightsBuffer(jobs::Job* done);
 		void LoadShadowMap(jobs::Job* done);

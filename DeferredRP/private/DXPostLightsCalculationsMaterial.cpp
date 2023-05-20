@@ -72,8 +72,8 @@ ID3D12CommandList* rendering::DXPostLightsCalculationsMaterial::GenerateCommandL
     UINT indexCount,
     UINT instanceIndex)
 {
-    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList = m_commandLists.back();
     m_commandLists.push_back(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>());
+    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList = m_commandLists.back();
 
     DXDevice* device = m_device;
     DXSwapChain* swapChain = m_swapChain;
