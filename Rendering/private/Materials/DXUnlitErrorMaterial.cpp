@@ -8,14 +8,43 @@
 
 #include "DXShader.h"
 
+#include "DXDepthStencilDescriptorHeapMeta.h"
+#include "DXDescriptorHeap.h"
+
+#include "BaseObjectContainer.h"
+
 #define THROW_ERROR(hRes, error) \
 if (FAILED(hRes)) {\
     throw error;\
 }
 
+namespace
+{
+    rendering::DXDescriptorHeap* m_depthStencilDescriptorHeap = nullptr;
+
+    void CacheObjects()
+    {
+        using namespace rendering;
+        if (!m_depthStencilDescriptorHeap)
+        {
+            BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+
+            BaseObject* obj = container.GetObjectOfClass(DXDepthStencilDescriptorHeapMeta::GetInstance());
+            if (!obj)
+            {
+                throw "Can't find Depth Stencil Descriptor Heap!";
+            }
+
+            m_depthStencilDescriptorHeap = static_cast<DXDescriptorHeap*>(obj);
+        }
+    }
+}
+
 rendering::DXUnlitErrorMaterial::DXUnlitErrorMaterial(const rendering::DXShader& vertexShader, const rendering::DXShader& pixelShader) :
     DXMaterial(DXUnlitErrorMaterialMeta::GetInstance(), vertexShader, pixelShader)
 {
+    CacheObjects();
+
     DXDevice* device = utils::GetDevice();
 
     using Microsoft::WRL::ComPtr;
@@ -131,7 +160,7 @@ ID3D12CommandList* rendering::DXUnlitErrorMaterial::GenerateCommandList(
     commandList->RSSetViewports(1, &swapChain->GetViewport());
     commandList->RSSetScissorRects(1, &swapChain->GetScissorRect());
 
-    D3D12_CPU_DESCRIPTOR_HANDLE dsHandle = utils::GetDSVDescriptorHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+    D3D12_CPU_DESCRIPTOR_HANDLE dsHandle = m_depthStencilDescriptorHeap->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
     D3D12_CPU_DESCRIPTOR_HANDLE handles[] = { swapChain->GetCurrentRTVDescriptor() };
     commandList->OMSetRenderTargets(_countof(handles), handles, FALSE, &dsHandle);
 

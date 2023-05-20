@@ -48,7 +48,6 @@ namespace
 	struct BootContext
 	{
 		bool m_camBufferLoaded = false;
-		bool m_depthStencilTextureLoaded = false;
 		bool m_gBufferReady = false;
 		bool m_rendererReady = false;
 	};
@@ -87,70 +86,6 @@ namespace
 		utils::RunSync(new CreateCamAndBuffer(ctx));
 	}
 
-	void LoadDepthStencilTexture(jobs::Job* done)
-	{
-		using namespace rendering;
-		struct Context
-		{
-			DXHeap* m_heap = nullptr;
-			jobs::Job* m_done = nullptr;
-		};
-
-		class DSTexReady : public jobs::Job
-		{
-		private:
-			Context m_ctx;
-		public:
-			DSTexReady(const Context& ctx) :
-				m_ctx(ctx)
-			{
-			}
-			void Do() override
-			{
-				DXTexture* dsTex = utils::GetDepthStencilTexture();
-				dsTex->Place(*m_ctx.m_heap, 0);
-
-				DXDescriptorHeap::CreateDSVDescriptorHeap(DXDepthStencilDescriptorHeapMeta::GetInstance(), *dsTex);
-				utils::GetDSVDescriptorHeap();
-
-				utils::RunSync(m_ctx.m_done);
-			}
-		};
-
-		class CreateDSTex : public jobs::Job
-		{
-		private:
-			Context m_ctx;
-		public:
-			CreateDSTex(const Context& ctx) :
-				m_ctx(ctx)
-			{
-			}
-			void Do() override
-			{
-				Window* wnd = utils::GetWindow();
-				DXTexture::CreateDepthStencilTexture(DXDepthStencilTextureMeta::GetInstance(), wnd->m_width, wnd->m_height);
-				DXTexture* dsTex = utils::GetDepthStencilTexture();
-
-				D3D12_RESOURCE_ALLOCATION_INFO allocInfo = dsTex->GetTextureAllocationInfo();
-
-				DXHeap* heap = new DXHeap();
-				m_ctx.m_heap = heap;
-
-				heap->SetHeapType(D3D12_HEAP_TYPE_DEFAULT);
-				heap->SetHeapFlags(D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES);
-				heap->SetHeapSize(allocInfo.SizeInBytes);
-
-				heap->Create();
-				heap->MakeResident(new DSTexReady(m_ctx));
-			}
-		};
-
-		Context ctx{ nullptr, done };
-
-		utils::RunSync(new CreateDSTex(ctx));
-	}
-
 	void LoadRenderPipepine()
 	{
 		using namespace rendering;
@@ -170,11 +105,6 @@ namespace
 			{
 				m_readyItem = true;
 				if (!m_ctx.m_camBufferLoaded)
-				{
-					return;
-				}
-
-				if (!m_ctx.m_depthStencilTextureLoaded)
 				{
 					return;
 				}
@@ -201,7 +131,6 @@ namespace
 
 		BootContext* ctx = new BootContext();
 		LoadCamAndBuffer(new ItemReady(*ctx, ctx->m_camBufferLoaded));
-		LoadDepthStencilTexture(new ItemReady(*ctx, ctx->m_depthStencilTextureLoaded));
 		deferred::LoadGBuffer(new ItemReady(*ctx, ctx->m_gBufferReady));
 
 		DXRenderer* renderer = utils::GetRenderer();

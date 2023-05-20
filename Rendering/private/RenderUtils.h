@@ -37,10 +37,7 @@ namespace rendering
 		rendering::DXCamera* GetCamera();
 		rendering::DXBuffer* GetCameraBuffer();
 		rendering::DXScene* GetScene();
-		rendering::DXTexture* GetDepthStencilTexture();
-		rendering::DXDescriptorHeap* GetDSVDescriptorHeap();
 
-		rendering::DXUnlitErrorMaterial* GetUnlitErrorMaterial();
 		rendering::DXMaterialRepo* GetMaterialRepo();
 
 		rendering::LightsManager* GetLightsManager();

@@ -16,9 +16,15 @@
 #include "RenderPass/DXDeferredRP.h"
 #include "RenderPass/DXDeferredRPMeta.h"
 
+#include "DXDepthStencilDescriptorHeapMeta.h"
+#include "DXDescriptorHeap.h"
+
+#include "BaseObjectContainer.h"
+
 namespace
 {
     rendering::DXDeferredRP* m_deferredRenderPass = nullptr;
+    rendering::DXDescriptorHeap* m_depthStencilDescriptorHeap = nullptr;
 
     rendering::DXDeferredRP* GetDeferredRP()
     {
@@ -33,7 +39,25 @@ namespace
 
         return m_deferredRenderPass;
     }
+
+    void CacheObjects()
+    {
+        using namespace rendering;
+        if (!m_depthStencilDescriptorHeap)
+        {
+            BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+
+            BaseObject* obj = container.GetObjectOfClass(DXDepthStencilDescriptorHeapMeta::GetInstance());
+            if (!obj)
+            {
+                throw "Can't find Depth Stencil Descriptor Heap!";
+            }
+
+            m_depthStencilDescriptorHeap = static_cast<DXDescriptorHeap*>(obj);
+        }
+    }
 }
+
 
 #define THROW_ERROR(hRes, error) \
 if (FAILED(hRes)) {\
@@ -43,6 +67,8 @@ if (FAILED(hRes)) {\
 rendering::DXDeferredMaterial::DXDeferredMaterial(const rendering::DXShader& vertexShader, const rendering::DXShader& pixelShader) :
     DXMaterial(DXDeferredMaterialMeta::GetInstance(), vertexShader, pixelShader)
 {
+    CacheObjects();
+
     DXDevice* device = utils::GetDevice();
 
     GetDeferredRP();
@@ -159,7 +185,7 @@ ID3D12CommandList* rendering::DXDeferredMaterial::GenerateCommandList(
     commandList->RSSetScissorRects(1, &swapChain->GetScissorRect());
 
     DXDeferredRP* deferredRP = GetDeferredRP();
-    D3D12_CPU_DESCRIPTOR_HANDLE dsHandle = utils::GetDSVDescriptorHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+    D3D12_CPU_DESCRIPTOR_HANDLE dsHandle = m_depthStencilDescriptorHeap->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
     D3D12_CPU_DESCRIPTOR_HANDLE handles[] =
     {
         deferredRP->GetDescriptorHandleFor(DXDeferredRP::GBufferTexType::Diffuse),

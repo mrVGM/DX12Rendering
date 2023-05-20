@@ -46,12 +46,8 @@ namespace
 	jobs::JobSystem* m_mainJobSystem = nullptr;
 	jobs::JobSystem* m_loadJobSystem = nullptr;
 
-	rendering::DXTexture* m_depthStencilTexture = nullptr;
-	rendering::DXDescriptorHeap* m_dsvDescriptorHeap = nullptr;
-
 	rendering::DXScene* m_scene = nullptr;
 
-	rendering::DXUnlitErrorMaterial* m_unlitErrorMaterial = nullptr;
 	rendering::DXMaterialRepo* m_materialRepo = nullptr;
 
 	rendering::LightsManager* m_lightsManager = nullptr;
@@ -178,43 +174,6 @@ rendering::DXScene* rendering::utils::GetScene()
 	BaseObject* obj = container.GetObjectOfClass(DXSceneMeta::GetInstance());
 	m_scene = static_cast<DXScene*>(obj);
 	return m_scene;
-}
-
-rendering::DXTexture* rendering::utils::GetDepthStencilTexture()
-{
-	if (m_depthStencilTexture)
-	{
-		return m_depthStencilTexture;
-	}
-	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-	BaseObject* obj = container.GetObjectOfClass(DXDepthStencilTextureMeta::GetInstance());
-	m_depthStencilTexture = static_cast<DXTexture*>(obj);
-	return m_depthStencilTexture;
-}
-
-rendering::DXDescriptorHeap* rendering::utils::GetDSVDescriptorHeap()
-{
-	if (m_dsvDescriptorHeap)
-	{
-		return m_dsvDescriptorHeap;
-	}
-	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-	BaseObject* obj = container.GetObjectOfClass(DXDepthStencilDescriptorHeapMeta::GetInstance());
-	m_dsvDescriptorHeap = static_cast<DXDescriptorHeap*>(obj);
-	return m_dsvDescriptorHeap;
-}
-
-
-rendering::DXUnlitErrorMaterial* rendering::utils::GetUnlitErrorMaterial()
-{
-	if (m_unlitErrorMaterial)
-	{
-		return m_unlitErrorMaterial;
-	}
-	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-	BaseObject* obj = container.GetObjectOfClass(DXUnlitErrorMaterialMeta::GetInstance());
-	m_unlitErrorMaterial = static_cast<DXUnlitErrorMaterial*>(obj);
-	return m_unlitErrorMaterial;
 }
 
 void rendering::utils::RunSync(jobs::Job* job)

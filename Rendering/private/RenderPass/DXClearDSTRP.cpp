@@ -3,11 +3,24 @@
 #include "RenderPass/DXClearDSTRPMeta.h"
 #include "RenderUtils.h"
 
+#include "DXTexture.h"
+#include "DXDepthStencilTextureMeta.h"
+#include "DXDepthStencilDescriptorHeapMeta.h"
+
+#include "DXHeap.h"
+
+#include "BaseObjectContainer.h"
+
 #include <iostream>
 
 #define THROW_ERROR(hRes, error) \
 if (FAILED(hRes)) {\
     throw error;\
+}
+
+namespace
+{
+    rendering::DXDescriptorHeap* m_depthStencilDescriptorHeap = nullptr;
 }
 
 void rendering::DXClearDSTRP::Create()
@@ -48,7 +61,7 @@ void rendering::DXClearDSTRP::Prepare()
         m_commandList->Reset(m_commandAllocator.Get(), nullptr),
         "Can't reset Command List!")
 
-    D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = utils::GetDSVDescriptorHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+    D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_depthStencilDescriptorHeap->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
     m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
     THROW_ERROR(
@@ -70,7 +83,77 @@ void rendering::DXClearDSTRP::Execute()
 
 void rendering::DXClearDSTRP::Load(jobs::Job* done)
 {
-    utils::RunSync(done);
+    struct Context
+    {
+        DXTexture* m_texture = nullptr;
+        DXHeap* m_heap = nullptr;
+        jobs::Job* m_done;
+    };
+
+    Context ctx;
+    ctx.m_done = done;
+
+    class CreateDescriptorHeap : public jobs::Job
+    {
+    private:
+        Context m_ctx;
+    public:
+        CreateDescriptorHeap(const Context& ctx) :
+            m_ctx(ctx)
+        {
+        }
+
+        void Do() override
+        {
+            m_depthStencilDescriptorHeap = DXDescriptorHeap::CreateDSVDescriptorHeap(DXDepthStencilDescriptorHeapMeta::GetInstance(), *m_ctx.m_texture);
+            utils::RunSync(m_ctx.m_done);
+        }
+    };
+
+    class HeapResident : public jobs::Job
+    {
+    private:
+        Context m_ctx;
+    public:
+        HeapResident(const Context& ctx) :
+            m_ctx(ctx)
+        {
+        }
+
+        void Do() override
+        {
+            m_ctx.m_texture->Place(*m_ctx.m_heap, 0);
+            utils::RunSync(new CreateDescriptorHeap(m_ctx));
+        }
+    };
+
+    class CreateObjects : public jobs::Job
+    {
+    private:
+        Context m_ctx;
+    public:
+        CreateObjects(const Context& ctx) :
+            m_ctx(ctx)
+        {
+        }
+
+        void Do() override
+        {
+            Window* window = utils::GetWindow();
+
+            m_ctx.m_texture = DXTexture::CreateDepthStencilTexture(DXDepthStencilTextureMeta::GetInstance(), window->m_width, window->m_height);
+            m_ctx.m_heap = new DXHeap();
+
+            m_ctx.m_heap->SetHeapSize(m_ctx.m_texture->GetTextureAllocationInfo().SizeInBytes);
+            m_ctx.m_heap->SetHeapType(D3D12_HEAP_TYPE_DEFAULT);
+            m_ctx.m_heap->SetHeapFlags(D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES);
+            m_ctx.m_heap->Create();
+
+            m_ctx.m_heap->MakeResident(new HeapResident(m_ctx));
+        }
+    };
+
+    utils::RunSync(new CreateObjects(ctx));
 }
 
 

@@ -157,9 +157,7 @@ void rendering::DXMaterialRepo::LoadErrorMaterial()
 	DXShader* ps = rendering::shader_repo::GetErrorPixelShader();
 	DXShader* vs = rendering::shader_repo::GetMainVertexShader();
 
-	new DXUnlitErrorMaterial(*vs, *ps);
-	DXMaterial* errorMat = utils::GetUnlitErrorMaterial();
-
+	DXMaterial* errorMat = new DXUnlitErrorMaterial(*vs, *ps);
 	DXMaterialRepo* repo = utils::GetMaterialRepo();
 	Register("error", *errorMat);
 }

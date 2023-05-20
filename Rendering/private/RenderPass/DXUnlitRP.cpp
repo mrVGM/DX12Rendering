@@ -133,13 +133,13 @@ rendering::DXUnlitRP::~DXUnlitRP()
 void rendering::DXUnlitRP::RenderUnlit()
 {
     DXScene* scene = utils::GetScene();
-    DXMaterial* mat = utils::GetUnlitErrorMaterial();
-
-    mat->ResetCommandLists();
 
     DXMaterialRepo* repo = utils::GetMaterialRepo();
     DXMaterial* errorMat = repo->GetMaterial("error");
-    errorMat->ResetCommandLists();
+    if (errorMat)
+    {
+        errorMat->ResetCommandLists();
+    }
 
     for (int i = 0; i < scene->m_scenesLoaded; ++i)
     {
@@ -195,6 +195,11 @@ void rendering::DXUnlitRP::RenderUnlit()
                 if (!mat)
                 {
                     mat = errorMat;
+                }
+
+                if (!mat)
+                {
+                    continue;
                 }
 
                 if (!mat->GetMeta().HasTag(DXUnlitMaterialMetaTag::GetInstance()))
