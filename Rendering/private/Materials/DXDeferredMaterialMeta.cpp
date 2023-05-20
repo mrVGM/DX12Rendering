@@ -1,5 +1,5 @@
-#include "Materials/DXDeferredMaterialMeta.h"
-#include "Materials/DXDeferredMaterialMetaTag.h"
+#include "DXDeferredMaterialMeta.h"
+#include "DXDeferredMaterialMetaTag.h"
 
 #include "DXMaterialMeta.h"
 

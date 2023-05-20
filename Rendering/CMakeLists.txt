@@ -41,8 +41,8 @@ add_library (Rendering
 	"private/DXMaterialRepo.cpp"
 	"public/DXMaterialRepoMeta.h"
 	"private/DXMaterialRepoMeta.cpp"
-	"private/Materials/DXUnlitMaterialMetaTag.h"
-	"private/Materials/DXUnlitMaterialMetaTag.cpp"
+	
+	
 	"private/Materials/SharederRepo.h"
 	"private/Materials/SharederRepo.cpp"
 	"private/Materials/DXUnlitMaterialMeta.h"
@@ -65,8 +65,8 @@ add_library (Rendering
 	"private/Materials/DXDeferredMaterial.cpp"
 	"private/Materials/DXDeferredMaterialMeta.h"
 	"private/Materials/DXDeferredMaterialMeta.cpp"
-	"private/Materials/DXDeferredMaterialMetaTag.h"
-	"private/Materials/DXDeferredMaterialMetaTag.cpp"
+	
+	
 	"private/Deferred/DXGBufferSpecularTexMeta.h"
 	"private/Deferred/DXGBufferSpecularTexMeta.cpp"
 	"private/Deferred/DXGBufferAmbientLitTexMeta.h"

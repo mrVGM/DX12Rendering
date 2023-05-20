@@ -6,7 +6,7 @@
 #include "Deferred/DeferredRendering.h"
 #include "Materials/SharederRepo.h"
 
-#include "Materials/DXDeferredMaterialMetaTag.h"
+#include "DXDeferredMaterialMetaTag.h"
 
 #include "Materials/DXShadowMapMaterial.h"
 #include "Materials/DXShadowMapMaterialMeta.h"
