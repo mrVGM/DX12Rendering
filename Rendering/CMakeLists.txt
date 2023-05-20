@@ -11,21 +11,17 @@ add_library (Rendering
 	"public/DXRenderer.h"
 	"private/DXRenderer.cpp"
 	
-	"private/RenderPass/DXClearRTRP.cpp"
+	
 	
 	"private/RenderPass/DXClearRTRPMeta.cpp"
-	"private/RenderPassMeta.cpp"
-	"private/RenderPass.cpp"
 	
 	
 	"private/RenderFenceMeta.h"
 	"private/RenderFenceMeta.cpp"
 	"private/RenderUtils.h"
 	"private/RenderUtils.cpp"
-	"private/RenderPassMeta.h"
-	"private/RenderPassMeta.cpp"
-	"private/RenderPass.h"
-	"private/RenderPass.cpp"
+	
+	
 	
 	
 	
@@ -157,7 +153,7 @@ add_library (Rendering
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(Rendering INTERFACE PUBLIC Jobs DataLib Collada RenderingCore Scene)
+target_link_libraries(Rendering INTERFACE PUBLIC Jobs DataLib Collada RenderingCore Scene RenderPass)
 
 target_link_libraries(Rendering PRIVATE "d3d12.lib" "dxgi.lib" "d3dcompiler.lib" "dxguid.lib")
 

@@ -11,6 +11,8 @@
 #include "MainJobSystemMeta.h"
 #include "LoadJobSystemMeta.h"
 
+#include "DXSwapChainMeta.h"
+
 #include "JobSystem.h"
 
 namespace
@@ -77,6 +79,20 @@ namespace rendering::core::utils
 		return commandQueue;
 	}
 
+	DXSwapChain* GetSwapChain()
+	{
+		BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+
+		BaseObject* obj = container.GetObjectOfClass(DXSwapChainMeta::GetInstance());
+		if (!obj)
+		{
+			throw "Can't find Swap Chain!";
+		}
+
+		DXSwapChain* swapChain = static_cast<DXSwapChain*>(obj);
+		return swapChain;
+	}
+
 
 	void CacheJobSystems()
 	{
@@ -102,6 +118,7 @@ namespace rendering::core::utils
 			m_loadJobSystem = static_cast<jobs::JobSystem*>(obj);
 		}
 	}
+
 
 	void RunSync(jobs::Job* job)
 	{

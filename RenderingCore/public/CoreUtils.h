@@ -4,6 +4,7 @@
 #include "DXDevice.h"
 #include "DXCommandQueue.h"
 #include "DXCopyCommandQueue.h"
+#include "DXSwapChain.h"
 
 #include "Job.h"
 
@@ -13,7 +14,7 @@ namespace rendering::core::utils
 	DXDevice* GetDevice();
 	DXCommandQueue* GetCommandQueue();
 	DXCopyCommandQueue* GetCopyCommandQueue();
-
+	DXSwapChain* GetSwapChain();
 
 	void CacheJobSystems();
 	void RunSync(jobs::Job* job);
