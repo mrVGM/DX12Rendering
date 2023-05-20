@@ -29,25 +29,15 @@ namespace rendering
 			ShadowMap = 4
 		};
 
-		enum GBufferLitTexType
-		{
-			AmbientLit = 0,
-			DiffuseLit = 1,
-			SpecularLit = 2
-		};
-
 	private:
 		ID3D12CommandList** m_commandListsCache = nullptr;
 		int m_numCommandLists = 0;
 
-		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_lightCalculationsAllocator;
+		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocator;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_startList;
 
 		DXDescriptorHeap* m_rtvHeap;
 		DXDescriptorHeap* m_srvHeap;
-
-		DXDescriptorHeap* m_rtvLitHeap;
-		DXDescriptorHeap* m_srvLitHeap;
 
 		DXMaterial* m_shadowMapMaterial = nullptr;
 
@@ -55,9 +45,6 @@ namespace rendering
 		
 		void CreateRTVHeap();
 		void CreateSRVHeap();
-
-		void CreateRTVLitHeap();
-		void CreateSRVLitHeap();
 
 		void PrepareStartList();
 
@@ -72,7 +59,6 @@ namespace rendering
 		virtual ~DXDeferredRP();
 
 		D3D12_CPU_DESCRIPTOR_HANDLE GetDescriptorHandleFor(GBufferTexType texType);
-		D3D12_CPU_DESCRIPTOR_HANDLE GetDescriptorHandleFor(GBufferLitTexType texType);
 
 		void Prepare() override;
 		void Execute() override;

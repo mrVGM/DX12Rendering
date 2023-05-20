@@ -61,11 +61,11 @@ rendering::DXDeferredRP::DXDeferredRP() :
 
     {
         THROW_ERROR(
-            device->GetDevice().CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_lightCalculationsAllocator)),
+            device->GetDevice().CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator)),
             "Can't create Command Allocator!")
 
         THROW_ERROR(
-            device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_lightCalculationsAllocator.Get(), nullptr, IID_PPV_ARGS(&m_startList)),
+            device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&m_startList)),
             "Can't reset Command List!")
 
         THROW_ERROR(
@@ -100,12 +100,6 @@ D3D12_CPU_DESCRIPTOR_HANDLE rendering::DXDeferredRP::GetDescriptorHandleFor(GBuf
     return handle;
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE rendering::DXDeferredRP::GetDescriptorHandleFor(GBufferLitTexType texType)
-{
-    D3D12_CPU_DESCRIPTOR_HANDLE handle = m_rtvLitHeap->GetDescriptorHandle(texType);
-    return handle;
-}
-
 void rendering::DXDeferredRP::CreateRTVHeap()
 {
     std::list<DXTexture*> textures;
@@ -131,25 +125,6 @@ void rendering::DXDeferredRP::CreateSRVHeap()
     m_srvHeap = DXDescriptorHeap::CreateSRVDescriptorHeap(DXDescriptorHeapMeta::GetInstance(), textures);
 }
 
-void rendering::DXDeferredRP::CreateRTVLitHeap()
-{
-    std::list<DXTexture*> textures;
-    textures.push_back(rendering::deferred::GetGBufferAmbientLitTex());
-    textures.push_back(rendering::deferred::GetGBufferDiffuseLitTex());
-    textures.push_back(rendering::deferred::GetGBufferSpecularLitTex());
-
-    m_rtvLitHeap = DXDescriptorHeap::CreateRTVDescriptorHeap(DXDescriptorHeapMeta::GetInstance(), textures);
-}
-
-void rendering::DXDeferredRP::CreateSRVLitHeap()
-{
-    std::list<DXTexture*> textures;
-    textures.push_back(rendering::deferred::GetGBufferAmbientLitTex());
-    textures.push_back(rendering::deferred::GetGBufferDiffuseLitTex());
-    textures.push_back(rendering::deferred::GetGBufferSpecularLitTex());
-    m_srvLitHeap = DXDescriptorHeap::CreateSRVDescriptorHeap(DXDescriptorHeapMeta::GetInstance(), textures);
-}
-
 void rendering::DXDeferredRP::PrepareStartList()
 {
     if (m_startListPrepared)
@@ -160,7 +135,7 @@ void rendering::DXDeferredRP::PrepareStartList()
     DXDevice* device = utils::GetDevice();
 
     THROW_ERROR(
-        m_startList->Reset(m_lightCalculationsAllocator.Get(), nullptr),
+        m_startList->Reset(m_commandAllocator.Get(), nullptr),
         "Can't reset Command List!")
 
     LightsManager* lightsManager = GetLightsManager();
@@ -448,10 +423,6 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
             m_ctx.m_deferredRP->CreateRTVHeap();
             m_ctx.m_deferredRP->CreateSRVHeap();
 
-            m_ctx.m_deferredRP->CreateRTVLitHeap();
-            m_ctx.m_deferredRP->CreateSRVLitHeap();
-
-            utils::RunSync(m_ctx.m_done);
 
             m_lightCalculationsMat = new DXLightsCalculationsMaterial(
                 *shader_repo::GetDeferredRPVertexShader(),
@@ -460,6 +431,8 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
             m_postLightCalculationsMat = new DXPostLightsCalculationsMaterial(
                 *shader_repo::GetDeferredRPVertexShader(),
                 *shader_repo::GetDeferredRPPostLightingPixelShader());
+
+            utils::RunSync(m_ctx.m_done);
 
             delete& m_ctx;
         }
