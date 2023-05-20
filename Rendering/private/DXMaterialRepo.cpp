@@ -129,7 +129,6 @@ namespace
 rendering::DXMaterialRepo::DXMaterialRepo() :
 	BaseObject(rendering::DXMaterialRepoMeta::GetInstance())
 {
-	LoadErrorMaterial();
 }
 
 rendering::DXMaterialRepo::~DXMaterialRepo()
@@ -155,8 +154,6 @@ void rendering::DXMaterialRepo::Register(const std::string& name, rendering::DXM
 
 void rendering::DXMaterialRepo::LoadErrorMaterial()
 {
-	rendering::shader_repo::LoadShaderPrograms();
-
 	DXShader* ps = rendering::shader_repo::GetErrorPixelShader();
 	DXShader* vs = rendering::shader_repo::GetMainVertexShader();
 
@@ -170,6 +167,8 @@ void rendering::DXMaterialRepo::LoadErrorMaterial()
 void rendering::DXMaterialRepo::EnableMaterialLoading()
 {
 	m_canLoadMaterials = true;
+
+	LoadErrorMaterial();
 
 	std::list<const collada::ColladaMaterial*> cache = m_colladaMaterialsToLoad;
 	m_colladaMaterialsToLoad.clear();

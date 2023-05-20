@@ -190,24 +190,5 @@ void rendering::Updater::StartUpdate(double dt)
 
 void rendering::Updater::Start()
 {
-	class RendererLoaded : public jobs::Job
-	{
-	private:
-		Updater& m_updater;
-	public:
-		RendererLoaded(Updater& updater) :
-			m_updater(updater)
-		{
-		}
-		void Do() override
-		{
-			std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
-			m_updater.m_lastTick = now;
-
-			m_updater.StartUpdate(0);
-		}
-	};
-
-	DXRenderer* renderer = utils::GetRenderer();
-	renderer->LoadRPs(new RendererLoaded(*this));
+	StartUpdate(0);
 }

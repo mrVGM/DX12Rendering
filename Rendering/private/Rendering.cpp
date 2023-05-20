@@ -50,6 +50,7 @@ namespace
 		bool m_camBufferLoaded = false;
 		bool m_depthStencilTextureLoaded = false;
 		bool m_gBufferReady = false;
+		bool m_rendererReady = false;
 	};
 
 	void LoadCamAndBuffer(jobs::Job* done)
@@ -183,6 +184,11 @@ namespace
 					return;
 				}
 
+				if (!m_ctx.m_rendererReady)
+				{
+					return;
+				}
+
 				delete &m_ctx;
 
 				Updater* updater = utils::GetUpdater();
@@ -197,6 +203,9 @@ namespace
 		LoadCamAndBuffer(new ItemReady(*ctx, ctx->m_camBufferLoaded));
 		LoadDepthStencilTexture(new ItemReady(*ctx, ctx->m_depthStencilTextureLoaded));
 		deferred::LoadGBuffer(new ItemReady(*ctx, ctx->m_gBufferReady));
+
+		DXRenderer* renderer = utils::GetRenderer();
+		renderer->LoadRPs(new ItemReady(*ctx, ctx->m_rendererReady));
 	}
 
 	void LoadScene()
@@ -257,6 +266,8 @@ namespace
 		new DXRenderer();
 		new Updater();
 		new DXMaterialRepo();
+
+		rendering::shader_repo::LoadShaderPrograms();
 
 		rendering::utils::CacheObjects();
 		std::cout << "Base Rendering Objects created!" << std::endl;
