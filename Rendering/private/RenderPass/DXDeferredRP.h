@@ -55,9 +55,6 @@ namespace rendering
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> m_postLigtingPipelineState;
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> m_postLigtingRootSignature;
 
-		DXBuffer* m_lightsBuffer = nullptr;
-		DXTexture* m_shadowMapTex = nullptr;
-
 		DXMaterial* m_shadowMapMaterial = nullptr;
 
 		UINT m_rtvDescriptorSize = 0;

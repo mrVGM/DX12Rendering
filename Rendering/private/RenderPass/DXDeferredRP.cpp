@@ -567,7 +567,10 @@ void rendering::DXDeferredRP::Execute()
 
     {
         m_lightCalculationsMat->ResetCommandLists();
-        ID3D12CommandList* commandList = m_lightCalculationsMat->GenerateCommandList(*deferred::GetRenderTextureVertexBuffer(), *deferred::GetRenderTextureVertexBuffer(), *deferred::GetRenderTextureVertexBuffer(), 0, 0, 0);
+        DXBuffer* dummy = nullptr;
+        ID3D12CommandList* commandList = m_lightCalculationsMat->GenerateCommandList(
+            *deferred::GetRenderTextureVertexBuffer(), 
+            *dummy, *dummy, 0, 0, 0);
         ID3D12CommandList* ppCommandLists[] = { commandList };
         commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
     }
@@ -581,76 +584,13 @@ void rendering::DXDeferredRP::Execute()
 void rendering::DXDeferredRP::LoadLightsBuffer(jobs::Job* done)
 {
     LightsManager* lightsManager = GetLightsManager();
-    struct Context
-    {
-        DXDeferredRP* m_deferredRP = nullptr;
-        LightsManager* m_lightsManager = nullptr;
-        jobs::Job* m_done = nullptr;
-    };
-
-    class LoadBuffer : public jobs::Job
-    {
-    private:
-        Context m_ctx;
-    public:
-        LoadBuffer(const Context& ctx) :
-            m_ctx(ctx)
-        {
-        }
-
-        void Do() override
-        {
-            m_ctx.m_deferredRP->m_lightsBuffer = m_ctx.m_lightsManager->GetLightsBuffer();
-            utils::RunSync(m_ctx.m_done);
-        }
-    };
-
-    Context ctx
-    {
-        this,
-        lightsManager,
-        done
-    };
-
-    lightsManager->LoadLightsBuffer(new LoadBuffer(ctx));
+    lightsManager->LoadLightsBuffer(done);
 }
 
 void rendering::DXDeferredRP::LoadShadowMap(jobs::Job* done)
 {
     LightsManager* lightsManager = GetLightsManager();
-
-    struct Context
-    {
-        DXDeferredRP* m_deferredRP = nullptr;
-        LightsManager* m_lightsManager = nullptr;
-        jobs::Job* m_done = nullptr;
-    };
-
-    class LoadShadowMapTex : public jobs::Job
-    {
-    private:
-        Context m_ctx;
-    public:
-        LoadShadowMapTex(const Context& ctx) :
-            m_ctx(ctx)
-        {
-        }
-
-        void Do() override
-        {
-            m_ctx.m_deferredRP->m_shadowMapTex = m_ctx.m_lightsManager->GetShadowMap();
-            utils::RunSync(m_ctx.m_done);
-        }
-    };
-
-    Context ctx
-    {
-        this,
-        lightsManager,
-        done
-    };
-
-    lightsManager->LoadShadowMap(new LoadShadowMapTex(ctx));
+    lightsManager->LoadShadowMap(done);
 }
 
 
