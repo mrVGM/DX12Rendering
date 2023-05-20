@@ -12,10 +12,6 @@ add_library (Rendering
 	"private/DXRenderer.cpp"
 	
 	
-	
-	"private/RenderPass/DXClearRTRPMeta.cpp"
-	
-	
 	"private/RenderFenceMeta.h"
 	"private/RenderFenceMeta.cpp"
 	"private/RenderUtils.h"
