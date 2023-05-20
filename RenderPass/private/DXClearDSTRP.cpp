@@ -1,13 +1,14 @@
-#include "RenderPass/DXClearDSTRP.h"
+#include "DXClearDSTRP.h"
 
-#include "RenderPass/DXClearDSTRPMeta.h"
-#include "RenderUtils.h"
+#include "DXClearDSTRPMeta.h"
+#include "CoreUtils.h"
 
 #include "DXTexture.h"
 #include "DXDepthStencilTextureMeta.h"
 #include "DXDepthStencilDescriptorHeapMeta.h"
 
 #include "DXHeap.h"
+#include "DXDescriptorHeap.h"
 
 #include "BaseObjectContainer.h"
 
@@ -21,13 +22,24 @@ if (FAILED(hRes)) {\
 namespace
 {
     rendering::DXDescriptorHeap* m_depthStencilDescriptorHeap = nullptr;
+    rendering::DXCommandQueue* m_commandQueue = nullptr;
+
+    void CacheObjects()
+    {
+        using namespace rendering;
+
+        if (!m_commandQueue)
+        {
+            m_commandQueue = core::utils::GetCommandQueue();
+        }
+    }
 }
 
 void rendering::DXClearDSTRP::Create()
 {
     using Microsoft::WRL::ComPtr;
 
-    DXDevice* device = rendering::utils::GetDevice();
+    DXDevice* device = core::utils::GetDevice();
     if (!device)
     {
         throw "No device found!";
@@ -71,14 +83,8 @@ void rendering::DXClearDSTRP::Prepare()
 
 void rendering::DXClearDSTRP::Execute()
 {
-    DXCommandQueue* commandQueue = rendering::utils::GetCommandQueue();
-    if (!commandQueue)
-    {
-        throw "No Command Queue found!";
-    }
-
     ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
-    commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+    m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 }
 
 void rendering::DXClearDSTRP::Load(jobs::Job* done)
@@ -106,7 +112,7 @@ void rendering::DXClearDSTRP::Load(jobs::Job* done)
         void Do() override
         {
             m_depthStencilDescriptorHeap = DXDescriptorHeap::CreateDSVDescriptorHeap(DXDepthStencilDescriptorHeapMeta::GetInstance(), *m_ctx.m_texture);
-            utils::RunSync(m_ctx.m_done);
+            core::utils::RunSync(m_ctx.m_done);
         }
     };
 
@@ -123,7 +129,7 @@ void rendering::DXClearDSTRP::Load(jobs::Job* done)
         void Do() override
         {
             m_ctx.m_texture->Place(*m_ctx.m_heap, 0);
-            utils::RunSync(new CreateDescriptorHeap(m_ctx));
+            core::utils::RunSync(new CreateDescriptorHeap(m_ctx));
         }
     };
 
@@ -139,7 +145,7 @@ void rendering::DXClearDSTRP::Load(jobs::Job* done)
 
         void Do() override
         {
-            Window* window = utils::GetWindow();
+            Window* window = core::utils::GetWindow();
 
             m_ctx.m_texture = DXTexture::CreateDepthStencilTexture(DXDepthStencilTextureMeta::GetInstance(), window->m_width, window->m_height);
             m_ctx.m_heap = new DXHeap();
@@ -153,13 +159,14 @@ void rendering::DXClearDSTRP::Load(jobs::Job* done)
         }
     };
 
-    utils::RunSync(new CreateObjects(ctx));
+    core::utils::RunSync(new CreateObjects(ctx));
 }
 
 
 rendering::DXClearDSTRP::DXClearDSTRP() :
     RenderPass(DXClearDSTRPMeta::GetInstance())
 {
+    CacheObjects();
     Create();
 }
 

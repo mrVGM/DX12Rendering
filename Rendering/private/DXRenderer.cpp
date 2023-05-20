@@ -13,8 +13,8 @@
 #include "DXClearRTRPMeta.h"
 #include "RenderPass/DXUnlitRP.h"
 #include "RenderPass/DXUnlitRPMeta.h"
-#include "RenderPass/DXClearDSTRP.h"
-#include "RenderPass/DXClearDSTRPMeta.h"
+#include "DXClearDSTRP.h"
+#include "DXClearDSTRPMeta.h"
 #include "RenderPass/DXDeferredRP.h"
 #include "RenderPass/DXDeferredRPMeta.h"
 

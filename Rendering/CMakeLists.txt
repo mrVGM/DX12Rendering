@@ -87,12 +87,12 @@ add_library (Rendering
 	
 	
 	
-	"private/DXDepthStencilDescriptorHeapMeta.cpp"
-	"private/DXDepthStencilDescriptorHeapMeta.h"
-	"private/RenderPass/DXClearDSTRPMeta.h"
-	"private/RenderPass/DXClearDSTRPMeta.cpp"
-	"private/RenderPass/DXClearDSTRP.h"
-	"private/RenderPass/DXClearDSTRP.cpp"
+	
+	
+	
+	
+	
+	
 	"private/Materials/DXUnlitMaterialMetaTag.h"
 	"private/Materials/DXUnlitMaterialMetaTag.cpp"
 	"private/Materials/SharederRepo.h"

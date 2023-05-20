@@ -9,7 +9,7 @@ add_library (RenderPass
 	"public/DXClearRTRP.h"
 	"private/DXClearRTRPMeta.cpp"
 	"public/DXClearRTRPMeta.h"
-)
+ "private/DXDepthStencilDescriptorHeapMeta.cpp" "public/DXDepthStencilDescriptorHeapMeta.h" "private/DXClearDSTRP.cpp" "public/DXClearDSTRP.h" "private/DXClearDSTRPMeta.cpp" "public/DXClearDSTRPMeta.h")
 
 target_include_directories(RenderPass INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(RenderPass PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")

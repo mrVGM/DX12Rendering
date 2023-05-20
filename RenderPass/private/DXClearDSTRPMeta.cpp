@@ -1,4 +1,4 @@
-#include "RenderPass/DXClearDSTRPMeta.h"
+#include "DXClearDSTRPMeta.h"
 
 #include "RenderPassMeta.h"
 
