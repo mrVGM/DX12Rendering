@@ -18,6 +18,9 @@ namespace rendering
 		DXTexture* GetGBufferDiffuseLitTex();
 		DXTexture* GetGBufferSpecularLitTex();
 
+		DXBuffer* GetLightsBuffer();
+		DXBuffer* GetShadowMapTexture();
+
 		DXBuffer* GetRenderTextureVertexBuffer();
 
 		void LoadGBuffer(jobs::Job* done);

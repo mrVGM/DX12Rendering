@@ -1,4 +1,4 @@
-#include "Lights/DXShadowMapMeta.h"
+#include "DXShadowMapMeta.h"
 
 #include "DXTextureMeta.h"
 

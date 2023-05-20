@@ -57,8 +57,8 @@ add_library (Rendering
 	"private/Lights/LightsManagerMeta.cpp"
 	"private/Lights/LightsManager.h"
 	"private/Lights/LightsManager.cpp"
-	"private/Lights/DXShadowMapMeta.h"
-	"private/Lights/DXShadowMapMeta.cpp"
+	
+	
 	"private/Materials/DXShadowMapMaterialMeta.h"
 	"private/Materials/DXShadowMapMaterialMeta.cpp"
 	"private/Materials/DXShadowMapMaterial.h"

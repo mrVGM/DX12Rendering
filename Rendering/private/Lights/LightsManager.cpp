@@ -2,7 +2,7 @@
 
 #include "Lights/LightsManagerMeta.h"
 
-#include "Lights/DXShadowMapMeta.h"
+#include "DXShadowMapMeta.h"
 #include "Lights/DXShadowMapDSMeta.h"
 
 #include "RenderUtils.h"
