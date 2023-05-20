@@ -34,7 +34,7 @@
 #include "Materials/DXUnlitMaterial.h"
 #include "Materials/DXDeferredMaterial.h"
 
-#include "Deferred/DeferredRendering.h"
+#include "DeferredRendering.h"
 
 #include "DXDepthStencilTextureMeta.h"
 #include "DXDepthStencilDescriptorHeapMeta.h"

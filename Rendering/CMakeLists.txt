@@ -33,8 +33,6 @@ add_library (Rendering
 	"private/Materials/DXUnlitMaterialMeta.cpp"
 	"private/Materials/DXUnlitMaterial.h"
 	"private/Materials/DXUnlitMaterial.cpp"
-	"private/Deferred/DeferredRendering.h"
-	"private/Deferred/DeferredRendering.cpp"
 	
 	
 	

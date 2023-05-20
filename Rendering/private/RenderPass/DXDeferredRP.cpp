@@ -3,7 +3,7 @@
 #include "DXDeferredRPMeta.h"
 #include "RenderUtils.h"
 
-#include "Deferred/DeferredRendering.h"
+#include "DeferredRendering.h"
 #include "ShaderRepo.h"
 
 #include "DXDeferredMaterialMetaTag.h"

@@ -4,7 +4,7 @@
 #include "RenderUtils.h"
 
 #include "ShaderRepo.h"
-#include "Deferred/DeferredRendering.h"
+#include "DeferredRendering.h"
 
 #include "d3dx12.h"
 

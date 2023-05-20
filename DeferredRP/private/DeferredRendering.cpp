@@ -1,6 +1,6 @@
 #include "DeferredRendering.h"
 
-#include "RenderUtils.h"
+#include "CoreUtils.h"
 
 #include "DXGBufferDuffuseTexMeta.h"
 #include "DXGBufferNormalTexMeta.h"
@@ -15,6 +15,9 @@
 #include "DXBufferMeta.h"
 
 #include "DXDescriptorHeap.h"
+
+#include "DXBuffer.h"
+#include "DXTexture.h"
 
 namespace
 {
@@ -71,7 +74,7 @@ namespace
 				delete m_ctx.m_uploadBuffer;
 				delete m_ctx.m_uploadHeap;
 
-				utils::RunSync(m_ctx.m_done);
+				core::utils::RunSync(m_ctx.m_done);
 
 				delete &m_ctx;
 			}
@@ -116,7 +119,7 @@ namespace
 			void Do() override
 			{
 				m_ctx.m_uploadHeapReady = true;
-				utils::RunSync(new CopyBuffers(m_ctx));
+				core::utils::RunSync(new CopyBuffers(m_ctx));
 			}
 		};
 
@@ -179,7 +182,7 @@ namespace
 				}
 
 				m_ctx.m_uploadBuffer->Unmap();
-				utils::RunSync(new UploadReady(m_ctx));
+				core::utils::RunSync(new UploadReady(m_ctx));
 			}
 		};
 
@@ -197,7 +200,7 @@ namespace
 			{
 				m_ctx.m_buffer->Place(m_ctx.m_heap, 0);
 				m_ctx.m_heapReady = true;
-				utils::RunSync(new CopyBuffers(m_ctx));
+				core::utils::RunSync(new CopyBuffers(m_ctx));
 			}
 		};
 
@@ -241,7 +244,7 @@ namespace
 		Context* ctx = new Context();
 		ctx->m_done = done;
 
-		utils::RunSync(new CreateResources(*ctx));
+		core::utils::RunSync(new CreateResources(*ctx));
 	}
 
 	void LoadRenderTextures(jobs::Job* done)
@@ -293,7 +296,7 @@ namespace
 				m_surfaceNormalTex = m_ctx.m_normal;
 				m_positionTex = m_ctx.m_position;
 
-				utils::RunSync(m_ctx.m_done);
+				core::utils::RunSync(m_ctx.m_done);
 				delete& m_ctx;
 			}
 		};
@@ -310,7 +313,7 @@ namespace
 
 			void Do() override
 			{
-				Window* wnd = utils::GetWindow();
+				Window* wnd = core::utils::GetWindow();
 				m_ctx.m_diffuse = DXTexture::CreateRenderTargetTexture(deferred::DXGBufferDuffuseTexMeta::GetInstance(), wnd->m_width, wnd->m_height);
 				m_ctx.m_specular = DXTexture::CreateRenderTargetTexture(deferred::DXGBufferSpecularTexMeta::GetInstance(), wnd->m_width, wnd->m_height);
 				m_ctx.m_normal = DXTexture::CreateRenderTargetTexture(deferred::DXGBufferNormalTexMeta::GetInstance(), wnd->m_width, wnd->m_height);
@@ -350,7 +353,7 @@ namespace
 		Context* ctx = new Context();
 		ctx->m_done = done;
 
-		utils::RunSync(new CreateTextures(*ctx));
+		core::utils::RunSync(new CreateTextures(*ctx));
 	}
 
 
@@ -400,7 +403,7 @@ namespace
 				m_diffuseLitTex = m_ctx.m_diffuseLit;
 				m_specularLitTex = m_ctx.m_specularLit;
 
-				utils::RunSync(m_ctx.m_done);
+				core::utils::RunSync(m_ctx.m_done);
 				delete& m_ctx;
 			}
 		};
@@ -417,7 +420,7 @@ namespace
 
 			void Do() override
 			{
-				Window* wnd = utils::GetWindow();
+				Window* wnd = core::utils::GetWindow();
 				m_ctx.m_ambientLit = DXTexture::CreateRenderTargetTexture(deferred::DXGBufferAmbientLitTexMeta::GetInstance(), wnd->m_width, wnd->m_height);
 				m_ctx.m_diffuseLit = DXTexture::CreateRenderTargetTexture(deferred::DXGBufferDiffuseLitTexMeta::GetInstance(), wnd->m_width, wnd->m_height);
 				m_ctx.m_specularLit = DXTexture::CreateRenderTargetTexture(deferred::DXGBufferSpecularLitTexMeta::GetInstance(), wnd->m_width, wnd->m_height);
@@ -449,7 +452,7 @@ namespace
 		Context* ctx = new Context();
 		ctx->m_done = done;
 
-		utils::RunSync(new CreateTextures(*ctx));
+		core::utils::RunSync(new CreateTextures(*ctx));
 	}
 }
 
@@ -520,7 +523,7 @@ void rendering::deferred::LoadGBuffer(jobs::Job* done)
 				return;
 			}
 
-			utils::RunSync(m_ctx.m_done);
+			core::utils::RunSync(m_ctx.m_done);
 			delete &m_ctx;
 		}
 	};
