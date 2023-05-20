@@ -4,7 +4,7 @@
 #include "DXShader.h"
 #include "BaseObjectMeta.h"
 
-#include "RenderUtils.h"
+#include "CoreUtils.h"
 
 #define THROW_ERROR(hRes, error) \
 if (FAILED(hRes)) {\
@@ -16,7 +16,7 @@ rendering::DXMaterial::DXMaterial(const BaseObjectMeta& meta, const DXShader& ve
 	m_vertexShader(vertexShader),
 	m_pixelShader(pixelShader)
 {
-	DXDevice* device = utils::GetDevice();
+	DXDevice* device = core::utils::GetDevice();
 
 	THROW_ERROR(
 		device->GetDevice().CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator)),

@@ -1,47 +1,22 @@
 ﻿cmake_minimum_required (VERSION 3.8)
 
 add_library (Rendering
-	
-	
 	"public/Rendering.h"
 	"private/Rendering.cpp"
-	
 	"public/DXRendererMeta.h"
 	"private/DXRendererMeta.cpp"
 	"public/DXRenderer.h"
 	"private/DXRenderer.cpp"
-	
-	
 	"private/RenderFenceMeta.h"
 	"private/RenderFenceMeta.cpp"
 	"private/RenderUtils.h"
 	"private/RenderUtils.cpp"
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	"public/DXCameraMeta.h"
 	"private/DXCameraMeta.cpp"
 	"public/DXCamera.h"
 	"private/DXCamera.cpp"
 	"public/DXCameraBufferMeta.h"
 	"private/DXCameraBufferMeta.cpp"
-	
-	
-	
-	
 	"private/DXVertexShaderMeta.h"
 	"private/DXVertexShaderMeta.cpp"
 	"private/DXPixelShaderMeta.h"
@@ -49,20 +24,9 @@ add_library (Rendering
 	"private/DXComputeShaderMeta.h"
 	"private/DXComputeShaderMeta.cpp"
 	"private/Materials/DXUnlitErrorMaterial.h"
-	"public/DXMaterial.h"
-	"private/DXMaterial.cpp"
-	"public/DXMaterialMeta.h"
-	"private/DXMaterialMeta.cpp"
 	"private/Materials/DXUnlitErrorMaterial.cpp"
-	
-	
-	
-	
-	
-	
 	"private/Materials/DXUnlitErrorMaterialMeta.h"
 	"private/Materials/DXUnlitErrorMaterialMeta.cpp"
-	
 	"private/Materials/DXUnlitErrorMaterial.h"
 	"private/Materials/DXUnlitErrorMaterial.cpp"
 	"public/UpdaterMeta.h"
@@ -77,22 +41,6 @@ add_library (Rendering
 	"private/DXMaterialRepo.cpp"
 	"public/DXMaterialRepoMeta.h"
 	"private/DXMaterialRepoMeta.cpp"
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	"private/Materials/DXUnlitMaterialMetaTag.h"
 	"private/Materials/DXUnlitMaterialMetaTag.cpp"
 	"private/Materials/SharederRepo.h"
@@ -149,7 +97,7 @@ add_library (Rendering
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(Rendering INTERFACE PUBLIC Jobs DataLib Collada RenderingCore Scene RenderPass)
+target_link_libraries(Rendering INTERFACE PUBLIC Jobs DataLib Collada RenderingCore Scene RenderPass Materials)
 
 target_link_libraries(Rendering PRIVATE "d3d12.lib" "dxgi.lib" "d3dcompiler.lib" "dxguid.lib")
 
