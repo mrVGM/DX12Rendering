@@ -795,11 +795,6 @@ void rendering::DXDeferredRP::Execute()
     }
 }
 
-void rendering::DXDeferredRP::LoadLitTextures(jobs::Job* done)
-{
-    deferred::LoadGBufferLitTextures(done);
-}
-
 void rendering::DXDeferredRP::LoadLightsBuffer(jobs::Job* done)
 {
     LightsManager* lightsManager = GetLightsManager();
@@ -881,7 +876,7 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
     struct Context
     {
         DXDeferredRP* m_deferredRP = nullptr;
-        int m_itemsLeft = 3;
+        int m_itemsLeft = 4;
 
         jobs::Job* m_done = nullptr;
     };
@@ -922,9 +917,11 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
     ctx->m_deferredRP = this;
     ctx->m_done = done;
 
+    deferred::LoadGBuffer(new ItemReady(*ctx));
+    deferred::LoadGBufferLitTextures(new ItemReady(*ctx));
+
     LoadLightsBuffer(new ItemReady(*ctx));
     LoadShadowMap(new ItemReady(*ctx));
-    LoadLitTextures(new ItemReady(*ctx));
 }
 
 

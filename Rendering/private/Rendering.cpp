@@ -34,8 +34,6 @@
 #include "Materials/DXUnlitMaterial.h"
 #include "Materials/DXDeferredMaterial.h"
 
-#include "DeferredRendering.h"
-
 #include "DXDepthStencilTextureMeta.h"
 #include "DXDepthStencilDescriptorHeapMeta.h"
 
@@ -48,7 +46,6 @@ namespace
 	struct BootContext
 	{
 		bool m_camBufferLoaded = false;
-		bool m_gBufferReady = false;
 		bool m_rendererReady = false;
 	};
 
@@ -108,11 +105,6 @@ namespace
 				{
 					return;
 				}
-				
-				if (!m_ctx.m_gBufferReady)
-				{
-					return;
-				}
 
 				if (!m_ctx.m_rendererReady)
 				{
@@ -130,7 +122,6 @@ namespace
 
 		BootContext* ctx = new BootContext();
 		LoadCamAndBuffer(new ItemReady(*ctx, ctx->m_camBufferLoaded));
-		deferred::LoadGBuffer(new ItemReady(*ctx, ctx->m_gBufferReady));
 
 		DXRenderer* renderer = utils::GetRenderer();
 		renderer->LoadRPs(new ItemReady(*ctx, ctx->m_rendererReady));

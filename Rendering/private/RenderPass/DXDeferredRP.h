@@ -91,7 +91,6 @@ namespace rendering
 
 		void LoadLightsBuffer(jobs::Job* done);
 		void LoadShadowMap(jobs::Job* done);
-		void LoadLitTextures(jobs::Job* done);
 
 		void RenderShadowMap();
 		void RenderDeferred();
