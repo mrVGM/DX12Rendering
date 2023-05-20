@@ -125,6 +125,11 @@ ID3D12CommandList* rendering::DXLightsCalculationsMaterial::GenerateCommandList(
     UINT indexCount,
     UINT instanceIndex)
 {
+    if (!m_commandLists.empty())
+    {
+        return m_commandLists.back().Get();
+    }
+
     DXDevice* device = m_device;
 
     m_commandLists.push_back(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>());

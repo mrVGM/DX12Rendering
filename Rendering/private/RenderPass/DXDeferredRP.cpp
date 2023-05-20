@@ -385,7 +385,6 @@ void rendering::DXDeferredRP::Execute()
     RenderShadowMap();
 
     {
-        m_lightCalculationsMat->ResetCommandLists();
         DXBuffer* dummy = nullptr;
         ID3D12CommandList* commandList = m_lightCalculationsMat->GenerateCommandList(
             *deferred::GetRenderTextureVertexBuffer(), 
