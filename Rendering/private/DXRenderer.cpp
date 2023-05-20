@@ -16,7 +16,7 @@
 #include "DXClearDSTRP.h"
 #include "DXClearDSTRPMeta.h"
 #include "RenderPass/DXDeferredRP.h"
-#include "RenderPass/DXDeferredRPMeta.h"
+#include "DXDeferredRPMeta.h"
 
 #include "RenderPass/DXDisplaySMRP.h"
 #include "RenderPass/DXDisplaySMRPMeta.h"

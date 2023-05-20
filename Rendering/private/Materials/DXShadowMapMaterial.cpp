@@ -15,7 +15,7 @@
 #include "BaseObjectContainer.h"
 
 #include "RenderPass/DXDeferredRP.h"
-#include "RenderPass/DXDeferredRPMeta.h"
+#include "DXDeferredRPMeta.h"
 
 namespace
 {

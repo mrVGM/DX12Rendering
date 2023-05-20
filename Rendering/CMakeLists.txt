@@ -17,10 +17,6 @@ add_library (Rendering
 	"private/DXCamera.cpp"
 	"public/DXCameraBufferMeta.h"
 	"private/DXCameraBufferMeta.cpp"
-	
-	
-	
-	
 	"private/DXComputeShaderMeta.h"
 	"private/DXComputeShaderMeta.cpp"
 	"private/Materials/DXUnlitErrorMaterial.h"
@@ -33,18 +29,6 @@ add_library (Rendering
 	"private/UpdaterMeta.cpp"
 	"public/Updater.h"
 	"private/Updater.cpp"
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	"private/Materials/DXUnlitMaterialMeta.h"
 	"private/Materials/DXUnlitMaterialMeta.cpp"
 	"private/Materials/DXUnlitMaterial.h"
@@ -57,16 +41,12 @@ add_library (Rendering
 	"private/Deferred/DXGBufferNormalTexMeta.cpp"
 	"private/Deferred/DXGBufferPositionTexMeta.h"
 	"private/Deferred/DXGBufferPositionTexMeta.cpp"
-	"private/RenderPass/DXDeferredRPMeta.h"
-	"private/RenderPass/DXDeferredRPMeta.cpp"
 	"private/RenderPass/DXDeferredRP.h"
 	"private/RenderPass/DXDeferredRP.cpp"
 	"private/Materials/DXDeferredMaterial.h"
 	"private/Materials/DXDeferredMaterial.cpp"
 	"private/Materials/DXDeferredMaterialMeta.h"
 	"private/Materials/DXDeferredMaterialMeta.cpp"
-	
-	
 	"private/Deferred/DXGBufferSpecularTexMeta.h"
 	"private/Deferred/DXGBufferSpecularTexMeta.cpp"
 	"private/Deferred/DXGBufferAmbientLitTexMeta.h"
@@ -94,12 +74,13 @@ add_library (Rendering
 	"private/RenderPass/DXDisplaySMRP.h"
 	"private/RenderPass/DXDisplaySMRP.cpp"
 	"private/Materials/MaterialUtils.h"
- "private/Materials/MaterialUtils.cpp")
+	"private/Materials/MaterialUtils.cpp"
+)
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(Rendering INTERFACE PUBLIC Jobs DataLib Collada RenderingCore Scene RenderPass Materials UnlitRP)
+target_link_libraries(Rendering INTERFACE PUBLIC Jobs DataLib Collada RenderingCore Scene RenderPass Materials UnlitRP DeferredRP)
 
 target_link_libraries(Rendering PRIVATE "d3d12.lib" "dxgi.lib" "d3dcompiler.lib" "dxguid.lib")
 

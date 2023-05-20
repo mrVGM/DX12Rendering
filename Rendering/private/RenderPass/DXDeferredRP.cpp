@@ -1,6 +1,6 @@
 #include "RenderPass/DXDeferredRP.h"
 
-#include "RenderPass/DXDeferredRPMeta.h"
+#include "DXDeferredRPMeta.h"
 #include "RenderUtils.h"
 
 #include "Deferred/DeferredRendering.h"

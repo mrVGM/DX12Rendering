@@ -3,7 +3,13 @@
 add_library (UnlitRP
 	"public/DXUnlitRPMeta.h"
 	"private/DXUnlitRPMeta.cpp"
- "private/DXUnlitRP.cpp" "public/DXUnlitRP.h")
+	"private/DXUnlitRP.cpp"
+	"public/DXUnlitRP.h"
+	"private/DXUnlitRP.cpp"
+	"private/DXUnlitRPMeta.cpp"
+	"public/DXUnlitRP.h"
+	"public/DXUnlitRPMeta.h"
+)
 
 target_include_directories(UnlitRP INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(UnlitRP PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
