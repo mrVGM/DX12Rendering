@@ -42,10 +42,6 @@ namespace rendering
 
 		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_lightCalculationsAllocator;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_startList;
-		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_endList;
-
-		Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pipelineState;
-		Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature;
 
 		DXDescriptorHeap* m_rtvHeap;
 		DXDescriptorHeap* m_srvHeap;
@@ -70,13 +66,9 @@ namespace rendering
 		bool m_startListPrepared = false;
 		bool m_endListPrepared = false;
 
-		const DXShader& m_vertexShader;
-		const DXShader& m_pixelShader;
-
 		const DXShader& m_postLightingVertexShader;
 		const DXShader& m_postLightingPixelShader;
 
-		void CreateLightCalculationsPipelineStageAndRootSignature();
 		void CreatePostLightingPipelineStageAndRootSignature();
 
 		void CreateRTVHeap();
@@ -85,7 +77,6 @@ namespace rendering
 		void CreateRTVLitHeap();
 		void CreateSRVLitHeap();
 
-		void PrepareEndList();
 		void PrepareStartList();
 		void PreparePostLightingList();
 

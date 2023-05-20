@@ -33,6 +33,8 @@ if (FAILED(hRes)) {\
 
 namespace
 {
+    rendering::DXMaterial* m_lightCalculationsMat = nullptr;
+
     rendering::LightsManager* GetLightsManager()
     {
         using namespace rendering;
@@ -50,8 +52,6 @@ namespace
 
 rendering::DXDeferredRP::DXDeferredRP() :
     RenderPass(DXDeferredRPMeta::GetInstance()),
-    m_vertexShader(*rendering::shader_repo::GetDeferredRPVertexShader()),
-    m_pixelShader(*rendering::shader_repo::GetDeferredRPPixelShader()),
     m_postLightingVertexShader(*rendering::shader_repo::GetDeferredRPVertexShader()),
     m_postLightingPixelShader(*rendering::shader_repo::GetDeferredRPPostLightingPixelShader())
 {
@@ -70,14 +70,6 @@ rendering::DXDeferredRP::DXDeferredRP() :
 
         THROW_ERROR(
             m_startList->Close(),
-            "Can't close Command List!")
-
-        THROW_ERROR(
-            device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_lightCalculationsAllocator.Get(), nullptr, IID_PPV_ARGS(&m_endList)),
-            "Can't reset Command List!")
-
-        THROW_ERROR(
-            m_endList->Close(),
             "Can't close Command List!")
     }
 
@@ -126,116 +118,6 @@ D3D12_CPU_DESCRIPTOR_HANDLE rendering::DXDeferredRP::GetDescriptorHandleFor(GBuf
 {
     D3D12_CPU_DESCRIPTOR_HANDLE handle = m_rtvLitHeap->GetDescriptorHandle(texType);
     return handle;
-}
-
-
-void rendering::DXDeferredRP::CreateLightCalculationsPipelineStageAndRootSignature()
-{
-    using Microsoft::WRL::ComPtr;
-
-    DXDevice* device = utils::GetDevice();
-
-    {
-        D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
-
-        // This is the highest version the sample supports. If CheckFeatureSupport succeeds, the HighestVersion returned will not be greater than this.
-        featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
-
-        if (FAILED(device->GetDevice().CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData)))) {
-            featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
-        }
-
-        D3D12_STATIC_SAMPLER_DESC sampler = {};
-        sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
-        sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-        sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-        sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-        sampler.MipLODBias = 0;
-        sampler.MaxAnisotropy = 0;
-        sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
-        sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
-        sampler.MinLOD = 0.0f;
-        sampler.MaxLOD = D3D12_FLOAT32_MAX;
-        sampler.ShaderRegister = 0;
-        sampler.RegisterSpace = 0;
-        sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-
-        // Allow input layout and deny uneccessary access to certain pipeline stages.
-        D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
-            D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
-            D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-            D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-            D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
-
-        CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
-        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 5, 0, 0);
-        CD3DX12_ROOT_PARAMETER1 rootParameters[4];
-        rootParameters[0].InitAsConstantBufferView(0, 0);
-        rootParameters[1].InitAsConstantBufferView(1, 0);
-        rootParameters[2].InitAsConstantBufferView(2, 0);
-        rootParameters[3].InitAsDescriptorTable(1, ranges, D3D12_SHADER_VISIBILITY_PIXEL);
-
-        CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-        rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, &sampler, rootSignatureFlags);
-
-        ComPtr<ID3DBlob> signature;
-        ComPtr<ID3DBlob> error;
-        THROW_ERROR(
-            D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, featureData.HighestVersion, &signature, &error),
-            "Can't serialize a root signature!")
-
-        THROW_ERROR(
-            device->GetDevice().CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)),
-            "Can't create a root signature!")
-    }
-
-
-    // Create the pipeline state, which includes compiling and loading shaders.
-    {
-        // Define the vertex input layout.
-        D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
-        {
-            { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-            { "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 8, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
-        };
-
-        // Describe and create the graphics pipeline state object (PSO).
-        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-        psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
-        psoDesc.pRootSignature = m_rootSignature.Get();
-        psoDesc.VS = CD3DX12_SHADER_BYTECODE(m_vertexShader.GetCompiledShader());
-        psoDesc.PS = CD3DX12_SHADER_BYTECODE(m_pixelShader.GetCompiledShader());
-        psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-
-        for (int i = 0; i < 3; ++i)
-        {
-            psoDesc.BlendState.RenderTarget[i].BlendEnable = TRUE;
-            psoDesc.BlendState.RenderTarget[i].SrcBlend = D3D12_BLEND::D3D12_BLEND_SRC_ALPHA;
-            psoDesc.BlendState.RenderTarget[i].DestBlend = D3D12_BLEND::D3D12_BLEND_INV_SRC_ALPHA;
-            psoDesc.BlendState.RenderTarget[i].BlendOp = D3D12_BLEND_OP::D3D12_BLEND_OP_ADD;
-            psoDesc.BlendState.RenderTarget[i].BlendOpAlpha = D3D12_BLEND_OP::D3D12_BLEND_OP_ADD;
-            psoDesc.BlendState.RenderTarget[i].SrcBlendAlpha = D3D12_BLEND::D3D12_BLEND_ONE;
-            psoDesc.BlendState.RenderTarget[i].DestBlendAlpha = D3D12_BLEND::D3D12_BLEND_ZERO;
-            psoDesc.BlendState.RenderTarget[i].RenderTargetWriteMask = 0x0f;
-        }
-
-        psoDesc.DepthStencilState.DepthEnable = false;
-        psoDesc.DepthStencilState.StencilEnable = false;
-        psoDesc.SampleMask = UINT_MAX;
-        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-        psoDesc.NumRenderTargets = 3;
-
-        for (int i = 0; i < 3; ++i)
-        {
-            psoDesc.RTVFormats[i] = DXGI_FORMAT_R32G32B32A32_FLOAT;
-        }
-
-        psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
-        psoDesc.SampleDesc.Count = 1;
-        THROW_ERROR(
-            device->GetDevice().CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)),
-            "Can't create Graphics Pipeline State!")
-    }
 }
 
 void rendering::DXDeferredRP::CreatePostLightingPipelineStageAndRootSignature()
@@ -380,106 +262,6 @@ void rendering::DXDeferredRP::CreateSRVLitHeap()
     textures.push_back(rendering::deferred::GetGBufferDiffuseLitTex());
     textures.push_back(rendering::deferred::GetGBufferSpecularLitTex());
     m_srvLitHeap = DXDescriptorHeap::CreateSRVDescriptorHeap(DXDescriptorHeapMeta::GetInstance(), textures);
-}
-
-void rendering::DXDeferredRP::PrepareEndList()
-{
-    if (m_endListPrepared)
-    {
-        return;
-    }
-
-    DXDevice* device = utils::GetDevice();
-    DXSwapChain* swapChain = utils::GetSwapChain();
-
-    THROW_ERROR(
-        m_endList->Reset(m_lightCalculationsAllocator.Get(), m_pipelineState.Get()),
-        "Can't reset Command List!")
-
-    LightsManager* lightsManager = GetLightsManager();
-
-    {
-        CD3DX12_RESOURCE_BARRIER barrier[] =
-        {
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(lightsManager->GetShadowMap()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferAmbientLitTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferDiffuseLitTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularLitTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET)
-        };
-        m_endList->ResourceBarrier(_countof(barrier), barrier);
-    }
-
-    {
-        const float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-        m_endList->ClearRenderTargetView(GetDescriptorHandleFor(GBufferLitTexType::AmbientLit), clearColor, 0, nullptr);
-        m_endList->ClearRenderTargetView(GetDescriptorHandleFor(GBufferLitTexType::DiffuseLit), clearColor, 0, nullptr);
-        m_endList->ClearRenderTargetView(GetDescriptorHandleFor(GBufferLitTexType::SpecularLit), clearColor, 0, nullptr);
-    }
-
-    {
-        CD3DX12_RESOURCE_BARRIER barrier[] =
-        {
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferDiffuseTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferNormalTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferPositionTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
-        };
-        m_endList->ResourceBarrier(_countof(barrier), barrier);
-    }
-
-
-    m_endList->SetGraphicsRootSignature(m_rootSignature.Get());
-    ID3D12DescriptorHeap* descriptorHeaps[] = { m_srvHeap->GetDescriptorHeap() };
-    m_endList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
-
-    m_endList->SetGraphicsRootConstantBufferView(0, utils::GetCameraBuffer()->GetBuffer()->GetGPUVirtualAddress());
-    m_endList->SetGraphicsRootConstantBufferView(1, m_lightsBuffer->GetBuffer()->GetGPUVirtualAddress());
-    m_endList->SetGraphicsRootConstantBufferView(2, lightsManager->GetSMSettingsBuffer()->GetBuffer()->GetGPUVirtualAddress());
-    m_endList->SetGraphicsRootDescriptorTable(3, descriptorHeaps[0]->GetGPUDescriptorHandleForHeapStart());
-
-    m_endList->RSSetViewports(1, &swapChain->GetViewport());
-    m_endList->RSSetScissorRects(1, &swapChain->GetScissorRect());
-
-    D3D12_CPU_DESCRIPTOR_HANDLE handles[] =
-    {
-        GetDescriptorHandleFor(DXDeferredRP::GBufferLitTexType::AmbientLit),
-        GetDescriptorHandleFor(DXDeferredRP::GBufferLitTexType::DiffuseLit),
-        GetDescriptorHandleFor(DXDeferredRP::GBufferLitTexType::SpecularLit),
-    };
-    m_endList->OMSetRenderTargets(_countof(handles), handles, FALSE, nullptr);
-
-    D3D12_VERTEX_BUFFER_VIEW vertexBufferViews[1];
-    D3D12_VERTEX_BUFFER_VIEW& realVertexBufferView = vertexBufferViews[0];
-    DXBuffer* vertexBuffer = rendering::deferred::GetRenderTextureVertexBuffer();
-    realVertexBufferView.BufferLocation = vertexBuffer->GetBuffer()->GetGPUVirtualAddress();
-    realVertexBufferView.StrideInBytes = vertexBuffer->GetStride();
-    realVertexBufferView.SizeInBytes = vertexBuffer->GetBufferSize();
-
-    m_endList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    m_endList->IASetVertexBuffers(0, _countof(vertexBufferViews), vertexBufferViews);
-
-    m_endList->DrawInstanced(6, 1, 0, 0);
-
-    {
-        CD3DX12_RESOURCE_BARRIER barrier[] =
-        {
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferDiffuseTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferNormalTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferPositionTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
-
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferAmbientLitTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferDiffuseLitTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularLitTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT)
-        };
-        m_endList->ResourceBarrier(_countof(barrier), barrier);
-    }
-
-    THROW_ERROR(
-        m_endList->Close(),
-        "Can't close Command List!")
-
-    m_endListPrepared = true;
 }
 
 void rendering::DXDeferredRP::PrepareStartList()
@@ -769,7 +551,6 @@ void rendering::DXDeferredRP::RenderDeferred()
 void rendering::DXDeferredRP::Prepare()
 {
     PrepareStartList();
-    PrepareEndList();
     PreparePostLightingList();
 }
 
@@ -785,7 +566,9 @@ void rendering::DXDeferredRP::Execute()
     RenderShadowMap();
 
     {
-        ID3D12CommandList* ppCommandLists[] = { m_endList.Get() };
+        m_lightCalculationsMat->ResetCommandLists();
+        ID3D12CommandList* commandList = m_lightCalculationsMat->GenerateCommandList(*deferred::GetRenderTextureVertexBuffer(), *deferred::GetRenderTextureVertexBuffer(), *deferred::GetRenderTextureVertexBuffer(), 0, 0, 0);
+        ID3D12CommandList* ppCommandLists[] = { commandList };
         commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
     }
 
@@ -899,7 +682,6 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
                 return;
             }
 
-            m_ctx.m_deferredRP->CreateLightCalculationsPipelineStageAndRootSignature();
             m_ctx.m_deferredRP->CreatePostLightingPipelineStageAndRootSignature();
             
             m_ctx.m_deferredRP->CreateRTVHeap();
@@ -909,6 +691,11 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
             m_ctx.m_deferredRP->CreateSRVLitHeap();
 
             utils::RunSync(m_ctx.m_done);
+
+            m_lightCalculationsMat = new DXLightsCalculationsMaterial(
+                *shader_repo::GetDeferredRPVertexShader(),
+                *shader_repo::GetDeferredRPPixelShader());
+
             delete& m_ctx;
         }
     };

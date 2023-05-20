@@ -110,6 +110,7 @@ rendering::DXLightsCalculationsMaterial::DXLightsCalculationsMaterial(const rend
 {
     CacheObjects();
     CreatePipelineStateAndRootSignature();
+    CreateDescriptorHeaps();
 }
 
 rendering::DXLightsCalculationsMaterial::~DXLightsCalculationsMaterial()
@@ -124,15 +125,16 @@ ID3D12CommandList* rendering::DXLightsCalculationsMaterial::GenerateCommandList(
     UINT indexCount,
     UINT instanceIndex)
 {
+    DXDevice* device = m_device;
+
     m_commandLists.push_back(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>());
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList = m_commandLists.back();
 
-    DXDevice* device = m_device;
-    DXSwapChain* swapChain = m_swapChain;
-
     THROW_ERROR(
-        commandList->Reset(this->m_commandAllocator.Get(), m_pipelineState.Get()),
+        device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), m_pipelineState.Get(), IID_PPV_ARGS(&commandList)),
         "Can't reset Command List!")
+
+    DXSwapChain* swapChain = m_swapChain;
 
     {
         CD3DX12_RESOURCE_BARRIER barrier[] =
@@ -341,7 +343,7 @@ void rendering::DXLightsCalculationsMaterial::CreateDescriptorHeaps()
         textures.push_back(deferred::GetGBufferDiffuseLitTex());
         textures.push_back(deferred::GetGBufferSpecularLitTex());
 
-        m_rtvHeap = DXDescriptorHeap::CreateSRVDescriptorHeap(DXDescriptorHeapMeta::GetInstance(), textures);
+        m_rtvHeap = DXDescriptorHeap::CreateRTVDescriptorHeap(DXDescriptorHeapMeta::GetInstance(), textures);
     }
 }
 
