@@ -33,10 +33,10 @@ add_library (Rendering
 	"private/UpdaterMeta.cpp"
 	"public/Updater.h"
 	"private/Updater.cpp"
-	"private/RenderPass/DXUnlitRPMeta.h"
-	"private/RenderPass/DXUnlitRPMeta.cpp"
-	"private/RenderPass/DXUnlitRP.h"
-	"private/RenderPass/DXUnlitRP.cpp"
+	
+	
+	
+	
 	
 	
 	
@@ -99,7 +99,7 @@ add_library (Rendering
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(Rendering INTERFACE PUBLIC Jobs DataLib Collada RenderingCore Scene RenderPass Materials)
+target_link_libraries(Rendering INTERFACE PUBLIC Jobs DataLib Collada RenderingCore Scene RenderPass Materials UnlitRP)
 
 target_link_libraries(Rendering PRIVATE "d3d12.lib" "dxgi.lib" "d3dcompiler.lib" "dxguid.lib")
 

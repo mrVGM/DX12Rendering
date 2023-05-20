@@ -1,9 +1,18 @@
-#include "RenderPass/DXUnlitRP.h"
+#include "DXUnlitRP.h"
 
-#include "RenderPass/DXUnlitRPMeta.h"
-#include "RenderUtils.h"
+#include "DXUnlitRPMeta.h"
+#include "CoreUtils.h"
 
 #include "DXUnlitMaterialMetaTag.h"
+
+#include "DXScene.h"
+#include "DXSceneMeta.h"
+
+#include "BaseObjectContainer.h"
+
+#include "DXMaterial.h"
+#include "DXMaterialRepo.h"
+#include "DXMaterialRepoMeta.h"
 
 #include <set>
 
@@ -12,11 +21,60 @@ if (FAILED(hRes)) {\
     throw error;\
 }
 
+namespace
+{
+    rendering::DXSwapChain* m_swapChain = nullptr;
+    rendering::DXCommandQueue* m_commandQueue = nullptr;
+    rendering::DXScene* m_scene = nullptr;
+    rendering::DXMaterialRepo* m_repo = nullptr;
+
+    void CacheObjects()
+    {
+        using namespace rendering;
+
+        if (!m_swapChain)
+        {
+            m_swapChain = core::utils::GetSwapChain();
+        }
+
+        if (!m_commandQueue)
+        {
+            m_commandQueue = core::utils::GetCommandQueue();
+        }
+
+        if (!m_scene)
+        {
+            BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+            BaseObject* obj = container.GetObjectOfClass(DXSceneMeta::GetInstance());
+
+            if (!obj)
+            {
+                throw "Can't Find Scene!";
+            }
+
+            m_scene = static_cast<DXScene*>(obj);
+        }
+
+        if (!m_repo)
+        {
+            BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+            BaseObject* obj = container.GetObjectOfClass(DXMaterialRepoMeta::GetInstance());
+
+            if (!obj)
+            {
+                throw "Can't Find Material Repo!";
+            }
+
+            m_repo = static_cast<DXMaterialRepo*>(obj);
+        }
+    }
+}
+
 void rendering::DXUnlitRP::Create()
 {
     using Microsoft::WRL::ComPtr;
 
-    DXDevice* device = rendering::utils::GetDevice();
+    DXDevice* device = core::utils::GetDevice();
     if (!device)
     {
         throw "No device found!";
@@ -45,28 +103,16 @@ void rendering::DXUnlitRP::Create()
 
 void rendering::DXUnlitRP::Prepare()
 {
-    DXSwapChain* swapChain = rendering::utils::GetSwapChain();
-    if (!swapChain)
-    {
-        throw "No Swap Chain found!";
-    }
-
-    // Command list allocators can only be reset when the associated 
-    // command lists have finished execution on the GPU; apps should use 
-    // fences to determine GPU execution progress.
     THROW_ERROR(
         m_commandAllocator->Reset(),
         "Can't reset Command Allocator!")
 
-    // However, when ExecuteCommandList() is called on a particular command 
-    // list, that command list can then be reset at any time and must be before 
-    // re-recording.
     THROW_ERROR(
         m_startList->Reset(m_commandAllocator.Get(), nullptr),
         "Can't reset Command List!")
 
     {
-        CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(swapChain->GetCurrentRenderTarget(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+        CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_swapChain->GetCurrentRenderTarget(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
         m_startList->ResourceBarrier(1, &barrier);
     }
 
@@ -79,7 +125,7 @@ void rendering::DXUnlitRP::Prepare()
         "Can't reset Command List!")
 
     {
-        CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(swapChain->GetCurrentRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+        CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_swapChain->GetCurrentRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
         m_endList->ResourceBarrier(1, &barrier);
     }
 
@@ -93,24 +139,22 @@ void rendering::DXUnlitRP::Prepare()
 
 void rendering::DXUnlitRP::Execute()
 {
-    DXCommandQueue* commandQueue = rendering::utils::GetCommandQueue();
-
     {
         ID3D12CommandList* ppCommandLists[] = { m_startList.Get() };
-        commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+        m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
     }
 
     RenderUnlit();
 
     {
         ID3D12CommandList* ppCommandLists[] = { m_endList.Get() };
-        commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+        m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
     }
 }
 
 void rendering::DXUnlitRP::Load(jobs::Job* done)
 {
-    utils::RunSync(done);
+    core::utils::RunSync(done);
 }
 
 #undef THROW_ERROR
@@ -118,6 +162,7 @@ void rendering::DXUnlitRP::Load(jobs::Job* done)
 rendering::DXUnlitRP::DXUnlitRP() :
     RenderPass(DXUnlitRPMeta::GetInstance())
 {
+    CacheObjects();
     Create();
 }
 
@@ -132,19 +177,16 @@ rendering::DXUnlitRP::~DXUnlitRP()
 
 void rendering::DXUnlitRP::RenderUnlit()
 {
-    DXScene* scene = utils::GetScene();
-
-    DXMaterialRepo* repo = utils::GetMaterialRepo();
-    DXMaterial* errorMat = repo->GetMaterial("error");
+    DXMaterial* errorMat = m_repo->GetMaterial("error");
     if (errorMat)
     {
         errorMat->ResetCommandLists();
     }
 
-    for (int i = 0; i < scene->m_scenesLoaded; ++i)
+    for (int i = 0; i < m_scene->m_scenesLoaded; ++i)
     {
-        collada::ColladaScene& curColladaScene = *scene->m_colladaScenes[i];
-        const DXScene::SceneResources& curSceneResources = scene->m_sceneResources[i];
+        collada::ColladaScene& curColladaScene = *m_scene->m_colladaScenes[i];
+        const DXScene::SceneResources& curSceneResources = m_scene->m_sceneResources[i];
 
         collada::Scene& s = curColladaScene.GetScene();
 
@@ -153,7 +195,7 @@ void rendering::DXUnlitRP::RenderUnlit()
             collada::Object& obj = it->second;
             for (auto it = obj.m_materialOverrides.begin(); it != obj.m_materialOverrides.end(); ++it)
             {
-                DXMaterial* mat = repo->GetMaterial(*it);
+                DXMaterial* mat = m_repo->GetMaterial(*it);
                 if (!mat)
                 {
                     continue;
@@ -168,10 +210,10 @@ void rendering::DXUnlitRP::RenderUnlit()
     }
 
     std::list<ID3D12CommandList*> unlitLists;
-    for (int i = 0; i < scene->m_scenesLoaded; ++i)
+    for (int i = 0; i < m_scene->m_scenesLoaded; ++i)
     {
-        collada::ColladaScene& curColladaScene = *scene->m_colladaScenes[i];
-        const DXScene::SceneResources& curSceneResources = scene->m_sceneResources[i];
+        collada::ColladaScene& curColladaScene = *m_scene->m_colladaScenes[i];
+        const DXScene::SceneResources& curSceneResources = m_scene->m_sceneResources[i];
 
         collada::Scene& s = curColladaScene.GetScene();
 
@@ -184,7 +226,7 @@ void rendering::DXUnlitRP::RenderUnlit()
 
             for (auto it = geo.m_materials.begin(); it != geo.m_materials.end(); ++it)
             {
-                DXMaterial* mat = repo->GetMaterial(*matOverrideIt);
+                DXMaterial* mat = m_repo->GetMaterial(*matOverrideIt);
                 ++matOverrideIt;
 
                 const DXScene::GeometryResources& geometryResources = curSceneResources.m_geometryResources.find(obj.m_geometry)->second;
@@ -232,6 +274,5 @@ void rendering::DXUnlitRP::RenderUnlit()
         m_commandListsCache[index++] = *it;
     }
 
-    DXCommandQueue* commandQueue = utils::GetCommandQueue();
-    commandQueue->GetCommandQueue()->ExecuteCommandLists(numLists, m_commandListsCache);
+    m_commandQueue->GetCommandQueue()->ExecuteCommandLists(numLists, m_commandListsCache);
 }
