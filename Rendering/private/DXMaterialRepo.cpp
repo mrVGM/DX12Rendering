@@ -12,56 +12,6 @@
 
 namespace
 {
-	void LoadCyanMaterial()
-	{
-		using namespace rendering;
-
-		struct Context
-		{
-			DXUnlitMaterial* m_material = nullptr;
-		};
-
-		class SettingsBufferReady : public jobs::Job
-		{
-		private:
-			Context m_ctx;
-		public:
-			SettingsBufferReady(const Context& ctx) :
-				m_ctx(ctx)
-			{
-			}
-
-			void Do() override
-			{
-				DXBuffer* buffer = m_ctx.m_material->GetSettingsBuffer();
-				float color[] = { 0, 1, 1, 1 };
-				buffer->CopyData(color, _countof(color) * sizeof(float));
-
-				DXMaterialRepo* repo = utils::GetMaterialRepo();
-				repo->Register("cyan", *m_ctx.m_material);
-			}
-		};
-
-		class CreateUnlitMaterial : public jobs::Job
-		{
-		private:
-			Context m_ctx;
-		public:
-			CreateUnlitMaterial(const Context& ctx) :
-				m_ctx(ctx)
-			{
-			}
-			void Do() override
-			{
-				m_ctx.m_material = new DXUnlitMaterial(*shader_repo::GetMainVertexShader(), *shader_repo::GetUnlitPixelShader());
-				m_ctx.m_material->CreateSettingsBuffer(new SettingsBufferReady(m_ctx));
-			}
-		};
-
-		Context ctx;
-		utils::RunSync(new CreateUnlitMaterial(ctx));
-	}
-
 	void LoadMaterial(const collada::ColladaMaterial& material)
 	{
 		using namespace rendering;
@@ -150,48 +100,4 @@ rendering::DXMaterial* rendering::DXMaterialRepo::GetMaterial(const std::string&
 void rendering::DXMaterialRepo::Register(const std::string& name, rendering::DXMaterial& material)
 {
 	m_repo[name] = &material;
-}
-
-void rendering::DXMaterialRepo::LoadErrorMaterial()
-{
-	DXShader* ps = rendering::shader_repo::GetErrorPixelShader();
-	DXShader* vs = rendering::shader_repo::GetMainVertexShader();
-
-	DXMaterial* errorMat = new DXUnlitErrorMaterial(*vs, *ps);
-	DXMaterialRepo* repo = utils::GetMaterialRepo();
-	Register("error", *errorMat);
-}
-
-void rendering::DXMaterialRepo::EnableMaterialLoading()
-{
-	m_canLoadMaterials = true;
-
-	LoadErrorMaterial();
-
-	std::list<const collada::ColladaMaterial*> cache = m_colladaMaterialsToLoad;
-	m_colladaMaterialsToLoad.clear();
-
-	for (auto it = cache.begin(); it != cache.end(); ++it)
-	{
-		LoadMaterial(*(*it));
-	}
-}
-
-void rendering::DXMaterialRepo::LoadColladaMaterial(const collada::ColladaMaterial& material)
-{
-	if (!m_canLoadMaterials)
-	{
-		m_colladaMaterialsToLoad.push_back(&material);
-		return;
-	}
-
-	std::list<const collada::ColladaMaterial*> cache = m_colladaMaterialsToLoad;
-	m_colladaMaterialsToLoad.clear();
-
-	for (auto it = cache.begin(); it != cache.end(); ++it)
-	{
-		LoadMaterial(*(*it));
-	}
-
-	LoadMaterial(material);
 }

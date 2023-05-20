@@ -265,6 +265,7 @@ void rendering::utils::CacheObjects()
 	GetMainJobSystem();
 	GetLoadJobSystem();
 	GetRenderer();
+	GetMaterialRepo();
 
 	return;
 }

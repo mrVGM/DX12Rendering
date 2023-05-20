@@ -41,6 +41,8 @@
 #include "DXDepthStencilTextureMeta.h"
 #include "DXDepthStencilDescriptorHeapMeta.h"
 
+#include "Materials/MaterialUtils.h"
+
 #include <iostream>
 
 namespace
@@ -124,8 +126,7 @@ namespace
 				Updater* updater = utils::GetUpdater();
 				updater->Start();
 
-				DXMaterialRepo* repo = utils::GetMaterialRepo();
-				repo->EnableMaterialLoading();
+				material_utils::EnableMaterialLoading();
 			}
 		};
 
@@ -155,13 +156,11 @@ namespace
 				int sceneIndex = scene->m_scenesLoaded;
 				++scene->m_scenesLoaded;
 
-				DXMaterialRepo* repo = utils::GetMaterialRepo();
-
 				const collada::Scene& justLoaded = scene->m_colladaScenes[sceneIndex]->GetScene();
 				for (auto it = justLoaded.m_materials.begin(); it != justLoaded.m_materials.end(); ++it)
 				{
 					const collada::ColladaMaterial& mat = it->second;
-					repo->LoadColladaMaterial(mat);
+					material_utils::LoadMaterial(mat);
 				}
 			}
 		};

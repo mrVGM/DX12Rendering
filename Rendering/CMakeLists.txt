@@ -92,7 +92,9 @@ add_library (Rendering
 	"private/RenderPass/DXDisplaySMRPMeta.h"
 	"private/RenderPass/DXDisplaySMRPMeta.cpp"
 	"private/RenderPass/DXDisplaySMRP.h"
-	"private/RenderPass/DXDisplaySMRP.cpp")
+	"private/RenderPass/DXDisplaySMRP.cpp"
+	"private/Materials/MaterialUtils.h"
+ "private/Materials/MaterialUtils.cpp")
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")

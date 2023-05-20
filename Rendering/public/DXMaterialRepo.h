@@ -15,8 +15,6 @@ namespace rendering
 	{
 	private:
 		std::map<std::string, DXMaterial*> m_repo;
-		void LoadErrorMaterial();
-		bool m_canLoadMaterials = false;
 		std::list<const collada::ColladaMaterial*> m_colladaMaterialsToLoad;
 
 	public:
@@ -25,8 +23,5 @@ namespace rendering
 
 		DXMaterial* GetMaterial(const std::string& name) const;
 		void Register(const std::string& name, DXMaterial& material);
-
-		void EnableMaterialLoading();
-		void LoadColladaMaterial(const collada::ColladaMaterial& material);
 	};
 }
