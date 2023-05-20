@@ -15,7 +15,6 @@ namespace rendering
 	{
 	private:
 		std::map<std::string, DXMaterial*> m_repo;
-		std::list<const collada::ColladaMaterial*> m_colladaMaterialsToLoad;
 
 	public:
 		DXMaterialRepo();

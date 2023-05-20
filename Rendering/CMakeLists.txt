@@ -37,10 +37,10 @@ add_library (Rendering
 	"private/RenderPass/DXUnlitRPMeta.cpp"
 	"private/RenderPass/DXUnlitRP.h"
 	"private/RenderPass/DXUnlitRP.cpp"
-	"public/DXMaterialRepo.h"
-	"private/DXMaterialRepo.cpp"
-	"public/DXMaterialRepoMeta.h"
-	"private/DXMaterialRepoMeta.cpp"
+	
+	
+	
+	
 	
 	
 	"private/Materials/SharederRepo.h"
