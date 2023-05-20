@@ -18,6 +18,8 @@
 #include "DXDescriptorHeapMeta.h"
 #include "DXShadowMapDSDescriptorHeapMeta.h"
 
+#include "DXLightsBufferMeta.h"
+
 #include <DirectXMath.h>
 
 namespace
@@ -451,7 +453,7 @@ void rendering::LightsManager::LoadLightsBuffer(jobs::Job* done)
 		}
 		void Do() override
 		{
-			m_ctx.m_buffer = new DXBuffer(DXBufferMeta::GetInstance());
+			m_ctx.m_buffer = new DXBuffer(DXLightsBufferMeta::GetInstance());
 			m_ctx.m_buffer->SetBufferSizeAndFlags(256, D3D12_RESOURCE_FLAG_NONE);
 			m_ctx.m_buffer->SetBufferStride(256);
 

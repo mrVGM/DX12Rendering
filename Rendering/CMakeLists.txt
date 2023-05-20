@@ -15,8 +15,8 @@ add_library (Rendering
 	"private/DXCameraMeta.cpp"
 	"public/DXCamera.h"
 	"private/DXCamera.cpp"
-	"public/DXCameraBufferMeta.h"
-	"private/DXCameraBufferMeta.cpp"
+	
+	
 	"private/DXComputeShaderMeta.h"
 	"private/DXComputeShaderMeta.cpp"
 	"private/Materials/DXUnlitErrorMaterial.h"
@@ -78,7 +78,18 @@ add_library (Rendering
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Rendering PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(Rendering INTERFACE PUBLIC Jobs DataLib Collada RenderingCore Scene RenderPass Materials UnlitRP DeferredRP)
+target_link_libraries(Rendering INTERFACE PUBLIC 
+	Jobs 
+	DataLib 
+	Collada 
+	RenderingCore 
+	Scene 
+	RenderPass 
+	Materials 
+	UnlitRP 
+	DeferredRP
+	CommonResources
+)
 
 target_link_libraries(Rendering PRIVATE "d3d12.lib" "dxgi.lib" "d3dcompiler.lib" "dxguid.lib")
 

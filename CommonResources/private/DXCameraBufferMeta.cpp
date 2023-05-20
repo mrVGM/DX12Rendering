@@ -1,12 +1,14 @@
 #include "DXCameraBufferMeta.h"
 
+#include "DXBufferMeta.h"
+
 namespace
 {
 	rendering::DXCameraBufferMeta m_meta;
 }
 
 rendering::DXCameraBufferMeta::DXCameraBufferMeta() :
-	BaseObjectMeta(nullptr)
+	BaseObjectMeta(&DXBufferMeta::GetInstance())
 {
 }
 
