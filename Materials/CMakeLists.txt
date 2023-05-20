@@ -5,7 +5,7 @@ add_library (Materials
 	"private/DXMaterial.cpp"
 	"public/DXMaterialMeta.h"
 	"private/DXMaterialMeta.cpp"
- "private/DXUnlitMaterialMetaTag.cpp" "public/DXUnlitMaterialMetaTag.h" "private/DXDeferredMaterialMetaTag.cpp" "public/DXDeferredMaterialMetaTag.h" "public/DXMaterialRepo.h" "public/DXMaterialRepoMeta.h" "private/DXMaterialRepo.cpp" "private/DXMaterialRepoMeta.cpp")
+ "private/DXUnlitMaterialMetaTag.cpp" "public/DXUnlitMaterialMetaTag.h" "private/DXDeferredMaterialMetaTag.cpp" "public/DXDeferredMaterialMetaTag.h" "public/DXMaterialRepo.h" "public/DXMaterialRepoMeta.h" "private/DXMaterialRepo.cpp" "private/DXMaterialRepoMeta.cpp" "private/ShaderRepo.cpp" "public/ShaderRepo.h" "private/DXVertexShaderMeta.cpp" "private/DXVertexShaderMeta.h" "private/DXPixelShaderMeta.cpp" "private/DXPixelShaderMeta.h")
 
 target_include_directories(Materials INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Materials PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")

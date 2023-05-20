@@ -17,10 +17,10 @@ add_library (Rendering
 	"private/DXCamera.cpp"
 	"public/DXCameraBufferMeta.h"
 	"private/DXCameraBufferMeta.cpp"
-	"private/DXVertexShaderMeta.h"
-	"private/DXVertexShaderMeta.cpp"
-	"private/DXPixelShaderMeta.h"
-	"private/DXPixelShaderMeta.cpp"
+	
+	
+	
+	
 	"private/DXComputeShaderMeta.h"
 	"private/DXComputeShaderMeta.cpp"
 	"private/Materials/DXUnlitErrorMaterial.h"
@@ -43,8 +43,8 @@ add_library (Rendering
 	
 	
 	
-	"private/Materials/SharederRepo.h"
-	"private/Materials/SharederRepo.cpp"
+	
+	
 	"private/Materials/DXUnlitMaterialMeta.h"
 	"private/Materials/DXUnlitMaterialMeta.cpp"
 	"private/Materials/DXUnlitMaterial.h"

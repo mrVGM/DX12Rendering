@@ -20,8 +20,6 @@
 #include "DXDepthStencilDescriptorHeapMeta.h"
 
 #include "DXShader.h"
-#include "DXVertexShaderMeta.h"
-#include "DXPixelShaderMeta.h"
 
 #include "Materials/DXUnlitErrorMaterial.h"
 #include "Materials/DXUnlitErrorMaterialMeta.h"

@@ -3,7 +3,7 @@
 #include "RenderPass/DXDisplaySMRPMeta.h"
 #include "RenderUtils.h"
 
-#include "Materials/SharederRepo.h"
+#include "ShaderRepo.h"
 #include "Deferred/DeferredRendering.h"
 
 #include "d3dx12.h"

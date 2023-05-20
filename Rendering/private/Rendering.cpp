@@ -24,15 +24,13 @@
 #include "BaseObjectContainer.h"
 
 #include "DXShader.h"
-#include "DXVertexShaderMeta.h"
-#include "DXPixelShaderMeta.h"
 #include "Updater.h"
 
 #include "DXMaterialRepo.h"
 
 #include "DataLib.h"
 
-#include "Materials/SharederRepo.h"
+#include "ShaderRepo.h"
 #include "Materials/DXUnlitMaterial.h"
 #include "Materials/DXDeferredMaterial.h"
 
