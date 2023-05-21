@@ -100,7 +100,7 @@ void rendering::DXCamera::UpdateCamBuffer()
 }
 
 rendering::DXCamera::DXCamera() :
-	BaseObject(DXCameraMeta::GetInstance())
+	ICamera(DXCameraMeta::GetInstance())
 {
 	using namespace DirectX;
 	m_position = XMVectorSet(0, 0, -5, 1);
@@ -190,4 +190,14 @@ void rendering::DXCamera::GetFrustrumCorners(std::list<DirectX::XMVECTOR>& corne
 		XMVECTOR& cur = *it;
 		cur = XMVectorSet(XMVectorGetX(cur), XMVectorGetY(cur), XMVectorGetZ(cur), 1);
 	}
+}
+
+DirectX::XMVECTOR rendering::DXCamera::GetPosition() const
+{
+	return m_position;
+}
+
+DirectX::XMVECTOR rendering::DXCamera::GetTarget() const
+{
+	return m_target;
 }

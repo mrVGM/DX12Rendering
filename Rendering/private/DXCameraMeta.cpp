@@ -1,12 +1,14 @@
 #include "DXCameraMeta.h"
 
+#include "ICameraMeta.h"
+
 namespace
 {
 	rendering::DXCameraMeta m_meta;
 }
 
 rendering::DXCameraMeta::DXCameraMeta() :
-	BaseObjectMeta(nullptr)
+	BaseObjectMeta(&ICameraMeta::GetInstance())
 {
 }
 

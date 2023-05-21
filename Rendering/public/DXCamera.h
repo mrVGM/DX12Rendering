@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BaseObject.h"
+#include "ICamera.h"
 
 #include "Job.h"
 #include "JobSystem.h"
@@ -11,7 +11,7 @@
 
 namespace rendering
 {
-	class DXCamera : public BaseObject
+	class DXCamera : public ICamera
 	{
 		float m_fov = 60;
 		float m_aspect = 1;
@@ -40,7 +40,9 @@ namespace rendering
 		DXCamera();
 		virtual ~DXCamera();
 
-		void GetFrustrumCorners(std::list<DirectX::XMVECTOR>& corners);
+		void GetFrustrumCorners(std::list<DirectX::XMVECTOR>& corners) override;
+		DirectX::XMVECTOR GetPosition() const override;
+		DirectX::XMVECTOR GetTarget() const override;
 
 		void InitBuffer(jobs::Job* done);
 		void UpdateCamBuffer();
