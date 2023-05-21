@@ -4,7 +4,7 @@
 
 #include "DXUnlitMaterialMeta.h"
 
-#include "RenderUtils.h"
+#include "CoreUtils.h"
 
 #include "DXShader.h"
 
@@ -13,6 +13,9 @@
 
 #include "DXDepthStencilDescriptorHeapMeta.h"
 #include "DXDescriptorHeap.h"
+
+#include "DXCameraBufferMeta.h"
+#include "DXBuffer.h"
 
 #include "BaseObjectContainer.h"
 
@@ -24,6 +27,10 @@ if (FAILED(hRes)) {\
 namespace
 {
     rendering::DXDescriptorHeap* m_depthStencilDescriptorHeap = nullptr;
+    rendering::DXSwapChain* m_swapChain = nullptr;
+    rendering::DXDevice* m_device = nullptr;
+    rendering::DXBuffer* m_camBuffer = nullptr;
+
 
     void CacheObjects()
     {
@@ -40,6 +47,29 @@ namespace
 
             m_depthStencilDescriptorHeap = static_cast<DXDescriptorHeap*>(obj);
         }
+
+        if (!m_device)
+        {
+            m_device = core::utils::GetDevice();
+        }
+
+        if (!m_swapChain)
+        {
+            m_swapChain = core::utils::GetSwapChain();
+        }
+
+        if (!m_camBuffer)
+        {
+            BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+
+            BaseObject* obj = container.GetObjectOfClass(DXCameraBufferMeta::GetInstance());
+            if (!obj)
+            {
+                throw "Can't find Camera Buffer!";
+            }
+
+            m_camBuffer = static_cast<DXBuffer*>(obj);
+        }
     }
 }
 
@@ -49,7 +79,7 @@ rendering::DXUnlitMaterial::DXUnlitMaterial(const rendering::DXShader& vertexSha
 {
     CacheObjects();
 
-    DXDevice* device = utils::GetDevice();
+    DXDevice* device = core::utils::GetDevice();
 
     using Microsoft::WRL::ComPtr;
     {
@@ -146,28 +176,24 @@ ID3D12CommandList* rendering::DXUnlitMaterial::GenerateCommandList(
     UINT indexCount,
     UINT instanceIndex)
 {
-    DXDevice* device = utils::GetDevice();
-    DXSwapChain* swapChain = utils::GetSwapChain();
-    DXBuffer* camBuff = utils::GetCameraBuffer();
-
-    ID3D12Resource* curRT = swapChain->GetCurrentRenderTarget();
+    ID3D12Resource* curRT = m_swapChain->GetCurrentRenderTarget();
 
     m_commandLists.push_back(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>());
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList = m_commandLists.back();
 
     THROW_ERROR(
-        device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), m_pipelineState.Get(), IID_PPV_ARGS(&commandList)),
+        m_device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), m_pipelineState.Get(), IID_PPV_ARGS(&commandList)),
         "Can't reset Command List!")
 
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
-    commandList->SetGraphicsRootConstantBufferView(0, camBuff->GetBuffer()->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootConstantBufferView(0, m_camBuffer->GetBuffer()->GetGPUVirtualAddress());
     commandList->SetGraphicsRootConstantBufferView(1, m_settingsBuffer->GetBuffer()->GetGPUVirtualAddress());
 
-    commandList->RSSetViewports(1, &swapChain->GetViewport());
-    commandList->RSSetScissorRects(1, &swapChain->GetScissorRect());
+    commandList->RSSetViewports(1, &m_swapChain->GetViewport());
+    commandList->RSSetScissorRects(1, &m_swapChain->GetScissorRect());
 
     D3D12_CPU_DESCRIPTOR_HANDLE dsHandle = m_depthStencilDescriptorHeap->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
-    D3D12_CPU_DESCRIPTOR_HANDLE handles[] = { swapChain->GetCurrentRTVDescriptor() };
+    D3D12_CPU_DESCRIPTOR_HANDLE handles[] = { m_swapChain->GetCurrentRTVDescriptor() };
     commandList->OMSetRenderTargets(_countof(handles), handles, FALSE, &dsHandle);
 
     D3D12_VERTEX_BUFFER_VIEW vertexBufferViews[2];
@@ -234,7 +260,7 @@ void rendering::DXUnlitMaterial::CreateSettingsBuffer(jobs::Job* done)
             m_ctx.m_buffer->Place(m_ctx.m_heap, 0);
             m_ctx.m_unlitMaterial->m_settingsBuffer = m_ctx.m_buffer;
 
-            utils::RunSync(m_ctx.m_done);
+            core::utils::RunSync(m_ctx.m_done);
         }
     };
 
@@ -266,7 +292,7 @@ void rendering::DXUnlitMaterial::CreateSettingsBuffer(jobs::Job* done)
     };
 
     Context ctx{ this, nullptr, nullptr, done };
-    utils::RunSync(new CreateBufferAndHeap(ctx));
+    core::utils::RunSync(new CreateBufferAndHeap(ctx));
 }
 
 rendering::DXBuffer* rendering::DXUnlitMaterial::GetSettingsBuffer()

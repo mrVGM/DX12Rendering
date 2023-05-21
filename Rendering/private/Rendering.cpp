@@ -31,7 +31,7 @@
 #include "DataLib.h"
 
 #include "ShaderRepo.h"
-#include "Materials/DXUnlitMaterial.h"
+#include "DXUnlitMaterial.h"
 #include "Materials/DXDeferredMaterial.h"
 
 #include "DXDepthStencilTextureMeta.h"
