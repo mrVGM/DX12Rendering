@@ -27,8 +27,6 @@ add_library (Rendering
 	"private/UpdaterMeta.cpp"
 	"public/Updater.h"
 	"private/Updater.cpp"
-	"private/RenderPass/DXDeferredRP.h"
-	"private/RenderPass/DXDeferredRP.cpp"
 	
 	
 	

@@ -37,7 +37,15 @@ add_library (DeferredRP
 	"public/LightsManagerMeta.h"
 	"private/DXShadowMapMaterialMeta.cpp"
 	"public/DXShadowMapMaterialMeta.h"
- "private/DXShadowMapMaterial.cpp" "public/DXShadowMapMaterial.h" "private/DXDeferredMaterialMeta.cpp" "public/DXDeferredMaterialMeta.h" "private/DXDeferredMaterial.cpp" "public/DXDeferredMaterial.h")
+	"private/DXShadowMapMaterial.cpp"
+	"public/DXShadowMapMaterial.h"
+	"private/DXDeferredMaterialMeta.cpp"
+	"public/DXDeferredMaterialMeta.h"
+	"private/DXDeferredMaterial.cpp"
+	"public/DXDeferredMaterial.h"
+	"public/DXDeferredRP.h"
+	"private/DXDeferredRP.cpp"
+)
 
 target_include_directories(DeferredRP INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(DeferredRP PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")

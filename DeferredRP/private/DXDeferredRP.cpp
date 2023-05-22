@@ -1,7 +1,7 @@
-#include "RenderPass/DXDeferredRP.h"
+#include "DXDeferredRP.h"
 
 #include "DXDeferredRPMeta.h"
-#include "RenderUtils.h"
+#include "CoreUtils.h"
 
 #include "DeferredRendering.h"
 #include "ShaderRepo.h"
@@ -25,6 +25,14 @@
 #include "LightsManager.h"
 #include "LightsManagerMeta.h"
 
+#include "DXTexture.h"
+
+#include "DXScene.h"
+#include "DXSceneMeta.h"
+
+#include "DXMaterialRepo.h"
+#include "DXMaterialRepoMeta.h"
+
 #include <set>
 #include <list>
 
@@ -39,6 +47,11 @@ namespace
     rendering::DXMaterial* m_postLightCalculationsMat = nullptr;
 
     rendering::LightsManager* m_lightsManager = nullptr;
+    rendering::DXDevice* m_device = nullptr;
+    rendering::DXScene* m_scene = nullptr;
+    rendering::DXMaterialRepo* m_materialRepo = nullptr;
+
+    rendering::DXCommandQueue* m_commandQueue = nullptr;
 
     void CacheObjects()
     {
@@ -54,6 +67,40 @@ namespace
             }
             m_lightsManager = static_cast<LightsManager*>(obj);
         }
+
+        if (!m_device)
+        {
+            m_device = core::utils::GetDevice();
+        }
+
+        if (!m_commandQueue)
+        {
+            m_commandQueue = core::utils::GetCommandQueue();
+        }
+
+        if (!m_scene)
+        {
+            BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+            BaseObject* obj = container.GetObjectOfClass(DXSceneMeta::GetInstance());
+
+            if (!obj)
+            {
+                throw "Can't find Scene!";
+            }
+            m_scene = static_cast<DXScene*>(obj);
+        }
+
+        if (!m_materialRepo)
+        {
+            BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+            BaseObject* obj = container.GetObjectOfClass(DXMaterialRepoMeta::GetInstance());
+
+            if (!obj)
+            {
+                throw "Can't find Material Repo!";
+            }
+            m_materialRepo = static_cast<DXMaterialRepo*>(obj);
+        }
     }
 }
 
@@ -66,7 +113,7 @@ rendering::DXDeferredRP::DXDeferredRP() :
 
     CacheObjects();
 
-    DXDevice* device = utils::GetDevice();
+    DXDevice* device = core::utils::GetDevice();
 
     {
         THROW_ERROR(
@@ -141,8 +188,6 @@ void rendering::DXDeferredRP::PrepareStartList()
         return;
     }
 
-    DXDevice* device = utils::GetDevice();
-
     THROW_ERROR(
         m_startList->Reset(m_commandAllocator.Get(), nullptr),
         "Can't reset Command List!")
@@ -177,8 +222,6 @@ void rendering::DXDeferredRP::PrepareStartList()
         m_startList->ClearRenderTargetView(lightsManager->GetSMRTVHeap()->GetDescriptorHandle(0), clearColor, 0, nullptr);
     }
 
-
-
     THROW_ERROR(
         m_startList->Close(),
         "Can't close Command List!")
@@ -188,8 +231,8 @@ void rendering::DXDeferredRP::PrepareStartList()
 
 void rendering::DXDeferredRP::RenderShadowMap()
 {
-    DXScene* scene = utils::GetScene();
-    DXMaterialRepo* repo = utils::GetMaterialRepo();
+    DXScene* scene = m_scene;
+    DXMaterialRepo* repo = m_materialRepo;
 
     m_shadowMapMaterial->ResetCommandLists();
 
@@ -253,19 +296,15 @@ void rendering::DXDeferredRP::RenderShadowMap()
         m_commandListsCache[index++] = *it;
     }
 
-    DXCommandQueue* commandQueue = utils::GetCommandQueue();
-    commandQueue->GetCommandQueue()->ExecuteCommandLists(numLists, m_commandListsCache);
+    m_commandQueue->GetCommandQueue()->ExecuteCommandLists(numLists, m_commandListsCache);
 }
 
 void rendering::DXDeferredRP::RenderDeferred()
 {
-    DXScene* scene = utils::GetScene();
-    DXMaterialRepo* repo = utils::GetMaterialRepo();
-
-    for (int i = 0; i < scene->m_scenesLoaded; ++i)
+    for (int i = 0; i < m_scene->m_scenesLoaded; ++i)
     {
-        collada::ColladaScene& curColladaScene = *scene->m_colladaScenes[i];
-        const DXScene::SceneResources& curSceneResources = scene->m_sceneResources[i];
+        collada::ColladaScene& curColladaScene = *m_scene->m_colladaScenes[i];
+        const DXScene::SceneResources& curSceneResources = m_scene->m_sceneResources[i];
 
         collada::Scene& s = curColladaScene.GetScene();
 
@@ -274,7 +313,7 @@ void rendering::DXDeferredRP::RenderDeferred()
             collada::Object& obj = it->second;
             for (auto it = obj.m_materialOverrides.begin(); it != obj.m_materialOverrides.end(); ++it)
             {
-                DXMaterial* mat = repo->GetMaterial(*it);
+                DXMaterial* mat = m_materialRepo->GetMaterial(*it);
                 if (!mat)
                 {
                     continue;
@@ -289,10 +328,10 @@ void rendering::DXDeferredRP::RenderDeferred()
     }
 
     std::list<ID3D12CommandList*> deferredLists;
-    for (int i = 0; i < scene->m_scenesLoaded; ++i)
+    for (int i = 0; i < m_scene->m_scenesLoaded; ++i)
     {
-        collada::ColladaScene& curColladaScene = *scene->m_colladaScenes[i];
-        const DXScene::SceneResources& curSceneResources = scene->m_sceneResources[i];
+        collada::ColladaScene& curColladaScene = *m_scene->m_colladaScenes[i];
+        const DXScene::SceneResources& curSceneResources = m_scene->m_sceneResources[i];
 
         collada::Scene& s = curColladaScene.GetScene();
 
@@ -305,7 +344,7 @@ void rendering::DXDeferredRP::RenderDeferred()
 
             for (auto it = geo.m_materials.begin(); it != geo.m_materials.end(); ++it)
             {
-                DXMaterial* mat = repo->GetMaterial(*matOverrideIt);
+                DXMaterial* mat = m_materialRepo->GetMaterial(*matOverrideIt);
                 ++matOverrideIt;
 
                 const DXScene::GeometryResources& geometryResources = curSceneResources.m_geometryResources.find(obj.m_geometry)->second;
@@ -348,8 +387,7 @@ void rendering::DXDeferredRP::RenderDeferred()
         m_commandListsCache[index++] = *it;
     }
 
-    DXCommandQueue* commandQueue = utils::GetCommandQueue();
-    commandQueue->GetCommandQueue()->ExecuteCommandLists(numLists, m_commandListsCache);
+    m_commandQueue->GetCommandQueue()->ExecuteCommandLists(numLists, m_commandListsCache);
 }
 
 void rendering::DXDeferredRP::Prepare()
@@ -359,10 +397,9 @@ void rendering::DXDeferredRP::Prepare()
 
 void rendering::DXDeferredRP::Execute()
 {
-    DXCommandQueue* commandQueue = rendering::utils::GetCommandQueue();
     {
         ID3D12CommandList* ppCommandLists[] = { m_startList.Get() };
-        commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+        m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
     }
 
     RenderDeferred();
@@ -374,7 +411,7 @@ void rendering::DXDeferredRP::Execute()
             *deferred::GetRenderTextureVertexBuffer(), 
             *dummy, *dummy, 0, 0, 0);
         ID3D12CommandList* ppCommandLists[] = { commandList };
-        commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+        m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
     }
 
     {
@@ -384,7 +421,7 @@ void rendering::DXDeferredRP::Execute()
             *deferred::GetRenderTextureVertexBuffer(),
             *dummy, *dummy, 0, 0, 0);
         ID3D12CommandList* ppCommandLists[] = { commandList };
-        commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+        m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
     }
 }
 
@@ -439,7 +476,7 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
                 *shader_repo::GetDeferredRPVertexShader(),
                 *shader_repo::GetDeferredRPPostLightingPixelShader());
 
-            utils::RunSync(m_ctx.m_done);
+            core::utils::RunSync(m_ctx.m_done);
 
             delete& m_ctx;
         }
