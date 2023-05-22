@@ -37,7 +37,7 @@
 #include "DXDepthStencilTextureMeta.h"
 #include "DXDepthStencilDescriptorHeapMeta.h"
 
-#include "Materials/MaterialUtils.h"
+#include "MaterialUtils.h"
 
 #include <iostream>
 
