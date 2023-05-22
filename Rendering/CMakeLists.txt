@@ -17,42 +17,11 @@ add_library (Rendering
 	"private/DXCamera.cpp"
 	"private/DXComputeShaderMeta.h"
 	"private/DXComputeShaderMeta.cpp"
-	"private/Materials/DXUnlitErrorMaterial.h"
-	"private/Materials/DXUnlitErrorMaterial.cpp"
-	"private/Materials/DXUnlitErrorMaterialMeta.h"
-	"private/Materials/DXUnlitErrorMaterialMeta.cpp"
-	"private/Materials/DXUnlitErrorMaterial.h"
-	"private/Materials/DXUnlitErrorMaterial.cpp"
+	
 	"public/UpdaterMeta.h"
 	"private/UpdaterMeta.cpp"
 	"public/Updater.h"
 	"private/Updater.cpp"
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	"private/RenderPass/DXDisplaySMRPMeta.h"
 	"private/RenderPass/DXDisplaySMRPMeta.cpp"
 	"private/RenderPass/DXDisplaySMRP.h"

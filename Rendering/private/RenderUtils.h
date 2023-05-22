@@ -14,7 +14,7 @@
 #include "DXMaterialRepo.h"
 #include "DXTexture.h"
 
-#include "Materials/DXUnlitErrorMaterial.h"
+#include "DXUnlitErrorMaterial.h"
 
 #include "DXDescriptorHeap.h"
 

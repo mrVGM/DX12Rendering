@@ -21,8 +21,8 @@
 
 #include "DXShader.h"
 
-#include "Materials/DXUnlitErrorMaterial.h"
-#include "Materials/DXUnlitErrorMaterialMeta.h"
+#include "DXUnlitErrorMaterial.h"
+#include "DXUnlitErrorMaterialMeta.h"
 
 #include "DXMaterialRepo.h"
 #include "DXMaterialRepoMeta.h"
