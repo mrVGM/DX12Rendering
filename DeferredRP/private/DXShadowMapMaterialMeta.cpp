@@ -1,4 +1,4 @@
-#include "Materials/DXShadowMapMaterialMeta.h"
+#include "DXShadowMapMaterialMeta.h"
 
 #include "DXMaterialMeta.h"
 

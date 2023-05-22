@@ -4,7 +4,7 @@
 
 #include "DXShadowMapMaterialMeta.h"
 
-#include "RenderUtils.h"
+#include "CoreUtils.h"
 
 #include "DXShader.h"
 
@@ -14,20 +14,41 @@
 
 #include "BaseObjectContainer.h"
 
-#include "RenderPass/DXDeferredRP.h"
 #include "DXDeferredRPMeta.h"
 
 #include "LightsManager.h"
 #include "LightsManagerMeta.h"
 
+#include "DXCameraBufferMeta.h"
+#include "DXBuffer.h"
+
+#include "DXDescriptorHeap.h"
+
+#include "ICamera.h"
+#include "ICameraMeta.h"
+
 namespace
 {
-    rendering::DXDeferredRP* m_deferredRenderPass = nullptr;
     rendering::LightsManager* m_lightsManager = nullptr;
+
+    rendering::DXDevice* m_device = nullptr;
+    rendering::DXSwapChain* m_swapChain = nullptr;
+    rendering::DXBuffer* m_cameraBuffer = nullptr;
 
     void CacheObjects()
     {
         using namespace rendering;
+
+        if (!m_device)
+        {
+            m_device = core::utils::GetDevice();
+        }
+
+        if (!m_swapChain)
+        {
+            m_swapChain = core::utils::GetSwapChain();
+        }
+
         if (!m_lightsManager)
         {
             BaseObjectContainer& container = BaseObjectContainer::GetInstance();
@@ -39,20 +60,18 @@ namespace
             }
             m_lightsManager = static_cast<LightsManager*>(obj);
         }
-    }
 
-    rendering::DXDeferredRP* GetDeferredRP()
-    {
-        using namespace rendering;
-        if (m_deferredRenderPass)
+        if (!m_cameraBuffer)
         {
-            return m_deferredRenderPass;
+            BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+            BaseObject* obj = container.GetObjectOfClass(DXCameraBufferMeta::GetInstance());
+
+            if (!obj)
+            {
+                throw "Can't find Camera Buffer!";
+            }
+            m_cameraBuffer = static_cast<DXBuffer*>(obj);
         }
-
-        BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-        m_deferredRenderPass = static_cast<DXDeferredRP*>(container.GetObjectOfClass(DXDeferredRPMeta::GetInstance()));
-
-        return m_deferredRenderPass;
     }
 }
 
@@ -66,9 +85,7 @@ rendering::DXShadowMapMaterial::DXShadowMapMaterial(const rendering::DXShader& v
 {
     CacheObjects();
 
-    DXDevice* device = utils::GetDevice();
-
-    GetDeferredRP();
+    DXDevice* device = m_device;
 
     using Microsoft::WRL::ComPtr;
     {
@@ -156,9 +173,7 @@ ID3D12CommandList* rendering::DXShadowMapMaterial::GenerateCommandList(
     UINT indexCount,
     UINT instanceIndex)
 {
-    DXDevice* device = utils::GetDevice();
-    DXSwapChain* swapChain = utils::GetSwapChain();
-    DXBuffer* camBuff = utils::GetCameraBuffer();
+
     LightsManager* lightsManager = m_lightsManager;
     DXTexture* shadowMapTexture = lightsManager->GetShadowMap();
 
@@ -166,11 +181,11 @@ ID3D12CommandList* rendering::DXShadowMapMaterial::GenerateCommandList(
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList = m_commandLists.back();
 
     THROW_ERROR(
-        device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), m_pipelineState.Get(), IID_PPV_ARGS(&commandList)),
+        m_device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), m_pipelineState.Get(), IID_PPV_ARGS(&commandList)),
         "Can't reset Command List!")
 
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
-    commandList->SetGraphicsRootConstantBufferView(0, camBuff->GetBuffer()->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootConstantBufferView(0, m_cameraBuffer->GetBuffer()->GetGPUVirtualAddress());
     commandList->SetGraphicsRootConstantBufferView(1, lightsManager->GetSMSettingsBuffer()->GetBuffer()->GetGPUVirtualAddress());
     
     {
@@ -184,11 +199,10 @@ ID3D12CommandList* rendering::DXShadowMapMaterial::GenerateCommandList(
         commandList->RSSetScissorRects(1, &scissorRect);
     }
 
-    DXDeferredRP* deferredRP = GetDeferredRP();
-    D3D12_CPU_DESCRIPTOR_HANDLE dsHandle = lightsManager->GetShadowMapDSDescriptorHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+    D3D12_CPU_DESCRIPTOR_HANDLE dsHandle = m_lightsManager->GetShadowMapDSDescriptorHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
     D3D12_CPU_DESCRIPTOR_HANDLE handles[] =
     {
-        lightsManager->GetSMRTVHeap()->GetDescriptorHandle(0)
+        m_lightsManager->GetSMRTVHeap()->GetDescriptorHandle(0)
     };
     commandList->OMSetRenderTargets(_countof(handles), handles, FALSE, &dsHandle);
 

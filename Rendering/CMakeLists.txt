@@ -47,10 +47,10 @@ add_library (Rendering
 	
 	
 	
-	"private/Materials/DXShadowMapMaterialMeta.h"
-	"private/Materials/DXShadowMapMaterialMeta.cpp"
-	"private/Materials/DXShadowMapMaterial.h"
-	"private/Materials/DXShadowMapMaterial.cpp"
+	
+	
+	
+	
 	
 	
 	

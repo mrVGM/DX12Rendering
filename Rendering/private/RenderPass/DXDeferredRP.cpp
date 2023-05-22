@@ -8,8 +8,8 @@
 
 #include "DXDeferredMaterialMetaTag.h"
 
-#include "Materials/DXShadowMapMaterial.h"
-#include "Materials/DXShadowMapMaterialMeta.h"
+#include "DXShadowMapMaterial.h"
+#include "DXShadowMapMaterialMeta.h"
 
 #include "DXBufferMeta.h"
 #include "DXHeap.h"
