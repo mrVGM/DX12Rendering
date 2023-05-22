@@ -17,9 +17,29 @@
 #include "RenderPass/DXDeferredRP.h"
 #include "DXDeferredRPMeta.h"
 
+#include "Lights/LightsManager.h"
+#include "Lights/LightsManagerMeta.h"
+
 namespace
 {
     rendering::DXDeferredRP* m_deferredRenderPass = nullptr;
+    rendering::LightsManager* m_lightsManager = nullptr;
+
+    void CacheObjects()
+    {
+        using namespace rendering;
+        if (!m_lightsManager)
+        {
+            BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+            BaseObject* obj = container.GetObjectOfClass(LightsManagerMeta::GetInstance());
+
+            if (!obj)
+            {
+                throw "Can't find Lights Manager!";
+            }
+            m_lightsManager = static_cast<LightsManager*>(obj);
+        }
+    }
 
     rendering::DXDeferredRP* GetDeferredRP()
     {
@@ -44,6 +64,8 @@ if (FAILED(hRes)) {\
 rendering::DXShadowMapMaterial::DXShadowMapMaterial(const rendering::DXShader& vertexShader, const rendering::DXShader& pixelShader) :
     DXMaterial(DXShadowMapMaterialMeta::GetInstance(), vertexShader, pixelShader)
 {
+    CacheObjects();
+
     DXDevice* device = utils::GetDevice();
 
     GetDeferredRP();
@@ -137,7 +159,7 @@ ID3D12CommandList* rendering::DXShadowMapMaterial::GenerateCommandList(
     DXDevice* device = utils::GetDevice();
     DXSwapChain* swapChain = utils::GetSwapChain();
     DXBuffer* camBuff = utils::GetCameraBuffer();
-    LightsManager* lightsManager = utils::GetLightsManager();
+    LightsManager* lightsManager = m_lightsManager;
     DXTexture* shadowMapTexture = lightsManager->GetShadowMap();
 
     m_commandLists.push_back(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>());

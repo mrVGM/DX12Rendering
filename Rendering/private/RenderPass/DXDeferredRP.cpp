@@ -22,6 +22,9 @@
 #include "DXLightsCalculationsMaterial.h"
 #include "DXPostLightsCalculationsMaterial.h"
 
+#include "Lights/LightsManager.h"
+#include "Lights/LightsManagerMeta.h"
+
 #include <set>
 #include <list>
 
@@ -30,25 +33,27 @@ if (FAILED(hRes)) {\
     throw error;\
 }
 
-
-
 namespace
 {
     rendering::DXMaterial* m_lightCalculationsMat = nullptr;
     rendering::DXMaterial* m_postLightCalculationsMat = nullptr;
 
-    rendering::LightsManager* GetLightsManager()
+    rendering::LightsManager* m_lightsManager = nullptr;
+
+    void CacheObjects()
     {
         using namespace rendering;
-
-        LightsManager* lightsManager = utils::GetLightsManager();
-        if (!lightsManager)
+        if (!m_lightsManager)
         {
-            new LightsManager();
-        }
-        lightsManager = utils::GetLightsManager();
+            BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+            BaseObject* obj = container.GetObjectOfClass(LightsManagerMeta::GetInstance());
 
-        return lightsManager;
+            if (!obj)
+            {
+                throw "Can't find Lights Manager!";
+            }
+            m_lightsManager = static_cast<LightsManager*>(obj);
+        }
     }
 }
 
@@ -56,6 +61,10 @@ rendering::DXDeferredRP::DXDeferredRP() :
     RenderPass(DXDeferredRPMeta::GetInstance())
 {
     using Microsoft::WRL::ComPtr;
+
+    new LightsManager();
+
+    CacheObjects();
 
     DXDevice* device = utils::GetDevice();
 
@@ -113,7 +122,7 @@ void rendering::DXDeferredRP::CreateRTVHeap()
 
 void rendering::DXDeferredRP::CreateSRVHeap()
 {
-    LightsManager* lightsManager = GetLightsManager();
+    LightsManager* lightsManager = m_lightsManager;
 
     std::list<DXTexture*> textures;
     textures.push_back(rendering::deferred::GetGBufferDiffuseTex());
@@ -138,7 +147,7 @@ void rendering::DXDeferredRP::PrepareStartList()
         m_startList->Reset(m_commandAllocator.Get(), nullptr),
         "Can't reset Command List!")
 
-    LightsManager* lightsManager = GetLightsManager();
+    LightsManager* lightsManager = m_lightsManager;
     {
         CD3DX12_RESOURCE_BARRIER barrier[] =
         {
@@ -381,14 +390,12 @@ void rendering::DXDeferredRP::Execute()
 
 void rendering::DXDeferredRP::LoadLightsBuffer(jobs::Job* done)
 {
-    LightsManager* lightsManager = GetLightsManager();
-    lightsManager->LoadLightsBuffer(done);
+    m_lightsManager->LoadLightsBuffer(done);
 }
 
 void rendering::DXDeferredRP::LoadShadowMap(jobs::Job* done)
 {
-    LightsManager* lightsManager = GetLightsManager();
-    lightsManager->LoadShadowMap(done);
+    m_lightsManager->LoadShadowMap(done);
 }
 
 

@@ -8,11 +8,36 @@
 
 #include "d3dx12.h"
 
+#include "BaseObjectContainer.h"
+#include "Lights/LightsManager.h"
+#include "Lights/LightsManagerMeta.h"
+
 #include <iostream>
 
 #define THROW_ERROR(hRes, error) \
 if (FAILED(hRes)) {\
     throw error;\
+}
+
+namespace
+{
+    rendering::LightsManager* m_lightsManager = nullptr;
+
+    void CacheObjects()
+    {
+        using namespace rendering;
+        if (!m_lightsManager)
+        {
+            BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+            BaseObject* obj = container.GetObjectOfClass(LightsManagerMeta::GetInstance());
+
+            if (!obj)
+            {
+                throw "Can't find Lights Manager!";
+            }
+            m_lightsManager = static_cast<LightsManager*>(obj);
+        }
+    }
 }
 
 void rendering::DXDisplaySMRP::Create()
@@ -51,7 +76,7 @@ void rendering::DXDisplaySMRP::Prepare()
         "Can't reset Command List!")
 
     DXSwapChain* swapChain = utils::GetSwapChain();
-    LightsManager* lightsManager = utils::GetLightsManager();
+    LightsManager* lightsManager = m_lightsManager;
 
     {
         CD3DX12_RESOURCE_BARRIER barrier[] =
@@ -122,6 +147,7 @@ rendering::DXDisplaySMRP::DXDisplaySMRP() :
     m_vertexShader(*shader_repo::GetDeferredRPVertexShader()),
     m_pixelShader(*shader_repo::GetDisplayShadowMapPixelShader())
 {
+    CacheObjects();
     Create();
 }
 

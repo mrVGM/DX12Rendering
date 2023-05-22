@@ -40,8 +40,6 @@ namespace rendering
 
 		rendering::DXMaterialRepo* GetMaterialRepo();
 
-		rendering::LightsManager* GetLightsManager();
-
 		void RunSync(jobs::Job* job);
 		void RunAsync(jobs::Job* job);
 		void DisposeBaseObject(BaseObject& baseObject);
