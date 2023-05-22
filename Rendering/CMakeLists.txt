@@ -61,6 +61,14 @@ add_library (Rendering
 	"private/RenderPass/DXDisplaySMRP.cpp"
 	"private/Materials/MaterialUtils.h"
 	"private/Materials/MaterialUtils.cpp"
+	"private/DXCameraUpdaterMeta.h"
+	"private/DXCameraUpdaterMeta.cpp"
+	"private/DXCameraUpdater.h"
+	"private/DXCameraUpdater.cpp"
+	"private/DXCameraRDUMeta.h"
+	"private/DXCameraRDUMeta.cpp"
+	"private/DXCameraRDU.h"
+	"private/DXCameraRDU.cpp"
 )
 
 target_include_directories(Rendering INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

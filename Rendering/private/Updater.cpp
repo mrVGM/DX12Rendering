@@ -4,7 +4,17 @@
 
 #include "RenderUtils.h"
 
+#include "BaseObjectContainer.h"
+
+#include "TickUpdaterMeta.h"
+#include "TickUpdater.h"
+
+#include "RenderDataUpdaterMeta.h"
+#include "RenderDataUpdater.h"
+
 #include <corecrt_math_defines.h>
+#include <vector>
+#include <list>
 
 namespace
 {
@@ -19,135 +29,7 @@ namespace
 		void Do() override
 		{
 			--m_updater.m_updatesToWaitFor;
-			m_updater.TryStartUpdate();
-		}
-	};
-
-	void UpdateCameraPosition(double dt)
-	{
-		using namespace rendering;
-		using namespace DirectX;
-
-		Window* window = utils::GetWindow();
-		const rendering::InputInfo& inputInfo = window->GetInputInfo();
-
-		DXCamera* cam = utils::GetCamera();
-
-		float right = 0;
-		float forward = 0;
-		float aimRight = 0;
-		float aimUp = 0;
-
-		for (std::set<WPARAM>::const_iterator it = inputInfo.m_keysDown.begin(); it != inputInfo.m_keysDown.end(); ++it) {
-			WPARAM x = *it;
-			if (x == 65) {
-				right = -1;
-			}
-			if (x == 68) {
-				right = 1;
-			}
-
-			if (x == 87) {
-				forward = 1;
-			}
-			if (x == 83) {
-				forward = -1;
-			}
-
-			if (x == 37) {
-				aimRight = 1;
-			}
-			if (x == 39) {
-				aimRight = -1;
-			}
-			if (x == 38) {
-				aimUp = 1;
-			}
-			if (x == 40) {
-				aimUp = -1;
-			}
-		}
-
-		RECT rect;
-		GetWindowRect(window->m_hwnd, &rect);
-
-		if (inputInfo.m_rightMouseButtonDown && !cam->m_aiming) {
-			cam->m_cursorRelativePos[0] = inputInfo.m_mouseMovement[0];
-			cam->m_cursorRelativePos[1] = inputInfo.m_mouseMovement[1];
-			cam->m_anglesCache[0] = cam->m_azimuth;
-			cam->m_anglesCache[1] = cam->m_altitude;
-
-			ClipCursor(&rect);
-			ShowCursor(false);
-		}
-
-		if (!inputInfo.m_rightMouseButtonDown && cam->m_aiming) {
-			ClipCursor(nullptr);
-			ShowCursor(true);
-		}
-
-		cam->m_aiming = inputInfo.m_rightMouseButtonDown;
-		if (cam->m_aiming) {
-			SetCursorPos((rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2);
-		}
-
-		double m_angleSpeed = 80;
-		double m_moveSpeed = 0.3;
-
-		cam->m_azimuth += dt * m_angleSpeed * aimRight;
-		while (cam->m_azimuth >= 360) {
-			cam->m_azimuth -= 360;
-		}
-		while (cam->m_azimuth < 0) {
-			cam->m_azimuth += 360;
-		}
-
-		cam->m_altitude += dt * m_angleSpeed * aimUp;
-		if (cam->m_altitude > 80) {
-			cam->m_altitude = 80;
-		}
-
-		if (cam->m_altitude < -80) {
-			cam->m_altitude = -80;
-		}
-
-
-		float azimuth = M_PI * cam->m_azimuth / 180.0;
-		float altitude = M_PI * cam->m_altitude / 180.0;
-
-		XMVECTOR fwdVector = XMVectorSet(cos(azimuth) * cos(altitude), sin(altitude), sin(azimuth) * cos(altitude), 0);
-		XMVECTOR rightVector = XMVector3Cross(XMVectorSet(0, 1, 0, 0), fwdVector);
-		rightVector = XMVector3Normalize(rightVector);
-
-		XMVECTOR moveVector = XMVectorSet(right, 0, forward, 0);
-		moveVector = XMVector3Normalize(moveVector);
-		moveVector = m_moveSpeed * moveVector;
-		moveVector = XMVectorAdd(XMVectorGetX(moveVector) * rightVector, XMVectorGetZ(moveVector) * fwdVector);
-
-		cam->m_position = DirectX::XMVectorAdd(cam->m_position, moveVector);
-		cam->m_target = DirectX::XMVectorAdd(cam->m_position, fwdVector);
-
-		cam->UpdateCamBuffer();
-
-		LightsManager* lightsManager = utils::GetLightsManager();
-		lightsManager->UpdateShadowMapSettings();
-	}
-
-	class UpdateCameraPositionJob : public jobs::Job
-	{
-	private:
-		rendering::Updater& m_updater;
-		double m_dt;
-	public:
-		UpdateCameraPositionJob(rendering::Updater& updater, double dt) :
-			m_updater(updater),
-			m_dt(dt)
-		{
-		}
-		void Do() override
-		{
-			UpdateCameraPosition(m_dt);
-			rendering::utils::RunSync(new NotifyUpdater(m_updater));
+			m_updater.Proceed();
 		}
 	};
 }
@@ -161,34 +43,213 @@ rendering::Updater::~Updater()
 {
 }
 
-void rendering::Updater::TryStartUpdate()
+void rendering::Updater::StartUpdate()
+{
+	double dt = TimeStamp();
+	m_state = UpdaterState::Render;
+	m_updatesToWaitFor = 2;
+
+	DXRenderer* renderer = utils::GetRenderer();
+	renderer->RenderFrame(new NotifyUpdater(*this));
+
+	RunTickUpdaters(dt);
+}
+
+void rendering::Updater::Start()
+{
+	StartUpdate();
+}
+
+void rendering::Updater::Proceed()
 {
 	if (m_updatesToWaitFor > 0)
 	{
 		return;
 	}
 
+	if (m_state == UpdaterState::NotStarted)
+	{
+		StartUpdate();
+		return;
+	}
+
+	if (m_state == UpdaterState::Render)
+	{
+		m_state = UpdaterState::Sync;
+		m_updatesToWaitFor = 1;
+
+		RunRDUs();
+		return;
+	}
+
+	if (m_state == UpdaterState::Sync)
+	{
+		StartUpdate();
+		return;
+	}
+}
+
+
+void rendering::Updater::RunTickUpdaters(double dt)
+{
+	struct Context
+	{
+		Updater* m_updater = nullptr;
+		double m_dt = -1;
+		std::list<BaseObject*> m_tickUpdaters;
+		jobs::Job* m_done = nullptr;
+	};
+
+	Context* ctx = new Context();
+	ctx->m_updater = this;
+	ctx->m_dt = dt;
+	ctx->m_done = new NotifyUpdater(*this);
+
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+	container.GetAllObjectsOfClass(TickUpdaterMeta::GetInstance(), ctx->m_tickUpdaters);
+
+	if (ctx->m_tickUpdaters.empty())
+	{
+		utils::RunSync(ctx->m_done);
+		delete ctx;
+		return;
+	}
+
+	class RunTickUpdaters : public jobs::Job
+	{
+	private:
+		Context& m_ctx;
+	public:
+		RunTickUpdaters(Context& ctx) :
+			m_ctx(ctx)
+		{
+		}
+
+		void Do() override
+		{
+			std::vector<TickUpdater*> tickUpdaters;
+			for (auto it = m_ctx.m_tickUpdaters.begin(); it != m_ctx.m_tickUpdaters.end(); ++it)
+			{
+				tickUpdaters.push_back(static_cast<TickUpdater*>(*it));
+			}
+
+			for (int i = 0; i < tickUpdaters.size() - 1; ++i)
+			{
+				for (int j = i; j < tickUpdaters.size(); ++j)
+				{
+					if (tickUpdaters[i]->GetPriority() > tickUpdaters[j]->GetPriority())
+					{
+						TickUpdater* tmp = tickUpdaters[i];
+						tickUpdaters[i] = tickUpdaters[j];
+						tickUpdaters[j] = tmp;
+					}
+				}
+			}
+
+			for (auto it = tickUpdaters.begin(); it != tickUpdaters.end(); ++it)
+			{
+				(*it)->Update(m_ctx.m_dt);
+			}
+
+			utils::RunSync(m_ctx.m_done);
+			delete &m_ctx;
+		}
+	};
+
+	utils::RunAsync(new RunTickUpdaters(*ctx));
+}
+
+void rendering::Updater::RunRDUs()
+{
+	struct Context
+	{
+		Updater* m_updater = nullptr;
+		int m_updatersToWaitFor = -1;
+		jobs::Job* m_done = nullptr;
+	};
+
+	Context* ctx = new Context();
+	ctx->m_updater = this;
+	ctx->m_done = new NotifyUpdater(*this);
+	
+	std::list<BaseObject*> rdus;
+
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+	container.GetAllObjectsOfClass(RenderDataUpdaterMeta::GetInstance(), rdus);
+
+	if (rdus.empty())
+	{
+		utils::RunSync(ctx->m_done);
+		delete ctx;
+		return;
+	}
+
+	ctx->m_updatersToWaitFor = rdus.size();
+
+	class RDUDone : public jobs::Job
+	{
+	private:
+		Context& m_ctx;
+	public:
+		RDUDone(Context& ctx) :
+			m_ctx(ctx)
+		{
+		}
+
+		void Do() override
+		{
+			--m_ctx.m_updatersToWaitFor;
+			if (m_ctx.m_updatersToWaitFor > 0)
+			{
+				return;
+			}
+
+			utils::RunSync(m_ctx.m_done);
+			delete& m_ctx;
+		}
+	};
+
+	class RunRDU : public jobs::Job
+	{
+	private:
+		RenderDataUpdater& m_rdu;
+		Context& m_ctx;
+	public:
+		RunRDU(Context& ctx, RenderDataUpdater& rdu) :
+			m_ctx(ctx),
+			m_rdu(rdu)
+		{
+		}
+
+		void Do() override
+		{
+			m_rdu.Update();
+			utils::RunSync(new RDUDone(m_ctx));
+		}
+	};
+
+	for (auto it = rdus.begin(); it != rdus.end(); ++it)
+	{
+		RenderDataUpdater* rdu = static_cast<RenderDataUpdater*>(*it);
+		utils::RunAsync(new RunRDU(*ctx, *rdu));
+	}
+}
+
+double rendering::Updater::TimeStamp()
+{
 	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
-	auto nowNN = std::chrono::time_point_cast<std::chrono::nanoseconds>(now);
-	auto lastTickNN = std::chrono::time_point_cast<std::chrono::nanoseconds>(m_lastTick);
-	long long deltaNN = nowNN.time_since_epoch().count() - lastTickNN.time_since_epoch().count();
-	double dt = deltaNN / 1000000000.0;
+	std::chrono::system_clock::time_point lastTickCache = m_lastTick;
 	m_lastTick = now;
 
-	StartUpdate(dt);
-}
+	if (m_state == UpdaterState::NotStarted)
+	{
+		return 0;
+	}
 
-void rendering::Updater::StartUpdate(double dt)
-{
-	m_updatesToWaitFor = 2;
+	auto nowNN = std::chrono::time_point_cast<std::chrono::nanoseconds>(now);
+	auto lastTickNN = std::chrono::time_point_cast<std::chrono::nanoseconds>(lastTickCache);
+	long long deltaNN = nowNN.time_since_epoch().count() - lastTickNN.time_since_epoch().count();
+	double dt = deltaNN / 1000000000.0;
 
-	DXRenderer* renderer = utils::GetRenderer();
-	renderer->RenderFrame(new NotifyUpdater(*this));
-
-	utils::RunAsync(new UpdateCameraPositionJob(*this, dt));
-}
-
-void rendering::Updater::Start()
-{
-	StartUpdate(0);
+	return dt;
 }

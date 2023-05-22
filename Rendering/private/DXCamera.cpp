@@ -8,6 +8,10 @@
 #include "DXHeap.h"
 #include "DXBuffer.h"
 
+#include "DXCameraRDU.h"
+
+#include "DXCameraUpdater.h"
+
 #include "RenderUtils.h"
 
 #include <list>
@@ -108,6 +112,17 @@ rendering::DXCamera::DXCamera() :
 
 	Window* wnd = utils::GetWindow();
 	m_aspect = static_cast<float>(wnd->m_width) / wnd->m_height;
+
+	class CreateCameraUpdater : public jobs::Job
+	{
+	public:
+		void Do() override
+		{
+			new DXCameraUpdater();
+		}
+	};
+
+	utils::RunSync(new CreateCameraUpdater());
 }
 
 rendering::DXCamera::~DXCamera()
@@ -130,6 +145,19 @@ void rendering::DXCamera::InitBuffer(jobs::Job* done)
 		DXHeap* m_heap = nullptr;
 	};
 
+	class CreateRDU : public jobs::Job
+	{
+	public:
+		CreateRDU()
+		{
+		}
+
+		void Do()
+		{
+			new DXCameraRDU();
+		}
+	};
+
 	class InitBufferJob : public jobs::Job
 	{
 	private:
@@ -145,12 +173,10 @@ void rendering::DXCamera::InitBuffer(jobs::Job* done)
 			camBuffer->SetBufferSizeAndFlags(256, D3D12_RESOURCE_FLAG_NONE);
 			camBuffer->SetBufferStride(256);
 
-			std::string error;
 			camBuffer->Place(m_jobContext.m_heap, 0);
 
-			m_jobContext.m_cam->UpdateCamBuffer();
-
 			utils::RunSync(m_jobContext.m_done);
+			utils::RunSync(new CreateRDU());
 		}
 	};
 

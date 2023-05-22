@@ -76,7 +76,7 @@ void BaseObjectContainer::GetAllObjectsOfClass(const BaseObjectMeta& meta, std::
 			continue;
 		}
 
-		const std::set<BaseObject*>& objectSet = GetAllObjectsOfExactClass(meta);
+		const std::set<BaseObject*>& objectSet = GetAllObjectsOfExactClass(curMeta);
 		for (auto objectIt = objectSet.begin(); objectIt != objectSet.end(); ++objectIt)
 		{
 			objects.push_back(*objectIt);
