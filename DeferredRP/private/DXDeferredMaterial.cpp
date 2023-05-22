@@ -4,7 +4,7 @@
 
 #include "DXDeferredMaterialMeta.h"
 
-#include "RenderUtils.h"
+#include "CoreUtils.h"
 
 #include "DXShader.h"
 
@@ -13,32 +13,28 @@
 
 #include "BaseObjectContainer.h"
 
-#include "RenderPass/DXDeferredRP.h"
 #include "DXDeferredRPMeta.h"
 
 #include "DXDepthStencilDescriptorHeapMeta.h"
 #include "DXDescriptorHeap.h"
 
+#include "DXCameraBufferMeta.h"
+#include "DXBuffer.h"
+
+#include "DXDescriptorHeap.h"
+#include "DXDescriptorHeapMeta.h"
+
+#include "DeferredRendering.h"
+
 #include "BaseObjectContainer.h"
 
 namespace
 {
-    rendering::DXDeferredRP* m_deferredRenderPass = nullptr;
     rendering::DXDescriptorHeap* m_depthStencilDescriptorHeap = nullptr;
 
-    rendering::DXDeferredRP* GetDeferredRP()
-    {
-        using namespace rendering;
-        if (m_deferredRenderPass)
-        {
-            return m_deferredRenderPass;
-        }
-
-        BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-        m_deferredRenderPass = static_cast<DXDeferredRP*>(container.GetObjectOfClass(DXDeferredRPMeta::GetInstance()));
-
-        return m_deferredRenderPass;
-    }
+    rendering::DXDevice* m_device = nullptr;
+    rendering::DXSwapChain* m_swapChain = nullptr;
+    rendering::DXBuffer* m_cameraBuffer = nullptr;
 
     void CacheObjects()
     {
@@ -55,6 +51,29 @@ namespace
 
             m_depthStencilDescriptorHeap = static_cast<DXDescriptorHeap*>(obj);
         }
+
+        if (!m_device)
+        {
+            m_device = core::utils::GetDevice();
+        }
+
+        if (!m_swapChain)
+        {
+            m_swapChain = core::utils::GetSwapChain();
+        }
+
+        if (!m_cameraBuffer)
+        {
+            BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+
+            BaseObject* obj = container.GetObjectOfClass(DXCameraBufferMeta::GetInstance());
+            if (!obj)
+            {
+                throw "Can't find Camera Buffer!";
+            }
+
+            m_cameraBuffer = static_cast<DXBuffer*>(obj);
+        }
     }
 }
 
@@ -68,10 +87,7 @@ rendering::DXDeferredMaterial::DXDeferredMaterial(const rendering::DXShader& ver
     DXMaterial(DXDeferredMaterialMeta::GetInstance(), vertexShader, pixelShader)
 {
     CacheObjects();
-
-    DXDevice* device = utils::GetDevice();
-
-    GetDeferredRP();
+    CreateRTVHeap();
 
     using Microsoft::WRL::ComPtr;
     {
@@ -80,7 +96,7 @@ rendering::DXDeferredMaterial::DXDeferredMaterial(const rendering::DXShader& ver
         // This is the highest version the sample supports. If CheckFeatureSupport succeeds, the HighestVersion returned will not be greater than this.
         featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
 
-        if (FAILED(device->GetDevice().CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData)))) {
+        if (FAILED(m_device->GetDevice().CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData)))) {
             featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
         }
 
@@ -105,7 +121,7 @@ rendering::DXDeferredMaterial::DXDeferredMaterial(const rendering::DXShader& ver
             "Can't serialize a root signature!")
 
         THROW_ERROR(
-            device->GetDevice().CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)),
+            m_device->GetDevice().CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)),
             "Can't create a root signature!")
     }
 
@@ -146,7 +162,7 @@ rendering::DXDeferredMaterial::DXDeferredMaterial(const rendering::DXShader& ver
         psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
         psoDesc.SampleDesc.Count = 1;
         THROW_ERROR(
-            device->GetDevice().CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)),
+            m_device->GetDevice().CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)),
             "Can't create Graphics Pipeline State!")
     }
 
@@ -164,34 +180,29 @@ ID3D12CommandList* rendering::DXDeferredMaterial::GenerateCommandList(
     UINT indexCount,
     UINT instanceIndex)
 {
-    DXDevice* device = utils::GetDevice();
-    DXSwapChain* swapChain = utils::GetSwapChain();
-    DXBuffer* camBuff = utils::GetCameraBuffer();
-
-    ID3D12Resource* curRT = swapChain->GetCurrentRenderTarget();
+    ID3D12Resource* curRT = m_swapChain->GetCurrentRenderTarget();
 
     m_commandLists.push_back(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>());
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList = m_commandLists.back();
 
     THROW_ERROR(
-        device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), m_pipelineState.Get(), IID_PPV_ARGS(&commandList)),
+        m_device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), m_pipelineState.Get(), IID_PPV_ARGS(&commandList)),
         "Can't reset Command List!")
 
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
-    commandList->SetGraphicsRootConstantBufferView(0, camBuff->GetBuffer()->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootConstantBufferView(0, m_cameraBuffer->GetBuffer()->GetGPUVirtualAddress());
     commandList->SetGraphicsRootConstantBufferView(1, m_settingsBuffer->GetBuffer()->GetGPUVirtualAddress());
 
-    commandList->RSSetViewports(1, &swapChain->GetViewport());
-    commandList->RSSetScissorRects(1, &swapChain->GetScissorRect());
+    commandList->RSSetViewports(1, &m_swapChain->GetViewport());
+    commandList->RSSetScissorRects(1, &m_swapChain->GetScissorRect());
 
-    DXDeferredRP* deferredRP = GetDeferredRP();
     D3D12_CPU_DESCRIPTOR_HANDLE dsHandle = m_depthStencilDescriptorHeap->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
     D3D12_CPU_DESCRIPTOR_HANDLE handles[] =
     {
-        deferredRP->GetDescriptorHandleFor(DXDeferredRP::GBufferTexType::Diffuse),
-        deferredRP->GetDescriptorHandleFor(DXDeferredRP::GBufferTexType::Specular),
-        deferredRP->GetDescriptorHandleFor(DXDeferredRP::GBufferTexType::Normal),
-        deferredRP->GetDescriptorHandleFor(DXDeferredRP::GBufferTexType::Position)
+        m_rtvHeap->GetDescriptorHandle(0),
+        m_rtvHeap->GetDescriptorHandle(1),
+        m_rtvHeap->GetDescriptorHandle(2),
+        m_rtvHeap->GetDescriptorHandle(3)
     };
     commandList->OMSetRenderTargets(_countof(handles), handles, FALSE, &dsHandle);
 
@@ -259,7 +270,7 @@ void rendering::DXDeferredMaterial::CreateSettingsBuffer(jobs::Job* done)
             m_ctx.m_buffer->Place(m_ctx.m_heap, 0);
             m_ctx.m_deferredMaterial->m_settingsBuffer = m_ctx.m_buffer;
 
-            utils::RunSync(m_ctx.m_done);
+            core::utils::RunSync(m_ctx.m_done);
         }
     };
 
@@ -291,12 +302,24 @@ void rendering::DXDeferredMaterial::CreateSettingsBuffer(jobs::Job* done)
     };
 
     Context ctx{ this, nullptr, nullptr, done };
-    utils::RunSync(new CreateBufferAndHeap(ctx));
+    core::utils::RunSync(new CreateBufferAndHeap(ctx));
 }
 
 rendering::DXBuffer* rendering::DXDeferredMaterial::GetSettingsBuffer()
 {
     return m_settingsBuffer;
 }
+
+void rendering::DXDeferredMaterial::CreateRTVHeap()
+{
+    std::list<DXTexture*> textures;
+    textures.push_back(deferred::GetGBufferDiffuseTex());
+    textures.push_back(deferred::GetGBufferSpecularTex());
+    textures.push_back(deferred::GetGBufferNormalTex());
+    textures.push_back(deferred::GetGBufferPositionTex());
+
+    m_rtvHeap = DXDescriptorHeap::CreateRTVDescriptorHeap(DXDescriptorHeapMeta::GetInstance(), textures);
+}
+
 
 #undef THROW_ERROR

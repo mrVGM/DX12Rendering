@@ -32,7 +32,7 @@
 
 #include "ShaderRepo.h"
 #include "DXUnlitMaterial.h"
-#include "Materials/DXDeferredMaterial.h"
+#include "DXDeferredMaterial.h"
 
 #include "DXDepthStencilTextureMeta.h"
 #include "DXDepthStencilDescriptorHeapMeta.h"

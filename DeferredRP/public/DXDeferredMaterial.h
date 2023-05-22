@@ -6,14 +6,18 @@
 
 namespace rendering
 {
+	class DXDescriptorHeap;
+
 	class DXDeferredMaterial : public rendering::DXMaterial
 	{
 	private:
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pipelineState;
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature;
 
+		DXDescriptorHeap* m_rtvHeap = nullptr;
 		DXBuffer* m_settingsBuffer = nullptr;
 
+		void CreateRTVHeap();
 	public:
 		DXDeferredMaterial(const DXShader& vertexShader, const DXShader& pixelShader);
 		virtual ~DXDeferredMaterial();

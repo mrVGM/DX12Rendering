@@ -18,3 +18,4 @@ const rendering::DXDeferredMaterialMeta& rendering::DXDeferredMaterialMeta::GetI
 {
 	return m_meta;
 }
+

@@ -29,10 +29,10 @@ add_library (Rendering
 	"private/Updater.cpp"
 	"private/RenderPass/DXDeferredRP.h"
 	"private/RenderPass/DXDeferredRP.cpp"
-	"private/Materials/DXDeferredMaterial.h"
-	"private/Materials/DXDeferredMaterial.cpp"
-	"private/Materials/DXDeferredMaterialMeta.h"
-	"private/Materials/DXDeferredMaterialMeta.cpp"
+	
+	
+	
+	
 	
 	
 	
