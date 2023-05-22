@@ -18,8 +18,18 @@ namespace rendering
 			Sync,
 		};
 
+		class NotifyUpdater : public jobs::Job
+		{
+		private:
+			rendering::Updater& m_updater;
+		public:
+			NotifyUpdater(rendering::Updater& updater);
+			void Do() override;
+		};
+
 	private:
 		UpdaterState m_state = NotStarted;
+		int m_updatesToWaitFor = 0;
 
 		std::chrono::system_clock::time_point m_lastTick;
 		void StartUpdate();
@@ -32,7 +42,6 @@ namespace rendering
 		Updater();
 		virtual ~Updater();
 
-		int m_updatesToWaitFor = 0;
 		void Proceed();
 
 		void Start();

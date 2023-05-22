@@ -22,8 +22,6 @@ namespace rendering
 		DirectX::XMMATRIX GetMVPMatrix() const;
 		void GetCoordinateVectors(DirectX::XMVECTOR& right, DirectX::XMVECTOR& fwd, DirectX::XMVECTOR& up) const;
 
-		
-
 	public:
 		long m_cursorRelativePos[2] = { 0, 0 };
 		float m_anglesCache[2] = { 0, 0 };

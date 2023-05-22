@@ -16,23 +16,17 @@
 #include <vector>
 #include <list>
 
-namespace
+rendering::Updater::NotifyUpdater::NotifyUpdater(rendering::Updater& updater) :
+	m_updater(updater)
 {
-	class NotifyUpdater : public jobs::Job
-	{
-	private:
-		rendering::Updater& m_updater;
-	public:
-		NotifyUpdater(rendering::Updater& updater) :
-			m_updater(updater)
-		{}
-		void Do() override
-		{
-			--m_updater.m_updatesToWaitFor;
-			m_updater.Proceed();
-		}
-	};
 }
+
+void rendering::Updater::NotifyUpdater::Do()
+{
+	--m_updater.m_updatesToWaitFor;
+	m_updater.Proceed();
+}
+
 
 rendering::Updater::Updater() :
 	BaseObject(rendering::UpdaterMeta::GetInstance())
