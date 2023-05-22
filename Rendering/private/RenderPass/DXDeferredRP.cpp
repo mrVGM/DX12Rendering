@@ -22,8 +22,8 @@
 #include "DXLightsCalculationsMaterial.h"
 #include "DXPostLightsCalculationsMaterial.h"
 
-#include "Lights/LightsManager.h"
-#include "Lights/LightsManagerMeta.h"
+#include "LightsManager.h"
+#include "LightsManagerMeta.h"
 
 #include <set>
 #include <list>

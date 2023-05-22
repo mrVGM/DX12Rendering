@@ -1,11 +1,11 @@
-#include "Lights/LightsManager.h"
+#include "LightsManager.h"
 
-#include "Lights/LightsManagerMeta.h"
+#include "LightsManagerMeta.h"
 
 #include "DXShadowMapMeta.h"
-#include "Lights/DXShadowMapDSMeta.h"
+#include "DXShadowMapDSMeta.h"
 
-#include "RenderUtils.h"
+#include "CoreUtils.h"
 
 #include "DXBuffer.h"
 #include "DXBufferMeta.h"
@@ -21,10 +21,42 @@
 #include "DXLightsBufferMeta.h"
 #include "DXSMSettingsBufferMeta.h"
 
+#include "ICamera.h"
+#include "ICameraMeta.h"
+
+#include "BaseObjectContainer.h"
+
 #include <DirectXMath.h>
 
 namespace
 {
+	rendering::DXDevice* m_device = nullptr;
+	rendering::ICamera* m_camera = nullptr;
+	
+
+	void CacheObjects()
+	{
+		using namespace rendering;
+
+		if (!m_device)
+		{
+			m_device = core::utils::GetDevice();
+		}
+
+		if (!m_camera)
+		{
+			BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+			BaseObject* obj = container.GetObjectOfClass(ICameraMeta::GetInstance());
+
+			if (!obj)
+			{
+				throw "Can't find Camera!";
+			}
+
+			m_camera = static_cast<ICamera*>(obj);
+		}
+	}
+
 	struct LightsBuffer
 	{
 		int m_numLights;
@@ -175,11 +207,10 @@ namespace
 
 		float eps = 0.000001f;
 
-		DXCamera* cam = utils::GetCamera();
 		std::list<XMVECTOR> corners;
-		cam->GetFrustrumCorners(corners);
+		m_camera->GetFrustrumCorners(corners);
 
-		XMVECTOR camFwd = cam->m_target - cam->m_position;
+		XMVECTOR camFwd = m_camera->GetTarget() - m_camera->GetPosition();
 		camFwd = XMVector3Normalize(camFwd);
 
 		XMVECTOR up = camFwd;
@@ -316,10 +347,8 @@ namespace
 
 		float maxV = 0, maxH = 0;
 		{
-			DXCamera* cam = utils::GetCamera();
-
 			std::list<XMVECTOR> corners;
-			cam->GetFrustrumCorners(corners);
+			m_camera->GetFrustrumCorners(corners);
 
 			XMMATRIX mvp = GetTransformMatrix(
 				XMVectorSet(light.m_position[0], light.m_position[1], light.m_position[2], 0),
@@ -372,6 +401,7 @@ int rendering::LightsManager::m_shadowMapResolution = 2048;
 rendering::LightsManager::LightsManager() :
 	BaseObject(LightsManagerMeta::GetInstance())
 {
+	CacheObjects();
 
 	Light l;
 	l.m_position[0] = 0;
@@ -439,7 +469,7 @@ void rendering::LightsManager::LoadLightsBuffer(jobs::Job* done)
 			m_ctx.m_buffer->Unmap();
 
 			m_ctx.m_lightsManager->m_lightsBuffer = m_ctx.m_buffer;
-			utils::RunSync(m_ctx.m_done);
+			core::utils::RunSync(m_ctx.m_done);
 		}
 	};
 
@@ -472,7 +502,7 @@ void rendering::LightsManager::LoadLightsBuffer(jobs::Job* done)
 	ctx.m_lightsManager = this;
 	ctx.m_done = done;
 
-	utils::RunSync(new CreateObjects(ctx));
+	core::utils::RunSync(new CreateObjects(ctx));
 }
 
 void rendering::LightsManager::LoadShadowMapDSTex(jobs::Job* done)
@@ -504,7 +534,7 @@ void rendering::LightsManager::LoadShadowMapDSTex(jobs::Job* done)
 			m_ctx.m_manager->m_shadowMapDSDescriptorHeap = 
 				DXDescriptorHeap::CreateDSVDescriptorHeap(DXShadowMapDSDescriptorHeapMeta::GetInstance(), *m_ctx.m_manager->m_shadowMapDepthStencil);
 
-			utils::RunSync(m_ctx.m_done);
+			core::utils::RunSync(m_ctx.m_done);
 		}
 	};
 
@@ -541,7 +571,7 @@ void rendering::LightsManager::LoadShadowMapDSTex(jobs::Job* done)
 		done
 	};
 
-	utils::RunSync(new CreateTex(ctx));
+	core::utils::RunSync(new CreateTex(ctx));
 }
 
 void rendering::LightsManager::LoadShadowMapSettingsBuffer(jobs::Job* done)
@@ -578,7 +608,7 @@ void rendering::LightsManager::LoadShadowMapSettingsBuffer(jobs::Job* done)
 
 			m_ctx.m_manager->m_shadowMapSettingsBuffer = m_ctx.m_buffer;
 
-			utils::RunSync(m_ctx.m_done);
+			core::utils::RunSync(m_ctx.m_done);
 		}
 	};
 
@@ -616,7 +646,7 @@ void rendering::LightsManager::LoadShadowMapSettingsBuffer(jobs::Job* done)
 		done
 	};
 
-	utils::RunSync(new CreateBuffer(ctx));
+	core::utils::RunSync(new CreateBuffer(ctx));
 
 }
 
@@ -654,7 +684,7 @@ void rendering::LightsManager::LoadShadowMapTex(jobs::Job* done)
 			m_ctx.m_texture->Place(*m_ctx.m_heap, 0);
 			m_ctx.m_manager->m_shadowMap = m_ctx.m_texture;
 
-			utils::RunSync(m_ctx.m_done);
+			core::utils::RunSync(m_ctx.m_done);
 		}
 	};
 
@@ -691,7 +721,7 @@ void rendering::LightsManager::LoadShadowMapTex(jobs::Job* done)
 		done
 	};
 
-	utils::RunSync(new CreateTex(ctx));
+	core::utils::RunSync(new CreateTex(ctx));
 }
 
 
@@ -724,7 +754,7 @@ void rendering::LightsManager::LoadShadowMap(jobs::Job* done)
 
 			m_ctx.m_lightsManager->CreateDescriptorHeaps();
 
-			utils::RunSync(m_ctx.m_done);
+			core::utils::RunSync(m_ctx.m_done);
 			delete &m_ctx;
 		}
 	};

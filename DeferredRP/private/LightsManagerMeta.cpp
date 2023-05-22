@@ -1,4 +1,4 @@
-#include "Lights/LightsManagerMeta.h"
+#include "LightsManagerMeta.h"
 
 namespace
 {

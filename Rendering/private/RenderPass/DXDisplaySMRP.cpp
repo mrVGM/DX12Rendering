@@ -9,8 +9,8 @@
 #include "d3dx12.h"
 
 #include "BaseObjectContainer.h"
-#include "Lights/LightsManager.h"
-#include "Lights/LightsManagerMeta.h"
+#include "LightsManager.h"
+#include "LightsManagerMeta.h"
 
 #include <iostream>
 

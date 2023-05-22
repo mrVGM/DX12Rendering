@@ -13,7 +13,6 @@
 #include "DXRenderer.h"
 #include "DXMaterialRepo.h"
 #include "DXTexture.h"
-#include "Lights/LightsManager.h"
 
 #include "Materials/DXUnlitErrorMaterial.h"
 

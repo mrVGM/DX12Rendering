@@ -41,20 +41,20 @@ add_library (Rendering
 	
 	
 	
-	"private/Lights/LightsManagerMeta.h"
-	"private/Lights/LightsManagerMeta.cpp"
-	"private/Lights/LightsManager.h"
-	"private/Lights/LightsManager.cpp"
+	
+	
+	
+	
 	
 	
 	"private/Materials/DXShadowMapMaterialMeta.h"
 	"private/Materials/DXShadowMapMaterialMeta.cpp"
 	"private/Materials/DXShadowMapMaterial.h"
 	"private/Materials/DXShadowMapMaterial.cpp"
-	"private/Lights/DXShadowMapDSMeta.h"
-	"private/Lights/DXShadowMapDSMeta.cpp"
-	"private/Lights/DXShadowMapDSDescriptorHeapMeta.h"
-	"private/Lights/DXShadowMapDSDescriptorHeapMeta.cpp"
+	
+	
+	
+	
 	"private/RenderPass/DXDisplaySMRPMeta.h"
 	"private/RenderPass/DXDisplaySMRPMeta.cpp"
 	"private/RenderPass/DXDisplaySMRP.h"

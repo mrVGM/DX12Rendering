@@ -27,8 +27,8 @@
 #include "DXMaterialRepo.h"
 #include "DXMaterialRepoMeta.h"
 
-#include "Lights/LightsManager.h"
-#include "Lights/LightsManagerMeta.h"
+#include "LightsManager.h"
+#include "LightsManagerMeta.h"
 
 namespace
 {
