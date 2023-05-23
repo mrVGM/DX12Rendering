@@ -200,6 +200,75 @@ namespace
 		return c1 * perp1 + c2 * perp2;
 	}
 
+	void FindProjectionOrtho(
+		const DirectX::XMVECTOR& direction,
+		DirectX::XMVECTOR& origin, float& depth, float& height)
+	{
+		using namespace DirectX;
+		using namespace rendering;
+
+		float eps = 0.000001f;
+
+		XMVECTOR camFwd = m_camera->GetTarget() - m_camera->GetPosition();
+		camFwd = XMVector3Normalize(camFwd);
+
+		XMVECTOR up, right, fwd;
+		{
+			up = camFwd;
+			right = XMVector3Cross(up, direction);
+
+			{
+				XMVECTOR l = XMVector3LengthSq(right);
+				if (XMVectorGetX(l) < eps)
+				{
+					up = XMVectorSet(0, 1, 0, 0);
+					right = XMVector3Cross(up, direction);
+				}
+
+				l = XMVector3LengthSq(right);
+				if (XMVectorGetX(l) < eps)
+				{
+					up = XMVectorSet(1, 0, 0, 0);
+					right = XMVector3Cross(up, direction);
+				}
+			}
+
+			up = XMVector3Normalize(up);
+			right = XMVector3Normalize(right);
+			fwd = XMVector3Cross(right, up);
+
+			fwd = XMVector3Normalize(fwd);
+		}
+
+		DirectX::XMMATRIX view(
+			DirectX::XMVECTOR{ DirectX::XMVectorGetX(right), DirectX::XMVectorGetY(right), DirectX::XMVectorGetZ(right), 0 },
+			DirectX::XMVECTOR{ DirectX::XMVectorGetX(up), DirectX::XMVectorGetY(up), DirectX::XMVectorGetZ(up), 0 },
+			DirectX::XMVECTOR{ DirectX::XMVectorGetX(fwd), DirectX::XMVectorGetY(fwd), DirectX::XMVectorGetZ(fwd), 0 },
+			DirectX::XMVECTOR{ 0, 0, 0, 1 }
+		);
+
+		view = XMMatrixTranspose(view);
+
+		std::list<XMVECTOR> corners;
+		m_camera->GetFrustrumCorners(corners);
+
+		XMVECTOR minPoint = XMVectorSet(0, 0, 0, 0);
+		XMVECTOR maxPoint = XMVectorSet(0, 0, 0, 0);
+
+		for (auto it = corners.begin(); it != corners.end(); ++it)
+		{
+			XMVECTOR cur = XMVector4Transform(*it, view);
+			minPoint = XMVectorMin(cur, minPoint);
+			maxPoint = XMVectorMin(cur, maxPoint);
+		}
+
+		origin = (minPoint + maxPoint) / 2;
+		origin = XMVectorGetZ(minPoint) * fwd;
+
+		depth = XMVectorGetZ(maxPoint) - XMVectorGetZ(minPoint);
+
+	}
+
 	DirectX::XMVECTOR FindShadowMapDirection(DirectX::XMVECTOR& origin, float& nearPlane, float& farPlane)
 	{
 		using namespace DirectX;
