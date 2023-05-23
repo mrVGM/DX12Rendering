@@ -569,6 +569,7 @@ namespace
 		{
 			pole1 = Y0;
 		}
+		pole1 = XMVector3Normalize(pole1);
 
 		float cosAngle1 = XMVectorGetX(XMVector3Dot(X0, X));
 		cosAngle1 = clamp(cosAngle1, -1, 1);
@@ -584,6 +585,8 @@ namespace
 		{
 			pole2 = X;
 		}
+		pole2 = XMVector3Normalize(pole2);
+
 		float cosAngle2 = XMVectorGetX(XMVector3Dot(Y1, Y));
 		cosAngle2 = clamp(cosAngle2, -1, 1);
 		float angle2 = acos(cosAngle2);
