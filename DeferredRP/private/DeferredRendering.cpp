@@ -92,16 +92,6 @@ namespace
 
 			void Do() override
 			{
-				if (!m_ctx.m_heapReady)
-				{
-					return;
-				}
-
-				if (!m_ctx.m_uploadHeapReady)
-				{
-					return;
-				}
-
 				m_ctx.m_uploadBuffer->CopyBuffer(*m_ctx.m_buffer, new Clear(m_ctx));
 			}
 		};
@@ -119,6 +109,12 @@ namespace
 			void Do() override
 			{
 				m_ctx.m_uploadHeapReady = true;
+
+				if (!m_ctx.m_heapReady)
+				{
+					return;
+				}
+
 				core::utils::RunSync(new CopyBuffers(m_ctx));
 			}
 		};
@@ -200,6 +196,12 @@ namespace
 			{
 				m_ctx.m_buffer->Place(m_ctx.m_heap, 0);
 				m_ctx.m_heapReady = true;
+
+				if (!m_ctx.m_uploadHeapReady)
+				{
+					return;
+				}
+
 				core::utils::RunSync(new CopyBuffers(m_ctx));
 			}
 		};
