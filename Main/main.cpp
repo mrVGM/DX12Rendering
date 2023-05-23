@@ -1,9 +1,7 @@
 ﻿#include "BaseFramework.h"
 
-#include "Window.h"
 #include "DataLib.h"
-#include "ColladaScene.h"
-#include "Rendering.h"
+#include "Renderer.h"
 
 #include <filesystem>
 #include <iostream>
