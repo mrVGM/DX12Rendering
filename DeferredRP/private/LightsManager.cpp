@@ -259,7 +259,7 @@ namespace
 		{
 			XMVECTOR cur = XMVector4Transform(*it, view);
 			minPoint = XMVectorMin(cur, minPoint);
-			maxPoint = XMVectorMin(cur, maxPoint);
+			maxPoint = XMVectorMax(cur, maxPoint);
 		}
 
 		XMVECTOR origin = (minPoint + maxPoint) / 2;
@@ -278,9 +278,9 @@ namespace
 		);
 
 		DirectX::XMMATRIX scale(
-			DirectX::XMVECTOR{ maxExtents, 0, 0, 0 },
-			DirectX::XMVECTOR{ 0, maxExtents, 0, 0 },
-			DirectX::XMVECTOR{ 0, 0, depth, 0 },
+			DirectX::XMVECTOR{ 1 / maxExtents, 0, 0, 0 },
+			DirectX::XMVECTOR{ 0, 1 / maxExtents, 0, 0 },
+			DirectX::XMVECTOR{ 0, 0, 1 / depth, 0 },
 			DirectX::XMVECTOR{ 0, 0, 0, 1 }
 		);
 
