@@ -13,7 +13,7 @@ namespace rendering
 
 	struct Light
 	{
-		float m_position[3];
+		float m_direction[3];
 		float m_range;
 	};
 

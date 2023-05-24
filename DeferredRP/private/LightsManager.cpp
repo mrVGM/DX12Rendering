@@ -202,7 +202,7 @@ namespace
 
 	void FindProjectionOrtho(
 		const DirectX::XMVECTOR& direction,
-		DirectX::XMVECTOR& origin, float& depth, float& height)
+		DirectX::XMMATRIX& matrix)
 	{
 		using namespace DirectX;
 		using namespace rendering;
@@ -240,14 +240,14 @@ namespace
 			fwd = XMVector3Normalize(fwd);
 		}
 
-		DirectX::XMMATRIX view(
+		XMMATRIX viewRaw(
 			DirectX::XMVECTOR{ DirectX::XMVectorGetX(right), DirectX::XMVectorGetY(right), DirectX::XMVectorGetZ(right), 0 },
 			DirectX::XMVECTOR{ DirectX::XMVectorGetX(up), DirectX::XMVectorGetY(up), DirectX::XMVectorGetZ(up), 0 },
 			DirectX::XMVECTOR{ DirectX::XMVectorGetX(fwd), DirectX::XMVectorGetY(fwd), DirectX::XMVectorGetZ(fwd), 0 },
 			DirectX::XMVECTOR{ 0, 0, 0, 1 }
 		);
 
-		view = XMMatrixTranspose(view);
+		XMMATRIX view = XMMatrixTranspose(viewRaw);
 
 		std::list<XMVECTOR> corners;
 		m_camera->GetFrustrumCorners(corners);
@@ -262,11 +262,30 @@ namespace
 			maxPoint = XMVectorMin(cur, maxPoint);
 		}
 
-		origin = (minPoint + maxPoint) / 2;
+		XMVECTOR origin = (minPoint + maxPoint) / 2;
+		XMVECTOR extents = maxPoint - origin;
 		origin = XMVectorGetZ(minPoint) * fwd;
 
-		depth = XMVectorGetZ(maxPoint) - XMVectorGetZ(minPoint);
+		float maxExtents = max(XMVectorGetX(extents), XMVectorGetY(extents));
 
+		float depth = XMVectorGetZ(maxPoint) - XMVectorGetZ(minPoint);
+		
+		DirectX::XMMATRIX translate(
+			DirectX::XMVECTOR{ 1, 0, 0, -XMVectorGetX(origin) },
+			DirectX::XMVECTOR{ 0, 1, 0, -XMVectorGetY(origin) },
+			DirectX::XMVECTOR{ 0, 0, 1, -XMVectorGetZ(origin) },
+			DirectX::XMVECTOR{ 0, 0, 0, 1 }
+		);
+
+		DirectX::XMMATRIX scale(
+			DirectX::XMVECTOR{ maxExtents, 0, 0, 0 },
+			DirectX::XMVECTOR{ 0, maxExtents, 0, 0 },
+			DirectX::XMVECTOR{ 0, 0, depth, 0 },
+			DirectX::XMVECTOR{ 0, 0, 0, 1 }
+		);
+
+		matrix = XMMatrixMultiply(scale, XMMatrixMultiply(viewRaw, translate));
+		matrix = XMMatrixTranspose(matrix);
 	}
 
 	DirectX::XMVECTOR FindShadowMapDirection(DirectX::XMVECTOR& origin, float& nearPlane, float& farPlane)
@@ -402,48 +421,9 @@ namespace
 		using namespace DirectX;
 		using namespace rendering;
 
-
-		float farPlane = 30;
-		float nearPlane = 5;
-		float fov = 120;
-		float aspect = 1;
-
-		XMVECTOR origin = XMVectorSet(light.m_position[0], light.m_position[1], light.m_position[2], 0);
-		XMVECTOR dir = FindShadowMapDirection(
-			origin,
-			nearPlane,
-			farPlane);
-
-		float maxV = 0, maxH = 0;
-		{
-			std::list<XMVECTOR> corners;
-			m_camera->GetFrustrumCorners(corners);
-
-			XMMATRIX mvp = GetTransformMatrix(
-				XMVectorSet(light.m_position[0], light.m_position[1], light.m_position[2], 0),
-				origin + dir,
-				XMVectorSet(farPlane, nearPlane, 90, 1));
-
-			float maxV = 0, maxH = 0;
-			for (auto it = corners.begin(); it != corners.end(); ++it)
-			{
-				const XMVECTOR& cur = *it;
-				XMVECTOR tmp = XMVector4Transform(cur, mvp);
-
-				tmp /= XMVectorGetW(tmp);
-				maxH = max(abs(XMVectorGetX(tmp)), maxH);
-				maxV = max(abs(XMVectorGetY(tmp)), maxV);
-			}
-
-			fov = atan(maxV);
-			fov = 2 * XMConvertToDegrees(fov);
-			aspect = maxH / maxV;
-		}
-
-		XMMATRIX mvp = GetTransformMatrix(
-			XMVectorSet(light.m_position[0], light.m_position[1], light.m_position[2], 0),
-			origin + dir,
-			XMVectorSet(farPlane, nearPlane, fov, aspect));
+		XMMATRIX mvp;
+		XMVECTOR lightDir = XMVectorSet(light.m_direction[0], light.m_direction[1], light.m_direction[2], 0);
+		FindProjectionOrtho(lightDir, mvp);
 
 		int index = 0;
 		for (int r = 0; r < 4; ++r) {
@@ -458,9 +438,9 @@ namespace
 			settings.m_matrix[index++] = w;
 		}
 
-		settings.m_position[0] = light.m_position[0];
-		settings.m_position[1] = light.m_position[1];
-		settings.m_position[2] = light.m_position[2];
+		settings.m_position[0] = light.m_direction[0];
+		settings.m_position[1] = light.m_direction[1];
+		settings.m_position[2] = light.m_direction[2];
 		settings.m_position[3] = 1;
 	}
 }
@@ -473,9 +453,9 @@ rendering::LightsManager::LightsManager() :
 	CacheObjects();
 
 	Light l;
-	l.m_position[0] = 0;
-	l.m_position[1] = 100000;
-	l.m_position[2] = -2;
+	l.m_direction[0] = 0;
+	l.m_direction[1] = -1;
+	l.m_direction[2] = 0;
 	l.m_range = 300000;
 
 	AddLight(l);

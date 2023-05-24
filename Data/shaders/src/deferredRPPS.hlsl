@@ -3,7 +3,7 @@
 
 struct Light
 {
-    float3 m_position;
+    float3 m_direction;
     float m_range;
 };
 
@@ -105,7 +105,7 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
         }
     }
 
-    for (int i = 0; i < 3; ++i)
+    for (int i = 0; i < m_numLights; ++i)
     {
         if (i == 0)
         {
@@ -117,24 +117,16 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
         }
 
         Light cur = m_lights[i];
-        float3 offset = cur.m_position - positionTex;
-
-        float dist = length(offset);
-        float3 dir = normalize(offset);
-
-        if (dist > cur.m_range)
-        {
-            continue;
-        }
+        float3 dir = normalize(cur.m_direction);
 
         {
-            float cosCoef = max(0, dot(dir, normalTex.xyz));
+            float cosCoef = max(0, dot(-dir, normalTex.xyz));
             color += cosCoef * diffuseTex.xyz;
             color = clamp(color, 0, 1);
         }
 
         {
-            float cosCoef = max(0, dot(dir, reflectedEyeDir));
+            float cosCoef = max(0, dot(-dir, reflectedEyeDir));
             specularColor += pow(cosCoef, 16) * specularTex;
             specularColor = clamp(specularColor, 0, 1);
         }
