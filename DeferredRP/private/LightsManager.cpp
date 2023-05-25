@@ -213,6 +213,7 @@ namespace
 		camFwd = XMVector3Normalize(camFwd);
 
 		XMVECTOR up, right, fwd;
+		fwd = XMVector3Normalize(direction);
 		{
 			up = camFwd;
 			right = XMVector3Cross(up, direction);
@@ -233,11 +234,9 @@ namespace
 				}
 			}
 
-			up = XMVector3Normalize(up);
 			right = XMVector3Normalize(right);
-			fwd = XMVector3Cross(right, up);
-
-			fwd = XMVector3Normalize(fwd);
+			up = XMVector3Cross(fwd, right);
+			up = XMVector3Normalize(up);
 		}
 
 		XMMATRIX viewRaw(
@@ -455,7 +454,7 @@ rendering::LightsManager::LightsManager() :
 	Light l;
 	l.m_direction[0] = 0;
 	l.m_direction[1] = -1;
-	l.m_direction[2] = 0;
+	l.m_direction[2] = 1;
 	l.m_range = 300000;
 
 	AddLight(l);
