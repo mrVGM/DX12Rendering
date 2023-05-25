@@ -42,7 +42,7 @@ PSInput VSMain(
 
     result.position = CalculateShadowMap(m_smBuff, worldPos);
 
-    float depth = result.position.z / result.position.w;
+    float depth = CalculateShadowMapBiasedDepth(m_smBuff, worldPos, worldNormal);
     result.depth = depth;
     
     return result;

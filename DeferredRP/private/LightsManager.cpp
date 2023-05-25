@@ -208,7 +208,8 @@ namespace
 
 	void FindProjectionOrtho(
 		const DirectX::XMVECTOR& direction,
-		DirectX::XMMATRIX& matrix)
+		DirectX::XMMATRIX& matrix,
+		DirectX::XMVECTOR& origin)
 	{
 		using namespace DirectX;
 		using namespace rendering;
@@ -267,7 +268,7 @@ namespace
 			maxPoint = XMVectorMax(cur, maxPoint);
 		}
 
-		XMVECTOR origin = (minPoint + maxPoint) / 2;
+		origin = (minPoint + maxPoint) / 2;
 		XMVECTOR extents = maxPoint - origin;
 		origin = XMVectorGetZ(minPoint) * fwd;
 
@@ -428,25 +429,48 @@ namespace
 
 		XMMATRIX mvp;
 		XMVECTOR lightDir = XMVectorSet(light.m_direction[0], light.m_direction[1], light.m_direction[2], 0);
-		FindProjectionOrtho(lightDir, mvp);
 
-		int index = 0;
-		for (int r = 0; r < 4; ++r) {
-			float x = DirectX::XMVectorGetX(mvp.r[r]);
-			float y = DirectX::XMVectorGetY(mvp.r[r]);
-			float z = DirectX::XMVectorGetZ(mvp.r[r]);
-			float w = DirectX::XMVectorGetW(mvp.r[r]);
+		XMVECTOR origin;
+		FindProjectionOrtho(lightDir, mvp, origin);
 
-			settings.m_matrix[index++] = x;
-			settings.m_matrix[index++] = y;
-			settings.m_matrix[index++] = z;
-			settings.m_matrix[index++] = w;
+		{
+			int index = 0;
+			for (int r = 0; r < 4; ++r) {
+				float x = DirectX::XMVectorGetX(mvp.r[r]);
+				float y = DirectX::XMVectorGetY(mvp.r[r]);
+				float z = DirectX::XMVectorGetZ(mvp.r[r]);
+				float w = DirectX::XMVectorGetW(mvp.r[r]);
+
+				settings.m_matrix[index++] = x;
+				settings.m_matrix[index++] = y;
+				settings.m_matrix[index++] = z;
+				settings.m_matrix[index++] = w;
+			}
 		}
 
-		settings.m_position[0] = light.m_direction[0];
-		settings.m_position[1] = light.m_direction[1];
-		settings.m_position[2] = light.m_direction[2];
+		{
+			XMVECTOR determinant;
+			XMMATRIX inv = XMMatrixInverse(&determinant, mvp);
+			int index = 0;
+			for (int r = 0; r < 4; ++r) {
+				float x = DirectX::XMVectorGetX(inv.r[r]);
+				float y = DirectX::XMVectorGetY(inv.r[r]);
+				float z = DirectX::XMVectorGetZ(inv.r[r]);
+				float w = DirectX::XMVectorGetW(inv.r[r]);
+
+				settings.m_inv[index++] = x;
+				settings.m_inv[index++] = y;
+				settings.m_inv[index++] = z;
+				settings.m_inv[index++] = w;
+			}
+		}
+
+		settings.m_position[0] = XMVectorGetX(origin);
+		settings.m_position[1] = XMVectorGetY(origin);
+		settings.m_position[2] = XMVectorGetZ(origin);
 		settings.m_position[3] = 1;
+
+		settings.m_resolution = LightsManager::m_shadowMapResolution;
 	}
 }
 
