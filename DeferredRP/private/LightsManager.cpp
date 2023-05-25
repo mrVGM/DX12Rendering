@@ -72,7 +72,10 @@ namespace
 	struct ShadowMapSettings
 	{
 		float m_matrix[16];
+		float m_inv[16];
 		float m_position[4];
+		int m_resolution;
+		float m_placeholder[3];
 	};
 
 	
