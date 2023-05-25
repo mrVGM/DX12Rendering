@@ -29,12 +29,8 @@ jobs::JobSystem::~JobSystem()
 	}
 }
 
-void jobs::JobSystem::ScheduleJob(Job* job)
+void jobs::JobSystem::BootThread()
 {
-	m_mutex.lock();
-	m_jobQueue.push(job);
-	m_mutex.unlock();
-
 	for (auto it = m_threads.begin(); it != m_threads.end(); ++it)
 	{
 		if ((*it)->IsBusy())
@@ -45,6 +41,17 @@ void jobs::JobSystem::ScheduleJob(Job* job)
 		(*it)->Boot();
 		return;
 	}
+}
+
+void jobs::JobSystem::ScheduleJob(Job* job)
+{
+	m_mutex.lock();
+	m_jobQueue.push(job);
+	m_mutex.unlock();
+
+	m_bootMutex.lock();
+	BootThread();
+	m_bootMutex.unlock();
 }
 
 jobs::Job* jobs::JobSystem::AcquireJob()

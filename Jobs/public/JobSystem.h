@@ -20,8 +20,10 @@ namespace jobs
 		std::queue<Job*> m_jobQueue;
 		std::list<Thread*> m_threads;
 		std::mutex m_mutex;
+		std::mutex m_bootMutex;
 
 		jobs::Job* AcquireJob();
+		void BootThread();
 	public:
 		JobSystem(const BaseObjectMeta& meta, int numThreads);
 		virtual ~JobSystem();
