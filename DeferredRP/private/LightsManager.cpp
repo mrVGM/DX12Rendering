@@ -26,6 +26,9 @@
 
 #include "BaseObjectContainer.h"
 
+#include "DXShadowMapUpdater.h"
+#include "DXShadowMapRDU.h"
+
 #include <DirectXMath.h>
 
 namespace
@@ -633,6 +636,20 @@ void rendering::LightsManager::LoadShadowMapSettingsBuffer(jobs::Job* done)
 		jobs::Job* m_done = nullptr;
 	};
 
+	class CreateShadowMapUpdaters : public jobs::Job
+	{
+	public:
+		CreateShadowMapUpdaters()
+		{
+		}
+
+		void Do() override
+		{
+			new DXShadowMapUpdater();
+			new DXShadowMapRDU();
+		}
+	};
+
 	class PlaceBuffer : public jobs::Job
 	{
 	private:
@@ -646,17 +663,10 @@ void rendering::LightsManager::LoadShadowMapSettingsBuffer(jobs::Job* done)
 		void Do() override
 		{
 			m_ctx.m_buffer->Place(m_ctx.m_heap, 0);
-
-			const Light& l = m_ctx.m_manager->m_lights.front();
-			
-			void* data = m_ctx.m_buffer->Map();
-			ShadowMapSettings* smSettingsData = static_cast<ShadowMapSettings*>(data);
-			GetShadowMapSettings(l, *smSettingsData);
-			m_ctx.m_buffer->Unmap();
-
 			m_ctx.m_manager->m_shadowMapSettingsBuffer = m_ctx.m_buffer;
 
 			core::utils::RunSync(m_ctx.m_done);
+			core::utils::RunSync(new CreateShadowMapUpdaters());
 		}
 	};
 

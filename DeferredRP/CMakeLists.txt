@@ -45,6 +45,14 @@ add_library (DeferredRP
 	"public/DXDeferredMaterial.h"
 	"public/DXDeferredRP.h"
 	"private/DXDeferredRP.cpp"
+	"private/DXShadowMapUpdaterMeta.h"
+	"private/DXShadowMapUpdaterMeta.cpp"
+	"private/DXShadowMapRDUMeta.h"
+	"private/DXShadowMapRDUMeta.cpp"
+	"private/DXShadowMapUpdater.h"
+	"private/DXShadowMapUpdater.cpp"
+	"private/DXShadowMapRDU.cpp"
+	"private/DXShadowMapRDU.h"
 )
 
 target_include_directories(DeferredRP INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
