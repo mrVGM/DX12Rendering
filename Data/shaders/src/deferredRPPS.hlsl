@@ -42,11 +42,8 @@ struct PS_OUTPUT
 
 float testForShadow(float3 position)
 {
-    float4 testedPoint = CalculateShadowMap(m_smBuffer, position);
-    testedPoint /= testedPoint.w;
-    float pointDepth = testedPoint.z;
-
-    float2 coord = (testedPoint.xy + 1) / 2;
+    float pointDepth = CalculateShadowMapDepth(m_smBuffer, position);
+    float2 coord = CalculateShadowMapNormalizedUV(m_smBuffer, position);
 
     if (coord.x < 0 || coord.x > 1 || coord.y < 0 || coord.y > 1)
     {
