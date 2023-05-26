@@ -58,6 +58,8 @@ add_library (DeferredRP
 	"private/resources/DXSMSettingsBufferMeta.cpp"
 	"private/resources/DXLightsBufferMeta.h"
 	"private/resources/DXLightsBufferMeta.cpp"
+	"private/utils.h"
+	"private/utils.cpp"
 )
 
 target_include_directories(DeferredRP INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
