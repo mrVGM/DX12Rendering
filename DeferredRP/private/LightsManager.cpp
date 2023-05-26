@@ -29,12 +29,18 @@
 #include "DXShadowMapUpdater.h"
 #include "DXShadowMapRDU.h"
 
+#include "DXScene.h"
+#include "DXSceneMeta.h"
+
 #include <DirectXMath.h>
 
 namespace
 {
+	static const float eps = 0.00000001;
+
 	rendering::DXDevice* m_device = nullptr;
 	rendering::ICamera* m_camera = nullptr;
+	rendering::DXScene* m_scene = nullptr;
 	
 
 	void CacheObjects()
@@ -57,6 +63,19 @@ namespace
 			}
 
 			m_camera = static_cast<ICamera*>(obj);
+		}
+
+		if (!m_scene)
+		{
+			BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+			BaseObject* obj = container.GetObjectOfClass(DXSceneMeta::GetInstance());
+
+			if (!obj)
+			{
+				throw "Can't find Scene!";
+			}
+
+			m_scene = static_cast<DXScene*>(obj);
 		}
 	}
 
@@ -88,8 +107,6 @@ namespace
 		const DirectX::XMVECTOR& frustrumSettings)
 	{
 		using namespace DirectX;
-
-		float eps = 0.0000001f;
 
 		float farPlane = XMVectorGetX(frustrumSettings);
 		float nearPlane = XMVectorGetY(frustrumSettings);
@@ -140,8 +157,6 @@ namespace
 		const DirectX::XMVECTOR& frustrumSettings)
 	{
 		using namespace DirectX;
-
-		float eps = 0.0000001f;
 
 		XMVECTOR fwd = target - origin;
 
@@ -214,8 +229,6 @@ namespace
 		using namespace DirectX;
 		using namespace rendering;
 
-		float eps = 0.000001f;
-
 		XMVECTOR camFwd = m_camera->GetTarget() - m_camera->GetPosition();
 		camFwd = XMVector3Normalize(camFwd);
 
@@ -274,14 +287,14 @@ namespace
 
 		float maxExtents = max(XMVectorGetX(extents), XMVectorGetY(extents));
 
-		float depth = XMVectorGetZ(maxPoint) - XMVectorGetZ(minPoint);
-		
 		DirectX::XMMATRIX translate(
 			DirectX::XMVECTOR{ 1, 0, 0, -XMVectorGetX(origin) },
 			DirectX::XMVECTOR{ 0, 1, 0, -XMVectorGetY(origin) },
 			DirectX::XMVECTOR{ 0, 0, 1, -XMVectorGetZ(origin) },
 			DirectX::XMVECTOR{ 0, 0, 0, 1 }
 		);
+
+		float depth = XMVectorGetZ(maxPoint) - XMVectorGetZ(minPoint);
 
 		DirectX::XMMATRIX scale(
 			DirectX::XMVECTOR{ 1 / maxExtents, 0, 0, 0 },
@@ -298,8 +311,6 @@ namespace
 	{
 		using namespace DirectX;
 		using namespace rendering;
-
-		float eps = 0.000001f;
 
 		std::list<XMVECTOR> corners;
 		m_camera->GetFrustrumCorners(corners);
