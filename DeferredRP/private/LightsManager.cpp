@@ -26,8 +26,8 @@
 
 #include "BaseObjectContainer.h"
 
-#include "DXShadowMapUpdater.h"
-#include "DXShadowMapRDU.h"
+#include "updaters/DXShadowMapUpdater.h"
+#include "updaters/DXShadowMapRDU.h"
 
 #include "DXScene.h"
 #include "DXSceneMeta.h"
