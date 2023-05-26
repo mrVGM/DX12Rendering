@@ -8,8 +8,8 @@
 
 #include "DXDeferredMaterialMetaTag.h"
 
-#include "DXShadowMapMaterial.h"
-#include "DXShadowMapMaterialMeta.h"
+#include "HelperMaterials/DXShadowMapMaterial.h"
+#include "HelperMaterials/DXShadowMapMaterialMeta.h"
 
 #include "DXBufferMeta.h"
 #include "DXHeap.h"
@@ -19,8 +19,8 @@
 
 #include "BaseObjectContainer.h"
 
-#include "DXLightsCalculationsMaterial.h"
-#include "DXPostLightsCalculationsMaterial.h"
+#include "HelperMaterials/DXLightsCalculationsMaterial.h"
+#include "HelperMaterials/DXPostLightsCalculationsMaterial.h"
 
 #include "LightsManager.h"
 #include "LightsManagerMeta.h"

@@ -2,14 +2,14 @@
 
 #include "CoreUtils.h"
 
-#include "DXGBufferDuffuseTexMeta.h"
-#include "DXGBufferNormalTexMeta.h"
-#include "DXGBufferPositionTexMeta.h"
-#include "DXGBufferSpecularTexMeta.h"
+#include "resources/DXGBufferDuffuseTexMeta.h"
+#include "resources/DXGBufferNormalTexMeta.h"
+#include "resources/DXGBufferPositionTexMeta.h"
+#include "resources/DXGBufferSpecularTexMeta.h"
 
-#include "DXGBufferAmbientLitTexMeta.h"
-#include "DXGBufferDiffuseLitTexMeta.h"
-#include "DXGBufferSpecularLitTexMeta.h"
+#include "resources/DXGBufferAmbientLitTexMeta.h"
+#include "resources/DXGBufferDiffuseLitTexMeta.h"
+#include "resources/DXGBufferSpecularLitTexMeta.h"
 
 #include "DXHeap.h"
 #include "DXBufferMeta.h"
