@@ -3,12 +3,6 @@
 add_library (CommonResources
 	"public/DXCameraBufferMeta.h"
 	"private/DXCameraBufferMeta.cpp"
-	"public/DXLightsBufferMeta.h"
-	"private/DXLightsBufferMeta.cpp"
-	"private/DXShadowMapMeta.cpp"
-	"public/DXShadowMapMeta.h"
-	"public/DXSMSettingsBufferMeta.h"
-	"private/DXSMSettingsBufferMeta.cpp"
 	"public/ICameraMeta.h"
 	"private/ICameraMeta.cpp"
 	"public/ICamera.h"
