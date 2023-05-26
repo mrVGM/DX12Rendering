@@ -45,14 +45,39 @@ float testForShadow(float3 position)
     float pointDepth = CalculateShadowMapDepth(m_smBuffer, position);
     float2 coord = CalculateShadowMapNormalizedUV(m_smBuffer, position);
 
+    coord = float2(coord.x, 1 - coord.y);
     if (coord.x < 0 || coord.x > 1 || coord.y < 0 || coord.y > 1)
     {
         return 0;
     }
 
-    coord = float2(coord.x, 1 - coord.y);
     float4 shadowMap = p_shadowMap.Sample(p_sampler, coord);
-    return pointDepth - shadowMap.x;
+    if (pointDepth < shadowMap.x)
+    {
+        return 0;
+    }
+
+    float pixelSize = 1.0 / m_smBuffer.m_resolution;
+
+    float shadowStrength = 0;
+    int sampleCount = 0;
+    for (int i = 0; i < 3; ++i)
+    {
+        for (int j = 0; j < 3; ++j)
+        {
+            int2 indexCoord = int2(i, j) - int2(1, 1);
+            float2 curCoord = coord + pixelSize * indexCoord;
+
+            float4 smSample = p_shadowMap.Sample(p_sampler, curCoord);
+            if (pointDepth > smSample.x)
+            {
+                shadowStrength += 1;
+            }
+            ++sampleCount;
+        }
+    }
+
+    return shadowStrength / sampleCount;
 }
 
 PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
@@ -104,13 +129,12 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
 
     for (int i = 0; i < m_numLights; ++i)
     {
+        float lightIntensity = 1;
+
         if (i == 0)
         {
             float shadowTest = testForShadow(positionTex.xyz);
-            if (shadowTest > 0)
-            {
-                continue;
-            }
+            lightIntensity = 1 - shadowTest;
         }
 
         Light cur = m_lights[i];
@@ -118,13 +142,13 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
 
         {
             float cosCoef = max(0, dot(-dir, normalTex.xyz));
-            color += cosCoef * diffuseTex.xyz;
+            color += lightIntensity * cosCoef * diffuseTex.xyz;
             color = clamp(color, 0, 1);
         }
 
         {
             float cosCoef = max(0, dot(-dir, reflectedEyeDir));
-            specularColor += pow(cosCoef, 16) * specularTex;
+            specularColor += lightIntensity * pow(cosCoef, 16) * specularTex;
             specularColor = clamp(specularColor, 0, 1);
         }
     }
