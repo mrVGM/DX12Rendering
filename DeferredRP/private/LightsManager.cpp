@@ -277,8 +277,38 @@ namespace
 		for (auto it = corners.begin(); it != corners.end(); ++it)
 		{
 			XMVECTOR cur = XMVector4Transform(*it, view);
+			cur /= XMVectorGetW(cur);
 			minPoint = XMVectorMin(cur, minPoint);
 			maxPoint = XMVectorMax(cur, maxPoint);
+		}
+
+		// TODO: Better near plane calculation
+		{
+			XMVECTOR minBB, maxBB;
+			m_scene->GetSceneBB(minBB, maxBB);
+
+			XMVECTOR sceneBBCorners[] =
+			{
+				minBB,
+				XMVectorSetX(minBB, XMVectorGetX(maxBB)),
+				XMVectorSetY(maxBB, XMVectorGetY(minBB)),
+				XMVectorSetZ(minBB, XMVectorGetZ(maxBB)),
+
+				maxBB,
+				XMVectorSetX(maxBB, XMVectorGetX(minBB)),
+				XMVectorSetY(minBB, XMVectorGetY(maxBB)),
+				XMVectorSetZ(maxBB, XMVectorGetZ(minBB)),
+			};
+
+			for (int i = 0; i < _countof(sceneBBCorners); ++i)
+			{
+				XMVECTOR cur = XMVectorSetW(sceneBBCorners[i], 1);
+				XMVECTOR proj = XMVector4Transform(cur, view);
+				proj /= XMVectorGetW(proj);
+
+				float minZ = min(XMVectorGetZ(proj), XMVectorGetZ(minPoint));
+				minPoint = XMVectorSetZ(minPoint, minZ);
+			}
 		}
 
 		origin = (minPoint + maxPoint) / 2;
