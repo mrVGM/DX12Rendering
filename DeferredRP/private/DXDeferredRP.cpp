@@ -150,12 +150,6 @@ rendering::DXDeferredRP::~DXDeferredRP()
     }
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE rendering::DXDeferredRP::GetDescriptorHandleFor(GBufferTexType texType)
-{
-    D3D12_CPU_DESCRIPTOR_HANDLE handle = m_rtvHeap->GetDescriptorHandle(texType);
-    return handle;
-}
-
 void rendering::DXDeferredRP::CreateRTVHeap()
 {
     std::list<DXTexture*> textures;
@@ -207,10 +201,10 @@ void rendering::DXDeferredRP::PrepareStartList()
 
     {
         const float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-        m_startList->ClearRenderTargetView(GetDescriptorHandleFor(GBufferTexType::Diffuse), clearColor, 0, nullptr);
-        m_startList->ClearRenderTargetView(GetDescriptorHandleFor(GBufferTexType::Specular), clearColor, 0, nullptr);
-        m_startList->ClearRenderTargetView(GetDescriptorHandleFor(GBufferTexType::Normal), clearColor, 0, nullptr);
-        m_startList->ClearRenderTargetView(GetDescriptorHandleFor(GBufferTexType::Position), clearColor, 0, nullptr);
+        m_startList->ClearRenderTargetView(m_rtvHeap->GetDescriptorHandle(0), clearColor, 0, nullptr);
+        m_startList->ClearRenderTargetView(m_rtvHeap->GetDescriptorHandle(1), clearColor, 0, nullptr);
+        m_startList->ClearRenderTargetView(m_rtvHeap->GetDescriptorHandle(2), clearColor, 0, nullptr);
+        m_startList->ClearRenderTargetView(m_rtvHeap->GetDescriptorHandle(3), clearColor, 0, nullptr);
     }
 
     {

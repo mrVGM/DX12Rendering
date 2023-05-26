@@ -19,16 +19,6 @@ namespace rendering
 
 	class DXDeferredRP : public RenderPass
 	{
-	public:
-		enum GBufferTexType
-		{
-			Diffuse = 0,
-			Specular = 1,
-			Normal = 2,
-			Position = 3,
-			ShadowMap = 4
-		};
-
 	private:
 		ID3D12CommandList** m_commandListsCache = nullptr;
 		int m_numCommandLists = 0;
@@ -57,8 +47,6 @@ namespace rendering
 	public:
 		DXDeferredRP();
 		virtual ~DXDeferredRP();
-
-		D3D12_CPU_DESCRIPTOR_HANDLE GetDescriptorHandleFor(GBufferTexType texType);
 
 		void Prepare() override;
 		void Execute() override;
