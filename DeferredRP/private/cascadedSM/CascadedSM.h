@@ -12,6 +12,7 @@ namespace rendering
 	class DXBuffer;
 	class DXTexture;
 	class DXDescriptorHeap;
+	class DXMaterial;
 
 	class CascadedSM : public BaseObject
 	{
@@ -19,8 +20,9 @@ namespace rendering
 		static const UINT m_resolution;
 	private:
 		DXBuffer* m_smSettingsBuffer = nullptr;
-
 		DXTexture* m_smTex = nullptr;
+
+		std::list<DXMaterial*> m_shadowMapMaterials;
 
 		std::list<DXTexture*> m_depthTextures;
 		DXDescriptorHeap* m_dsDescriptorHeap = nullptr;
@@ -29,6 +31,7 @@ namespace rendering
 		void LoadSettingsBuffer(jobs::Job* done);
 		void LoadDepthTextures(jobs::Job* done);
 		void LoadSMTexture(jobs::Job* done);
+		void LoadSMMaterials(jobs::Job* done);
 
 		void CreateDescriptorHeaps();
 
@@ -43,5 +46,7 @@ namespace rendering
 		DXDescriptorHeap* GetDSDescriptorHeap();
 		DXDescriptorHeap* GetSMDescriptorHeap();
 		DXBuffer* GetSettingsBuffer();
+
+		DXMaterial* GetShadowMapMaterial();
 	};
 }

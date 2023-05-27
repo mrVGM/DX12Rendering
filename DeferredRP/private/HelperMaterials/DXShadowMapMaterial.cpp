@@ -16,9 +16,6 @@
 
 #include "DXDeferredRPMeta.h"
 
-#include "LightsManager.h"
-#include "LightsManagerMeta.h"
-
 #include "DXCameraBufferMeta.h"
 #include "DXBuffer.h"
 
@@ -234,6 +231,73 @@ ID3D12CommandList* rendering::DXShadowMapMaterial::GenerateCommandList(
         "Can't close Command List!")
 
     return commandList.Get();
+}
+
+void rendering::DXShadowMapMaterial::LoadBuffer(jobs::Job* done)
+{
+    struct Context
+    {
+        DXShadowMapMaterial* m_shadowMapMaterial = nullptr;
+
+        DXBuffer* m_buffer = nullptr;
+        DXHeap* m_heap = nullptr;
+
+        jobs::Job* m_done = nullptr;
+    };
+
+    Context ctx;
+    ctx.m_shadowMapMaterial = this;
+    ctx.m_done = done;
+
+    class PlaceBuffer : public jobs::Job
+    {
+    private:
+        Context m_ctx;
+    public:
+        PlaceBuffer(const Context& ctx) :
+            m_ctx(ctx)
+        {
+        }
+
+        void Do() override
+        {
+            m_ctx.m_buffer->Place(m_ctx.m_heap, 0);
+            m_ctx.m_shadowMapMaterial->m_materialSettingsBuffer = m_ctx.m_buffer;
+
+            core::utils::RunSync(m_ctx.m_done);
+        }
+    };
+
+    class CreateBuffer : public jobs::Job
+    {
+    private:
+        Context m_ctx;
+    public:
+        CreateBuffer(const Context& ctx) :
+            m_ctx(ctx)
+        {
+        }
+
+        void Do() override
+        {
+            UINT size = 256;
+            UINT stride = size;
+
+            m_ctx.m_buffer = new DXBuffer(DXBufferMeta::GetInstance());
+            m_ctx.m_buffer->SetBufferSizeAndFlags(size, D3D12_RESOURCE_FLAG_NONE);
+            m_ctx.m_buffer->SetBufferStride(stride);
+
+            m_ctx.m_heap = new DXHeap();
+            m_ctx.m_heap->SetHeapSize(size);
+            m_ctx.m_heap->SetHeapType(D3D12_HEAP_TYPE_UPLOAD);
+            m_ctx.m_heap->SetHeapFlags(D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS);
+            m_ctx.m_heap->Create();
+
+            m_ctx.m_heap->MakeResident(new PlaceBuffer(m_ctx));
+        }
+    };
+    
+    core::utils::RunSync(new CreateBuffer(ctx));
 }
 
 #undef THROW_ERROR

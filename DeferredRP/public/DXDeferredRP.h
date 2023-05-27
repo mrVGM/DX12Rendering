@@ -29,8 +29,6 @@ namespace rendering
 		DXDescriptorHeap* m_rtvHeap;
 		DXDescriptorHeap* m_srvHeap;
 
-		DXMaterial* m_shadowMapMaterial = nullptr;
-
 		bool m_startListPrepared = false;
 		
 		void CreateRTVHeap();

@@ -25,6 +25,10 @@
 
 #include "resources/DXSMSettingsBufferMeta.h"
 
+#include "HelperMaterials/DXShadowMapMaterial.h"
+
+#include "ShaderRepo.h"
+
 #include "ICamera.h"
 
 #include "utils.h"
@@ -387,6 +391,60 @@ void rendering::CascadedSM::LoadSMTexture(jobs::Job* done)
 	core::utils::RunSync(new CreateTex(ctx));
 }
 
+void rendering::CascadedSM::LoadSMMaterials(jobs::Job* done)
+{
+	struct Context
+	{
+		CascadedSM* m_self = nullptr;
+		DXShadowMapMaterial* m_materials[4];
+
+		int m_buffersLeftToLoad = _countof(m_materials);
+
+		jobs::Job* m_done = nullptr;
+	};
+
+	Context* ctx = new Context();
+	ctx->m_self = this;
+	ctx->m_done = done;
+
+	class BufferLoaded : public jobs::Job
+	{
+	private:
+		Context& m_ctx;
+	public:
+		BufferLoaded(Context& ctx) :
+			m_ctx(ctx)
+		{
+		}
+
+		void Do() override
+		{
+			--m_ctx.m_buffersLeftToLoad;
+
+			if (m_ctx.m_buffersLeftToLoad > 0)
+			{
+				return;
+			}
+			for (int i = 0; i < _countof(m_ctx.m_materials); ++i)
+			{
+				m_ctx.m_self->m_shadowMapMaterials.push_back(m_ctx.m_materials[i]);
+			}
+
+			core::utils::RunSync(m_ctx.m_done);
+			delete &m_ctx;
+		}
+	};
+
+	for (int i = 0; i < _countof(ctx->m_materials); ++i)
+	{
+		ctx->m_materials[i] = new DXShadowMapMaterial(
+			*shader_repo::GetShadowMapVertexShader(),
+			*shader_repo::GetShadowMapPixelShader());
+
+		ctx->m_materials[i]->LoadBuffer(new BufferLoaded(*ctx));
+	}
+}
+
 void rendering::CascadedSM::LoadDepthTextures(jobs::Job* done)
 {
 	struct Context
@@ -660,7 +718,7 @@ void rendering::CascadedSM::LoadResources(jobs::Job* done)
 	struct Context
 	{
 		CascadedSM* m_cascadedSM = nullptr;
-		int m_itemsToWaitFor = 3;
+		int m_itemsToWaitFor = 4;
 
 		jobs::Job* m_done = nullptr;
 	};
@@ -715,6 +773,7 @@ void rendering::CascadedSM::LoadResources(jobs::Job* done)
 	LoadSettingsBuffer(new ItemReady(*ctx));
 	LoadDepthTextures(new ItemReady(*ctx));
 	LoadSMTexture(new ItemReady(*ctx));
+	LoadSMMaterials(new ItemReady(*ctx));
 }
 
 rendering::DXTexture* rendering::CascadedSM::GetShadowMap()
@@ -735,4 +794,9 @@ rendering::DXDescriptorHeap* rendering::CascadedSM::GetSMDescriptorHeap()
 rendering::DXBuffer* rendering::CascadedSM::GetSettingsBuffer()
 {
 	return m_smSettingsBuffer;
+}
+
+rendering::DXMaterial* rendering::CascadedSM::GetShadowMapMaterial()
+{
+	return *m_shadowMapMaterials.begin();
 }

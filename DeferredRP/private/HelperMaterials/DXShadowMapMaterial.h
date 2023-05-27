@@ -6,11 +6,15 @@
 
 namespace rendering
 {
+	class DXBuffer;
+
 	class DXShadowMapMaterial : public rendering::DXMaterial
 	{
 	private:
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pipelineState;
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature;
+
+		DXBuffer* m_materialSettingsBuffer = nullptr;
 
 	public:
 		DXShadowMapMaterial(const DXShader& vertexShader, const DXShader& pixelShader);
@@ -23,5 +27,7 @@ namespace rendering
 			UINT startIndex,
 			UINT indexCount,
 			UINT instanceIndex) override;
+
+		void LoadBuffer(jobs::Job* done);
 	};
 }

@@ -131,18 +131,6 @@ rendering::DXDeferredRP::DXDeferredRP() :
             m_startList->Close(),
             "Can't close Command List!")
     }
-    
-    {
-        BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-        BaseObject* obj = container.GetObjectOfClass(DXShadowMapMaterialMeta::GetInstance());
-
-        if (!obj)
-        {
-            obj = new DXShadowMapMaterial(*shader_repo::GetShadowMapVertexShader(), *shader_repo::GetShadowMapPixelShader());
-        }
-
-        m_shadowMapMaterial = static_cast<DXShadowMapMaterial*>(obj);
-    }
 }
 
 rendering::DXDeferredRP::~DXDeferredRP()
@@ -231,7 +219,7 @@ void rendering::DXDeferredRP::RenderShadowMap()
     DXScene* scene = m_scene;
     DXMaterialRepo* repo = m_materialRepo;
 
-    m_shadowMapMaterial->ResetCommandLists();
+    m_cascadedSM->GetShadowMapMaterial()->ResetCommandLists();
 
     std::list<ID3D12CommandList*> deferredLists;
     for (int i = 0; i < scene->m_scenesLoaded; ++i)
@@ -268,7 +256,7 @@ void rendering::DXDeferredRP::RenderShadowMap()
                     continue;
                 }
 
-                deferredLists.push_back(m_shadowMapMaterial->GenerateCommandList(
+                deferredLists.push_back(m_cascadedSM->GetShadowMapMaterial()->GenerateCommandList(
                     *vertBuf,
                     *indexBuf,
                     *instanceBuf,
