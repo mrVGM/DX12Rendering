@@ -192,7 +192,7 @@ ID3D12CommandList* rendering::DXShadowMapMaterial::GenerateCommandList(
         commandList->RSSetScissorRects(1, &scissorRect);
     }
 
-    D3D12_CPU_DESCRIPTOR_HANDLE dsHandle = m_cascadedSM->GetDSDescriptorHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+    D3D12_CPU_DESCRIPTOR_HANDLE dsHandle = m_cascadedSM->GetDSDescriptorHeap()->GetDescriptorHandle(m_smSlot);
     D3D12_CPU_DESCRIPTOR_HANDLE handles[] =
     {
         m_cascadedSM->GetSMDescriptorHeap()->GetDescriptorHandle(0)
