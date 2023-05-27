@@ -60,7 +60,7 @@ add_library (DeferredRP
 	"private/resources/DXLightsBufferMeta.cpp"
 	"private/utils.h"
 	"private/utils.cpp"
- "private/CascadedSMMeta.h" "private/CascadedSMMeta.cpp" "private/CascadedSM.h" "private/CascadedSM.cpp")
+ "private/cascadedSM/CascadedSMMeta.h" "private/cascadedSM/CascadedSMMeta.cpp" "private/cascadedSM/CascadedSM.h" "private/cascadedSM/CascadedSM.cpp")
 
 target_include_directories(DeferredRP INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(DeferredRP PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")

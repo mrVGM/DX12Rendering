@@ -16,6 +16,10 @@ namespace rendering
 
 		virtual DirectX::XMVECTOR GetPosition() const = 0;
 		virtual DirectX::XMVECTOR GetTarget() const = 0;
-		virtual void GetFrustrumCorners(std::list<DirectX::XMVECTOR>& corners) = 0;
+
+		virtual float GetNearPlane() const = 0;
+		virtual float GetFarPlane() const = 0;
+
+		virtual void GetFrustrumCorners(std::list<DirectX::XMVECTOR>& corners, float nearPlane, float farPlane) = 0;
 	};
 }

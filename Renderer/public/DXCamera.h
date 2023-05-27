@@ -38,9 +38,11 @@ namespace rendering
 		DXCamera();
 		virtual ~DXCamera();
 
-		void GetFrustrumCorners(std::list<DirectX::XMVECTOR>& corners) override;
+		void GetFrustrumCorners(std::list<DirectX::XMVECTOR>& corners, float nearPlane, float farPlane) override;
 		DirectX::XMVECTOR GetPosition() const override;
 		DirectX::XMVECTOR GetTarget() const override;
+		float GetNearPlane() const override;
+		float GetFarPlane() const override;
 
 		void InitBuffer(jobs::Job* done);
 		void UpdateCamBuffer();

@@ -185,7 +185,7 @@ void rendering::DXCamera::InitBuffer(jobs::Job* done)
 	heap->MakeResident(new InitBufferJob(jobContext));
 }
 
-void rendering::DXCamera::GetFrustrumCorners(std::list<DirectX::XMVECTOR>& corners)
+void rendering::DXCamera::GetFrustrumCorners(std::list<DirectX::XMVECTOR>& corners, float nearPlane, float farPlane)
 {
 	using namespace DirectX;
 
@@ -201,15 +201,15 @@ void rendering::DXCamera::GetFrustrumCorners(std::list<DirectX::XMVECTOR>& corne
 	XMVECTOR topRight = fwd + h * up + w * right;
 	XMVECTOR topLeft = fwd + h * up - w * right;
 
-	corners.push_back(m_position + m_nearPlane * bottomLeft);
-	corners.push_back(m_position + m_nearPlane * bottomRight);
-	corners.push_back(m_position + m_nearPlane * topRight);
-	corners.push_back(m_position + m_nearPlane * topLeft);
+	corners.push_back(m_position + nearPlane * bottomLeft);
+	corners.push_back(m_position + nearPlane * bottomRight);
+	corners.push_back(m_position + nearPlane * topRight);
+	corners.push_back(m_position + nearPlane * topLeft);
 
-	corners.push_back(m_position + m_farPlane * bottomLeft);
-	corners.push_back(m_position + m_farPlane * bottomRight);
-	corners.push_back(m_position + m_farPlane * topRight);
-	corners.push_back(m_position + m_farPlane * topLeft);
+	corners.push_back(m_position + farPlane * bottomLeft);
+	corners.push_back(m_position + farPlane * bottomRight);
+	corners.push_back(m_position + farPlane * topRight);
+	corners.push_back(m_position + farPlane * topLeft);
 
 	for (auto it = corners.begin(); it != corners.end(); ++it)
 	{
@@ -226,4 +226,14 @@ DirectX::XMVECTOR rendering::DXCamera::GetPosition() const
 DirectX::XMVECTOR rendering::DXCamera::GetTarget() const
 {
 	return m_target;
+}
+
+float rendering::DXCamera::GetNearPlane() const
+{
+	return m_nearPlane;
+}
+
+float rendering::DXCamera::GetFarPlane() const
+{
+	return m_farPlane;
 }
