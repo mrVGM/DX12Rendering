@@ -27,9 +27,6 @@
 #include "DXMaterialRepo.h"
 #include "DXMaterialRepoMeta.h"
 
-#include "LightsManager.h"
-#include "LightsManagerMeta.h"
-
 namespace
 {
 	rendering::Updater* m_updater = nullptr;
