@@ -22,10 +22,10 @@ add_library (Renderer
 	"private/UpdaterMeta.cpp"
 	"public/Updater.h"
 	"private/Updater.cpp"
-	"private/RenderPass/DXDisplaySMRPMeta.h"
-	"private/RenderPass/DXDisplaySMRPMeta.cpp"
-	"private/RenderPass/DXDisplaySMRP.h"
-	"private/RenderPass/DXDisplaySMRP.cpp"
+	
+	
+	
+	
 	"private/MaterialUtils.h"
 	"private/MaterialUtils.cpp"
 	"private/DXCameraUpdaterMeta.h"
