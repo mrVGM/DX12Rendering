@@ -23,7 +23,7 @@ namespace rendering
 		DXDescriptorHeap(const BaseObjectMeta& meta);
 		virtual ~DXDescriptorHeap();
 
-		static DXDescriptorHeap* CreateDSVDescriptorHeap(const BaseObjectMeta& meta, DXTexture& depthStencilTex);
+		static DXDescriptorHeap* CreateDSVDescriptorHeap(const BaseObjectMeta& meta, const std::list<DXTexture*>& textures);
 		static DXDescriptorHeap* CreateRTVDescriptorHeap(const BaseObjectMeta& meta, const std::list<DXTexture*>& textures);
 		static DXDescriptorHeap* CreateSRVDescriptorHeap(const BaseObjectMeta& meta, const std::list<DXTexture*>& textures);
 

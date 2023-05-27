@@ -111,7 +111,9 @@ void rendering::DXClearDSTRP::Load(jobs::Job* done)
 
         void Do() override
         {
-            m_depthStencilDescriptorHeap = DXDescriptorHeap::CreateDSVDescriptorHeap(DXDepthStencilDescriptorHeapMeta::GetInstance(), *m_ctx.m_texture);
+            std::list<DXTexture*> textures;
+            textures.push_back(m_ctx.m_texture);
+            m_depthStencilDescriptorHeap = DXDescriptorHeap::CreateDSVDescriptorHeap(DXDepthStencilDescriptorHeapMeta::GetInstance(), textures);
             core::utils::RunSync(m_ctx.m_done);
         }
     };

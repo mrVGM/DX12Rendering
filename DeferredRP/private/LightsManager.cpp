@@ -650,8 +650,11 @@ void rendering::LightsManager::LoadShadowMapDSTex(jobs::Job* done)
 			m_ctx.m_texture->Place(*m_ctx.m_heap, 0);
 			m_ctx.m_manager->m_shadowMapDepthStencil = m_ctx.m_texture;
 
+
+			std::list<DXTexture*> textures;
+			textures.push_back(m_ctx.m_manager->m_shadowMapDepthStencil);
 			m_ctx.m_manager->m_shadowMapDSDescriptorHeap = 
-				DXDescriptorHeap::CreateDSVDescriptorHeap(DXShadowMapDSDescriptorHeapMeta::GetInstance(), *m_ctx.m_manager->m_shadowMapDepthStencil);
+				DXDescriptorHeap::CreateDSVDescriptorHeap(DXShadowMapDSDescriptorHeapMeta::GetInstance(), textures);
 
 			core::utils::RunSync(m_ctx.m_done);
 		}

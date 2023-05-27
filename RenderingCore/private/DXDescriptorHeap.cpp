@@ -37,30 +37,33 @@ rendering::DXDescriptorHeap::~DXDescriptorHeap()
 }
 
 
-rendering::DXDescriptorHeap* rendering::DXDescriptorHeap::CreateDSVDescriptorHeap(const BaseObjectMeta& meta, rendering::DXTexture& depthStencilTex)
+rendering::DXDescriptorHeap* rendering::DXDescriptorHeap::CreateDSVDescriptorHeap(const BaseObjectMeta& meta, const std::list<DXTexture*>& textures)
 {
 	DXDescriptorHeap* res = new DXDescriptorHeap(meta);
 
 	{
 		D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
-		dsvHeapDesc.NumDescriptors = 1;
+		dsvHeapDesc.NumDescriptors = textures.size();
 		dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 		dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 		THROW_ERROR(
 			m_device->GetDevice().CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&res->m_descriptorHeap)),
 			"Can't Create DSV Heap!"
 		);
+
+		res->m_descriptorSize = m_device->GetDevice().GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 	}
 
+	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(res->m_descriptorHeap->GetCPUDescriptorHandleForHeapStart());
+	for (auto it = textures.begin(); it != textures.end(); ++it)
 	{
 		D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilDesc = {};
 		depthStencilDesc.Format = DXGI_FORMAT_D32_FLOAT;
 		depthStencilDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 		depthStencilDesc.Flags = D3D12_DSV_FLAG_NONE;
+		m_device->GetDevice().CreateDepthStencilView((*it)->GetTexture(), &depthStencilDesc, dsvHandle);
 
-		CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(res->m_descriptorHeap->GetCPUDescriptorHandleForHeapStart());
-
-		m_device->GetDevice().CreateDepthStencilView(depthStencilTex.GetTexture(), &depthStencilDesc, dsvHandle);
+		dsvHandle.Offset(1, res->m_descriptorSize);
 	}
 
 	return res;
