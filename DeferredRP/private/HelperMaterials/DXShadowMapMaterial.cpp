@@ -72,8 +72,9 @@ if (FAILED(hRes)) {\
     throw error;\
 }
 
-rendering::DXShadowMapMaterial::DXShadowMapMaterial(const rendering::DXShader& vertexShader, const rendering::DXShader& pixelShader) :
-    DXMaterial(DXShadowMapMaterialMeta::GetInstance(), vertexShader, pixelShader)
+rendering::DXShadowMapMaterial::DXShadowMapMaterial(const rendering::DXShader& vertexShader, const rendering::DXShader& pixelShader, int smSlot) :
+    DXMaterial(DXShadowMapMaterialMeta::GetInstance(), vertexShader, pixelShader),
+    m_smSlot(smSlot)
 {
     CacheObjects();
 
@@ -98,9 +99,10 @@ rendering::DXShadowMapMaterial::DXShadowMapMaterial(const rendering::DXShader& v
             D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-        CD3DX12_ROOT_PARAMETER1 rootParameters[2];
+        CD3DX12_ROOT_PARAMETER1 rootParameters[3];
         rootParameters[0].InitAsConstantBufferView(0, 0);
         rootParameters[1].InitAsConstantBufferView(1, 0);
+        rootParameters[2].InitAsConstantBufferView(2, 0);
 
         rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 0, nullptr, rootSignatureFlags);
 
@@ -177,6 +179,7 @@ ID3D12CommandList* rendering::DXShadowMapMaterial::GenerateCommandList(
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
     commandList->SetGraphicsRootConstantBufferView(0, m_cameraBuffer->GetBuffer()->GetGPUVirtualAddress());
     commandList->SetGraphicsRootConstantBufferView(1, m_cascadedSM->GetSettingsBuffer()->GetBuffer()->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootConstantBufferView(2, m_materialSettingsBuffer->GetBuffer()->GetGPUVirtualAddress());
     
     {
         UINT texWidth = shadowMapTexture->GetTextureDescription().Width;
@@ -262,6 +265,12 @@ void rendering::DXShadowMapMaterial::LoadBuffer(jobs::Job* done)
         void Do() override
         {
             m_ctx.m_buffer->Place(m_ctx.m_heap, 0);
+
+            void* data = m_ctx.m_buffer->Map();
+            int* intData = static_cast<int*>(data);
+            *intData = m_ctx.m_shadowMapMaterial->m_smSlot;
+            m_ctx.m_buffer->Unmap();
+
             m_ctx.m_shadowMapMaterial->m_materialSettingsBuffer = m_ctx.m_buffer;
 
             core::utils::RunSync(m_ctx.m_done);

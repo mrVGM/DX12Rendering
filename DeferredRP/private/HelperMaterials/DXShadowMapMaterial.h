@@ -16,8 +16,10 @@ namespace rendering
 
 		DXBuffer* m_materialSettingsBuffer = nullptr;
 
+		int m_smSlot = 0;
+
 	public:
-		DXShadowMapMaterial(const DXShader& vertexShader, const DXShader& pixelShader);
+		DXShadowMapMaterial(const DXShader& vertexShader, const DXShader& pixelShader, int smSlot);
 		virtual ~DXShadowMapMaterial();
 
 		virtual ID3D12CommandList* GenerateCommandList(

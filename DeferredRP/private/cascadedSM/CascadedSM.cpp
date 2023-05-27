@@ -439,7 +439,8 @@ void rendering::CascadedSM::LoadSMMaterials(jobs::Job* done)
 	{
 		ctx->m_materials[i] = new DXShadowMapMaterial(
 			*shader_repo::GetShadowMapVertexShader(),
-			*shader_repo::GetShadowMapPixelShader());
+			*shader_repo::GetShadowMapPixelShader(),
+			i);
 
 		ctx->m_materials[i]->LoadBuffer(new BufferLoaded(*ctx));
 	}
