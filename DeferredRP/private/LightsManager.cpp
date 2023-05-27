@@ -949,3 +949,8 @@ rendering::DXBuffer* rendering::LightsManager::GetSMSettingsBuffer()
 	return m_shadowMapSettingsBuffer;
 }
 
+const rendering::Light& rendering::LightsManager::GetLight(int index) const
+{
+	return m_lights[index];
+}
+

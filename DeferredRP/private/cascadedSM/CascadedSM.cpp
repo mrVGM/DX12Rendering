@@ -131,7 +131,7 @@ namespace
 		float m_placeholder[3];
 	};
 
-	void FindProjectionOrtho(
+	void FindProjectionOrthographic(
 		const DirectX::XMVECTOR& direction,
 		float nearPlane,
 		float farPlane,
@@ -441,7 +441,196 @@ void rendering::CascadedSM::CreateDescriptorHeaps()
 
 void rendering::CascadedSM::UpdateSMSettings()
 {
+	using namespace DirectX;
+	const Light& light = m_lightsManager->GetLight(0);
 
+	XMMATRIX mat;
+	XMVECTOR origin;
+
+	ShadowMapSettings settings;
+
+	{
+		SingleSM& singleSMSettings = settings.m_sms[0];
+
+		FindProjectionOrthographic(
+			XMVectorSet(light.m_direction[0], light.m_direction[1], light.m_direction[2], 0),
+			m_camera->GetNearPlane(),
+			m_camera->GetNearPlane(),
+			mat,
+			origin);
+
+		int index = 0;
+		for (int r = 0; r < 4; ++r) {
+			float x = DirectX::XMVectorGetX(mat.r[r]);
+			float y = DirectX::XMVectorGetY(mat.r[r]);
+			float z = DirectX::XMVectorGetZ(mat.r[r]);
+			float w = DirectX::XMVectorGetW(mat.r[r]);
+
+			singleSMSettings.m_matrix[index++] = x;
+			singleSMSettings.m_matrix[index++] = y;
+			singleSMSettings.m_matrix[index++] = z;
+			singleSMSettings.m_matrix[index++] = w;
+		}
+
+		XMVECTOR determinant;
+		XMMATRIX inv = XMMatrixInverse(&determinant, mat);
+		index = 0;
+		for (int r = 0; r < 4; ++r) {
+			float x = DirectX::XMVectorGetX(inv.r[r]);
+			float y = DirectX::XMVectorGetY(inv.r[r]);
+			float z = DirectX::XMVectorGetZ(inv.r[r]);
+			float w = DirectX::XMVectorGetW(inv.r[r]);
+
+			singleSMSettings.m_inv[index++] = x;
+			singleSMSettings.m_inv[index++] = y;
+			singleSMSettings.m_inv[index++] = z;
+			singleSMSettings.m_inv[index++] = w;
+		}
+
+		singleSMSettings.m_position[0] = XMVectorGetX(origin);
+		singleSMSettings.m_position[1] = XMVectorGetX(origin);
+		singleSMSettings.m_position[2] = XMVectorGetX(origin);
+		singleSMSettings.m_position[3] = XMVectorGetX(origin);
+	}
+
+	{
+		SingleSM& singleSMSettings = settings.m_sms[1];
+
+		FindProjectionOrthographic(
+			XMVectorSet(light.m_direction[0], light.m_direction[1], light.m_direction[2], 0),
+			m_camera->GetNearPlane(),
+			m_camera->GetNearPlane(),
+			mat,
+			origin);
+
+		int index = 0;
+		for (int r = 0; r < 4; ++r) {
+			float x = DirectX::XMVectorGetX(mat.r[r]);
+			float y = DirectX::XMVectorGetY(mat.r[r]);
+			float z = DirectX::XMVectorGetZ(mat.r[r]);
+			float w = DirectX::XMVectorGetW(mat.r[r]);
+
+			singleSMSettings.m_matrix[index++] = x;
+			singleSMSettings.m_matrix[index++] = y;
+			singleSMSettings.m_matrix[index++] = z;
+			singleSMSettings.m_matrix[index++] = w;
+		}
+
+		XMVECTOR determinant;
+		XMMATRIX inv = XMMatrixInverse(&determinant, mat);
+		index = 0;
+		for (int r = 0; r < 4; ++r) {
+			float x = DirectX::XMVectorGetX(inv.r[r]);
+			float y = DirectX::XMVectorGetY(inv.r[r]);
+			float z = DirectX::XMVectorGetZ(inv.r[r]);
+			float w = DirectX::XMVectorGetW(inv.r[r]);
+
+			singleSMSettings.m_inv[index++] = x;
+			singleSMSettings.m_inv[index++] = y;
+			singleSMSettings.m_inv[index++] = z;
+			singleSMSettings.m_inv[index++] = w;
+		}
+
+		singleSMSettings.m_position[0] = XMVectorGetX(origin);
+		singleSMSettings.m_position[1] = XMVectorGetX(origin);
+		singleSMSettings.m_position[2] = XMVectorGetX(origin);
+		singleSMSettings.m_position[3] = XMVectorGetX(origin);
+	}
+
+	{
+		SingleSM& singleSMSettings = settings.m_sms[2];
+
+		FindProjectionOrthographic(
+			XMVectorSet(light.m_direction[0], light.m_direction[1], light.m_direction[2], 0),
+			m_camera->GetNearPlane(),
+			m_camera->GetNearPlane(),
+			mat,
+			origin);
+
+		int index = 0;
+		for (int r = 0; r < 4; ++r) {
+			float x = DirectX::XMVectorGetX(mat.r[r]);
+			float y = DirectX::XMVectorGetY(mat.r[r]);
+			float z = DirectX::XMVectorGetZ(mat.r[r]);
+			float w = DirectX::XMVectorGetW(mat.r[r]);
+
+			singleSMSettings.m_matrix[index++] = x;
+			singleSMSettings.m_matrix[index++] = y;
+			singleSMSettings.m_matrix[index++] = z;
+			singleSMSettings.m_matrix[index++] = w;
+		}
+
+		XMVECTOR determinant;
+		XMMATRIX inv = XMMatrixInverse(&determinant, mat);
+		index = 0;
+		for (int r = 0; r < 4; ++r) {
+			float x = DirectX::XMVectorGetX(inv.r[r]);
+			float y = DirectX::XMVectorGetY(inv.r[r]);
+			float z = DirectX::XMVectorGetZ(inv.r[r]);
+			float w = DirectX::XMVectorGetW(inv.r[r]);
+
+			singleSMSettings.m_inv[index++] = x;
+			singleSMSettings.m_inv[index++] = y;
+			singleSMSettings.m_inv[index++] = z;
+			singleSMSettings.m_inv[index++] = w;
+		}
+
+		singleSMSettings.m_position[0] = XMVectorGetX(origin);
+		singleSMSettings.m_position[1] = XMVectorGetX(origin);
+		singleSMSettings.m_position[2] = XMVectorGetX(origin);
+		singleSMSettings.m_position[3] = XMVectorGetX(origin);
+	}
+
+	{
+		SingleSM& singleSMSettings = settings.m_sms[3];
+
+		FindProjectionOrthographic(
+			XMVectorSet(light.m_direction[0], light.m_direction[1], light.m_direction[2], 0),
+			m_camera->GetNearPlane(),
+			m_camera->GetNearPlane(),
+			mat,
+			origin);
+
+		int index = 0;
+		for (int r = 0; r < 4; ++r) {
+			float x = DirectX::XMVectorGetX(mat.r[r]);
+			float y = DirectX::XMVectorGetY(mat.r[r]);
+			float z = DirectX::XMVectorGetZ(mat.r[r]);
+			float w = DirectX::XMVectorGetW(mat.r[r]);
+
+			singleSMSettings.m_matrix[index++] = x;
+			singleSMSettings.m_matrix[index++] = y;
+			singleSMSettings.m_matrix[index++] = z;
+			singleSMSettings.m_matrix[index++] = w;
+		}
+
+		XMVECTOR determinant;
+		XMMATRIX inv = XMMatrixInverse(&determinant, mat);
+		index = 0;
+		for (int r = 0; r < 4; ++r) {
+			float x = DirectX::XMVectorGetX(inv.r[r]);
+			float y = DirectX::XMVectorGetY(inv.r[r]);
+			float z = DirectX::XMVectorGetZ(inv.r[r]);
+			float w = DirectX::XMVectorGetW(inv.r[r]);
+
+			singleSMSettings.m_inv[index++] = x;
+			singleSMSettings.m_inv[index++] = y;
+			singleSMSettings.m_inv[index++] = z;
+			singleSMSettings.m_inv[index++] = w;
+		}
+
+		singleSMSettings.m_position[0] = XMVectorGetX(origin);
+		singleSMSettings.m_position[1] = XMVectorGetX(origin);
+		singleSMSettings.m_position[2] = XMVectorGetX(origin);
+		singleSMSettings.m_position[3] = XMVectorGetX(origin);
+	}
+
+	settings.m_resolution = CascadedSM::m_resolution;
+
+	void* data = m_smSettingsBuffer->Map();
+	ShadowMapSettings* shadowMapSettingsData = static_cast<ShadowMapSettings*>(data);
+	*shadowMapSettingsData = settings;
+	m_smSettingsBuffer->Unmap();
 }
 
 rendering::CascadedSM::CascadedSM() :

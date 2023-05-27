@@ -3,7 +3,7 @@
 #include "BaseObject.h"
 #include "Job.h"
 
-#include <list>
+#include <vector>
 
 namespace rendering
 {
@@ -23,7 +23,7 @@ namespace rendering
 		static int m_shadowMapResolution;
 	private:
 
-		std::list<Light> m_lights;
+		std::vector<Light> m_lights;
 		DXBuffer* m_lightsBuffer = nullptr;
 		DXTexture* m_shadowMap = nullptr;
 		DXTexture* m_shadowMapDepthStencil = nullptr;
@@ -56,5 +56,7 @@ namespace rendering
 		DXDescriptorHeap* GetSMRTVHeap();
 		DXDescriptorHeap* GetSMSRVHeap();
 		DXBuffer* GetSMSettingsBuffer();
+
+		const Light& GetLight(int index) const;
 	};
 }
