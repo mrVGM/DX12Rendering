@@ -19,8 +19,39 @@
 #include "resources/DXShadowMapMeta.h"
 #include "resources/DXShadowMapDSMeta.h"
 
+#include "ICamera.h"
+
+#include "utils.h"
+
+#include <DirectXMath.h>
+
 namespace
 {
+	static const float eps = 0.00000000001f;
+
+	rendering::ICamera* m_camera = nullptr;
+	rendering::DXScene* m_scene = nullptr;
+	rendering::LightsManager* m_lightsManager = nullptr;
+
+	void CacheObjects()
+	{
+		using namespace rendering;
+		if (!m_camera)
+		{
+			m_camera = deferred::GetCamera();
+		}
+
+		if (!m_scene)
+		{
+			m_scene = deferred::GetScene();
+		}
+
+		if (!m_lightsManager)
+		{
+			m_lightsManager = deferred::GetLightsManager();
+		}
+	}
+
 	void LoadSMDSTex(rendering::DXTexture*& outTex, jobs::Job* done)
 	{
 		using namespace rendering;
@@ -85,11 +116,143 @@ namespace
 
 		core::utils::RunSync(new CreateTex(ctx));
 	}
+
+	struct SingleSM
+	{
+		float m_matrix[16];
+		float m_inv[16];
+		float m_position[4];
+	};
+	
+	struct ShadowMapSettings
+	{
+		SingleSM m_sms[4];
+		int m_resolution;
+		float m_placeholder[3];
+	};
+
+	void FindProjectionOrtho(
+		const DirectX::XMVECTOR& direction,
+		float nearPlane,
+		float farPlane,
+		DirectX::XMMATRIX& matrix,
+		DirectX::XMVECTOR& origin)
+	{
+		using namespace DirectX;
+		using namespace rendering;
+
+		XMVECTOR camFwd = m_camera->GetTarget() - m_camera->GetPosition();
+		camFwd = XMVector3Normalize(camFwd);
+
+		XMVECTOR up, right, fwd;
+		fwd = XMVector3Normalize(direction);
+		{
+			up = camFwd;
+			right = XMVector3Cross(up, direction);
+
+			{
+				XMVECTOR l = XMVector3LengthSq(right);
+				if (XMVectorGetX(l) < eps)
+				{
+					up = XMVectorSet(0, 1, 0, 0);
+					right = XMVector3Cross(up, direction);
+				}
+
+				l = XMVector3LengthSq(right);
+				if (XMVectorGetX(l) < eps)
+				{
+					up = XMVectorSet(1, 0, 0, 0);
+					right = XMVector3Cross(up, direction);
+				}
+			}
+
+			right = XMVector3Normalize(right);
+			up = XMVector3Cross(fwd, right);
+			up = XMVector3Normalize(up);
+		}
+
+		XMMATRIX viewRaw(
+			DirectX::XMVECTOR{ DirectX::XMVectorGetX(right), DirectX::XMVectorGetY(right), DirectX::XMVectorGetZ(right), 0 },
+			DirectX::XMVECTOR{ DirectX::XMVectorGetX(up), DirectX::XMVectorGetY(up), DirectX::XMVectorGetZ(up), 0 },
+			DirectX::XMVECTOR{ DirectX::XMVectorGetX(fwd), DirectX::XMVectorGetY(fwd), DirectX::XMVectorGetZ(fwd), 0 },
+			DirectX::XMVECTOR{ 0, 0, 0, 1 }
+		);
+
+		XMMATRIX view = XMMatrixTranspose(viewRaw);
+
+		std::list<XMVECTOR> corners;
+		m_camera->GetFrustrumCorners(corners, nearPlane, farPlane);
+
+		XMVECTOR minPoint = XMVectorSet(0, 0, 0, 0);
+		XMVECTOR maxPoint = XMVectorSet(0, 0, 0, 0);
+
+		for (auto it = corners.begin(); it != corners.end(); ++it)
+		{
+			XMVECTOR cur = XMVector4Transform(*it, view);
+			cur /= XMVectorGetW(cur);
+			minPoint = XMVectorMin(cur, minPoint);
+			maxPoint = XMVectorMax(cur, maxPoint);
+		}
+
+		// TODO: Better near plane calculation
+		{
+			XMVECTOR minBB, maxBB;
+			m_scene->GetSceneBB(minBB, maxBB);
+
+			XMVECTOR sceneBBCorners[] =
+			{
+				minBB,
+				XMVectorSetX(minBB, XMVectorGetX(maxBB)),
+				XMVectorSetY(maxBB, XMVectorGetY(minBB)),
+				XMVectorSetZ(minBB, XMVectorGetZ(maxBB)),
+
+				maxBB,
+				XMVectorSetX(maxBB, XMVectorGetX(minBB)),
+				XMVectorSetY(minBB, XMVectorGetY(maxBB)),
+				XMVectorSetZ(maxBB, XMVectorGetZ(minBB)),
+			};
+
+			for (int i = 0; i < _countof(sceneBBCorners); ++i)
+			{
+				XMVECTOR cur = XMVectorSetW(sceneBBCorners[i], 1);
+				XMVECTOR proj = XMVector4Transform(cur, view);
+				proj /= XMVectorGetW(proj);
+
+				float minZ = min(XMVectorGetZ(proj), XMVectorGetZ(minPoint));
+				minPoint = XMVectorSetZ(minPoint, minZ);
+			}
+		}
+
+		origin = (minPoint + maxPoint) / 2;
+		XMVECTOR extents = maxPoint - origin;
+		origin = XMVectorGetZ(minPoint) * fwd;
+
+		float maxExtents = max(XMVectorGetX(extents), XMVectorGetY(extents));
+
+		DirectX::XMMATRIX translate(
+			DirectX::XMVECTOR{ 1, 0, 0, -XMVectorGetX(origin) },
+			DirectX::XMVECTOR{ 0, 1, 0, -XMVectorGetY(origin) },
+			DirectX::XMVECTOR{ 0, 0, 1, -XMVectorGetZ(origin) },
+			DirectX::XMVECTOR{ 0, 0, 0, 1 }
+		);
+
+		float depth = XMVectorGetZ(maxPoint) - XMVectorGetZ(minPoint);
+
+		DirectX::XMMATRIX scale(
+			DirectX::XMVECTOR{ 1 / maxExtents, 0, 0, 0 },
+			DirectX::XMVECTOR{ 0, 1 / maxExtents, 0, 0 },
+			DirectX::XMVECTOR{ 0, 0, 1 / depth, 0 },
+			DirectX::XMVECTOR{ 0, 0, 0, 1 }
+		);
+
+		matrix = XMMatrixMultiply(scale, XMMatrixMultiply(viewRaw, translate));
+		matrix = XMMatrixTranspose(matrix);
+	}
 }
 
 const UINT rendering::CascadedSM::m_resolution = 2048;
 
-void rendering::CascadedSM::LoadMatrixBuffer(jobs::Job* done)
+void rendering::CascadedSM::LoadSettingsBuffer(jobs::Job* done)
 {
 	struct Context
 	{
@@ -117,7 +280,7 @@ void rendering::CascadedSM::LoadMatrixBuffer(jobs::Job* done)
 		void Do() override
 		{
 			m_ctx.m_buffer->Place(m_ctx.m_heap, 0);
-			m_ctx.m_cascadedSM->m_matrixBuffer = m_ctx.m_buffer;
+			m_ctx.m_cascadedSM->m_smSettingsBuffer = m_ctx.m_buffer;
 
 			core::utils::RunSync(m_ctx.m_done);
 		}
@@ -135,8 +298,8 @@ void rendering::CascadedSM::LoadMatrixBuffer(jobs::Job* done)
 
 		void Do() override
 		{
-			UINT size = 256;
-			UINT stride = 256;
+			UINT size = 3 * 256;
+			UINT stride = size;
 
 			m_ctx.m_buffer = new DXBuffer(DXBufferMeta::GetInstance());
 			m_ctx.m_buffer->SetBufferSizeAndFlags(size, D3D12_RESOURCE_FLAG_NONE);
@@ -276,9 +439,15 @@ void rendering::CascadedSM::CreateDescriptorHeaps()
 		m_depthTextures);
 }
 
+void rendering::CascadedSM::UpdateSMSettings()
+{
+
+}
+
 rendering::CascadedSM::CascadedSM() :
 	BaseObject(CascadedSMMeta::GetInstance())
 {
+	CacheObjects();
 }
 
 rendering::CascadedSM::~CascadedSM()
@@ -322,7 +491,7 @@ void rendering::CascadedSM::LoadResources(jobs::Job* done)
 		}
 	};
 
-	LoadMatrixBuffer(new ItemReady(*ctx));
+	LoadSettingsBuffer(new ItemReady(*ctx));
 	LoadDepthTextures(new ItemReady(*ctx));
 	LoadSMTexture(new ItemReady(*ctx));
 }

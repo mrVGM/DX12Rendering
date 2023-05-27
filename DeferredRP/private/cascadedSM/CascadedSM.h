@@ -18,17 +18,20 @@ namespace rendering
 	public:
 		static const UINT m_resolution;
 	private:
-		DXBuffer* m_matrixBuffer = nullptr;
+		DXBuffer* m_smSettingsBuffer = nullptr;
+
 		DXTexture* m_smTex = nullptr;
 
 		std::list<DXTexture*> m_depthTextures;
 		DXDescriptorHeap* m_dsDescriptorHeap = nullptr;
 
-		void LoadMatrixBuffer(jobs::Job* done);
+		void LoadSettingsBuffer(jobs::Job* done);
 		void LoadDepthTextures(jobs::Job* done);
 		void LoadSMTexture(jobs::Job* done);
 
 		void CreateDescriptorHeaps();
+
+		void UpdateSMSettings();
 	public:
 		CascadedSM();
 		virtual ~CascadedSM();
