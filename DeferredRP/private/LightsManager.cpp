@@ -707,20 +707,6 @@ void rendering::LightsManager::LoadShadowMapSettingsBuffer(jobs::Job* done)
 		jobs::Job* m_done = nullptr;
 	};
 
-	class CreateShadowMapUpdaters : public jobs::Job
-	{
-	public:
-		CreateShadowMapUpdaters()
-		{
-		}
-
-		void Do() override
-		{
-			new DXShadowMapUpdater();
-			new DXShadowMapRDU();
-		}
-	};
-
 	class PlaceBuffer : public jobs::Job
 	{
 	private:
@@ -737,7 +723,6 @@ void rendering::LightsManager::LoadShadowMapSettingsBuffer(jobs::Job* done)
 			m_ctx.m_manager->m_shadowMapSettingsBuffer = m_ctx.m_buffer;
 
 			core::utils::RunSync(m_ctx.m_done);
-			core::utils::RunSync(new CreateShadowMapUpdaters());
 		}
 	};
 
@@ -917,36 +902,6 @@ void rendering::LightsManager::UpdateShadowMapSettings()
 rendering::DXBuffer* rendering::LightsManager::GetLightsBuffer()
 {
 	return m_lightsBuffer;
-}
-
-rendering::DXTexture* rendering::LightsManager::GetShadowMap()
-{
-	return m_shadowMap;
-}
-
-rendering::DXTexture* rendering::LightsManager::GetShadowMapDepthStencil()
-{
-	return m_shadowMapDepthStencil;
-}
-
-rendering::DXDescriptorHeap* rendering::LightsManager::GetShadowMapDSDescriptorHeap()
-{
-	return m_shadowMapDSDescriptorHeap;
-}
-
-rendering::DXDescriptorHeap* rendering::LightsManager::GetSMRTVHeap()
-{
-	return m_shadowMapRTV;
-}
-
-rendering::DXDescriptorHeap* rendering::LightsManager::GetSMSRVHeap()
-{
-	return m_shadowMapSRV;
-}
-
-rendering::DXBuffer* rendering::LightsManager::GetSMSettingsBuffer()
-{
-	return m_shadowMapSettingsBuffer;
 }
 
 const rendering::Light& rendering::LightsManager::GetLight(int index) const

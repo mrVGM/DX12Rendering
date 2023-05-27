@@ -24,12 +24,14 @@
 
 #include "DXDescriptorHeap.h"
 
+#include "utils.h"
+
 #include "ICamera.h"
 #include "ICameraMeta.h"
 
 namespace
 {
-    rendering::LightsManager* m_lightsManager = nullptr;
+    rendering::CascadedSM* m_cascadedSM = nullptr;
 
     rendering::DXDevice* m_device = nullptr;
     rendering::DXSwapChain* m_swapChain = nullptr;
@@ -49,16 +51,9 @@ namespace
             m_swapChain = core::utils::GetSwapChain();
         }
 
-        if (!m_lightsManager)
+        if (!m_cascadedSM)
         {
-            BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-            BaseObject* obj = container.GetObjectOfClass(LightsManagerMeta::GetInstance());
-
-            if (!obj)
-            {
-                throw "Can't find Lights Manager!";
-            }
-            m_lightsManager = static_cast<LightsManager*>(obj);
+            m_cascadedSM = deferred::GetCascadedSM();
         }
 
         if (!m_cameraBuffer)
@@ -173,9 +168,7 @@ ID3D12CommandList* rendering::DXShadowMapMaterial::GenerateCommandList(
     UINT indexCount,
     UINT instanceIndex)
 {
-
-    LightsManager* lightsManager = m_lightsManager;
-    DXTexture* shadowMapTexture = lightsManager->GetShadowMap();
+    DXTexture* shadowMapTexture = m_cascadedSM->GetShadowMap();
 
     m_commandLists.push_back(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>());
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList = m_commandLists.back();
@@ -186,7 +179,7 @@ ID3D12CommandList* rendering::DXShadowMapMaterial::GenerateCommandList(
 
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
     commandList->SetGraphicsRootConstantBufferView(0, m_cameraBuffer->GetBuffer()->GetGPUVirtualAddress());
-    commandList->SetGraphicsRootConstantBufferView(1, lightsManager->GetSMSettingsBuffer()->GetBuffer()->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootConstantBufferView(1, m_cascadedSM->GetSettingsBuffer()->GetBuffer()->GetGPUVirtualAddress());
     
     {
         UINT texWidth = shadowMapTexture->GetTextureDescription().Width;
@@ -199,10 +192,10 @@ ID3D12CommandList* rendering::DXShadowMapMaterial::GenerateCommandList(
         commandList->RSSetScissorRects(1, &scissorRect);
     }
 
-    D3D12_CPU_DESCRIPTOR_HANDLE dsHandle = m_lightsManager->GetShadowMapDSDescriptorHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+    D3D12_CPU_DESCRIPTOR_HANDLE dsHandle = m_cascadedSM->GetDSDescriptorHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
     D3D12_CPU_DESCRIPTOR_HANDLE handles[] =
     {
-        m_lightsManager->GetSMRTVHeap()->GetDescriptorHandle(0)
+        m_cascadedSM->GetSMDescriptorHeap()->GetDescriptorHandle(0)
     };
     commandList->OMSetRenderTargets(_countof(handles), handles, FALSE, &dsHandle);
 

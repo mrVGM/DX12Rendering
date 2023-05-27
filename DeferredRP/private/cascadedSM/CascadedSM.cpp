@@ -13,11 +13,17 @@
 #include "DXHeapMeta.h"
 
 #include "DXDescriptorHeap.h"
+#include "DXDescriptorHeapMeta.h"
 
 #include "resources/DXShadowMapDSDescriptorHeapMeta.h"
 
 #include "resources/DXShadowMapMeta.h"
 #include "resources/DXShadowMapDSMeta.h"
+
+#include "updaters/DXShadowMapUpdater.h"
+#include "updaters/DXShadowMapRDU.h"
+
+#include "resources/DXSMSettingsBufferMeta.h"
 
 #include "ICamera.h"
 
@@ -301,7 +307,7 @@ void rendering::CascadedSM::LoadSettingsBuffer(jobs::Job* done)
 			UINT size = 3 * 256;
 			UINT stride = size;
 
-			m_ctx.m_buffer = new DXBuffer(DXBufferMeta::GetInstance());
+			m_ctx.m_buffer = new DXBuffer(DXSMSettingsBufferMeta::GetInstance());
 			m_ctx.m_buffer->SetBufferSizeAndFlags(size, D3D12_RESOURCE_FLAG_NONE);
 			m_ctx.m_buffer->SetBufferStride(stride);
 
@@ -437,6 +443,11 @@ void rendering::CascadedSM::CreateDescriptorHeaps()
 	m_dsDescriptorHeap = DXDescriptorHeap::CreateDSVDescriptorHeap(
 		DXShadowMapDSDescriptorHeapMeta::GetInstance(),
 		m_depthTextures);
+
+	std::list<DXTexture*> textures;
+	textures.push_back(m_smTex);
+	m_smDescriptorHeap = DXDescriptorHeap::CreateRTVDescriptorHeap(
+		DXDescriptorHeapMeta::GetInstance(), textures);
 }
 
 void rendering::CascadedSM::UpdateSMSettings()
@@ -455,7 +466,7 @@ void rendering::CascadedSM::UpdateSMSettings()
 		FindProjectionOrthographic(
 			XMVectorSet(light.m_direction[0], light.m_direction[1], light.m_direction[2], 0),
 			m_camera->GetNearPlane(),
-			m_camera->GetNearPlane(),
+			m_camera->GetFarPlane(),
 			mat,
 			origin);
 
@@ -499,7 +510,7 @@ void rendering::CascadedSM::UpdateSMSettings()
 		FindProjectionOrthographic(
 			XMVectorSet(light.m_direction[0], light.m_direction[1], light.m_direction[2], 0),
 			m_camera->GetNearPlane(),
-			m_camera->GetNearPlane(),
+			m_camera->GetFarPlane(),
 			mat,
 			origin);
 
@@ -543,7 +554,7 @@ void rendering::CascadedSM::UpdateSMSettings()
 		FindProjectionOrthographic(
 			XMVectorSet(light.m_direction[0], light.m_direction[1], light.m_direction[2], 0),
 			m_camera->GetNearPlane(),
-			m_camera->GetNearPlane(),
+			m_camera->GetFarPlane(),
 			mat,
 			origin);
 
@@ -587,7 +598,7 @@ void rendering::CascadedSM::UpdateSMSettings()
 		FindProjectionOrthographic(
 			XMVectorSet(light.m_direction[0], light.m_direction[1], light.m_direction[2], 0),
 			m_camera->GetNearPlane(),
-			m_camera->GetNearPlane(),
+			m_camera->GetFarPlane(),
 			mat,
 			origin);
 
@@ -648,13 +659,29 @@ void rendering::CascadedSM::LoadResources(jobs::Job* done)
 {
 	struct Context
 	{
+		CascadedSM* m_cascadedSM = nullptr;
 		int m_itemsToWaitFor = 3;
 
 		jobs::Job* m_done = nullptr;
 	};
 
 	Context* ctx = new Context();
+	ctx->m_cascadedSM = this;
 	ctx->m_done = done;
+
+	class CreateShadowMapUpdaters : public jobs::Job
+	{
+	public:
+		CreateShadowMapUpdaters()
+		{
+		}
+
+		void Do() override
+		{
+			new DXShadowMapUpdater();
+			new DXShadowMapRDU();
+		}
+	};
 
 	class ItemReady : public jobs::Job
 	{
@@ -675,12 +702,37 @@ void rendering::CascadedSM::LoadResources(jobs::Job* done)
 				return;
 			}
 
+			m_ctx.m_cascadedSM->CreateDescriptorHeaps();
+
 			core::utils::RunSync(m_ctx.m_done);
 			delete& m_ctx;
+
+			new DXShadowMapUpdater();
+			new DXShadowMapRDU();
 		}
 	};
 
 	LoadSettingsBuffer(new ItemReady(*ctx));
 	LoadDepthTextures(new ItemReady(*ctx));
 	LoadSMTexture(new ItemReady(*ctx));
+}
+
+rendering::DXTexture* rendering::CascadedSM::GetShadowMap()
+{
+	return m_smTex;
+}
+
+rendering::DXDescriptorHeap* rendering::CascadedSM::GetDSDescriptorHeap()
+{
+	return m_dsDescriptorHeap;
+}
+
+rendering::DXDescriptorHeap* rendering::CascadedSM::GetSMDescriptorHeap()
+{
+	return m_smDescriptorHeap;
+}
+
+rendering::DXBuffer* rendering::CascadedSM::GetSettingsBuffer()
+{
+	return m_smSettingsBuffer;
 }

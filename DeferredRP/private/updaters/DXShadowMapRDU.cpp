@@ -5,27 +5,21 @@
 #include "LightsManager.h"
 #include "LightsManagerMeta.h"
 
+#include "utils.h"
+
 #include "BaseObjectContainer.h"
 
 namespace 
 {
-	rendering::LightsManager* m_lightsManager = nullptr;
+	rendering::CascadedSM* m_cascadedSM = nullptr;
 
 	void CacheObjects()
 	{
 		using namespace rendering;
 
-		if (!m_lightsManager)
+		if (!m_cascadedSM)
 		{
-			BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-			BaseObject* obj = container.GetObjectOfClass(LightsManagerMeta::GetInstance());
-
-			if (!obj)
-			{
-				throw "Can't find Lights Manager!";
-			}
-
-			m_lightsManager = static_cast<LightsManager*>(obj);
+			m_cascadedSM = deferred::GetCascadedSM();
 		}
 	}
 }
@@ -42,5 +36,5 @@ rendering::DXShadowMapRDU::~DXShadowMapRDU()
 
 void rendering::DXShadowMapRDU::Update()
 {
-	m_lightsManager->UpdateShadowMapSettings();
+	m_cascadedSM->UpdateSMSettings();
 }

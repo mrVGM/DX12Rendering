@@ -24,6 +24,7 @@ namespace rendering
 
 		std::list<DXTexture*> m_depthTextures;
 		DXDescriptorHeap* m_dsDescriptorHeap = nullptr;
+		DXDescriptorHeap* m_smDescriptorHeap = nullptr;
 
 		void LoadSettingsBuffer(jobs::Job* done);
 		void LoadDepthTextures(jobs::Job* done);
@@ -31,11 +32,16 @@ namespace rendering
 
 		void CreateDescriptorHeaps();
 
-		void UpdateSMSettings();
 	public:
 		CascadedSM();
 		virtual ~CascadedSM();
 		
 		void LoadResources(jobs::Job* done);
+
+		void UpdateSMSettings();
+		DXTexture* GetShadowMap();
+		DXDescriptorHeap* GetDSDescriptorHeap();
+		DXDescriptorHeap* GetSMDescriptorHeap();
+		DXBuffer* GetSettingsBuffer();
 	};
 }

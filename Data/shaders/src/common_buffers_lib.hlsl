@@ -24,7 +24,21 @@ struct CameraBuffer
     float m_placeholder;
 };
 
+struct SingleSM
+{
+    float4x4 m_matrix;
+    float4x4 m_inv;
+    float4 m_position;
+};
+
 struct SMBuffer
+{
+    SingleSM m_sms[4];
+    int m_resolution;
+    float3 m_placeholder[3];
+};
+
+struct SMBuffer1
 {
     float4x4 m_matrix;
     float4x4 m_inv;

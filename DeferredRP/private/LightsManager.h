@@ -49,13 +49,6 @@ namespace rendering
 		void UpdateShadowMapSettings();
 
 		DXBuffer* GetLightsBuffer();
-		DXTexture* GetShadowMap();
-		DXTexture* GetShadowMapDepthStencil();
-		
-		DXDescriptorHeap* GetShadowMapDSDescriptorHeap();
-		DXDescriptorHeap* GetSMRTVHeap();
-		DXDescriptorHeap* GetSMSRVHeap();
-		DXBuffer* GetSMSettingsBuffer();
 
 		const Light& GetLight(int index) const;
 	};

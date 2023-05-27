@@ -6,7 +6,8 @@
 
 float4 CalculateShadowMap(SMBuffer smBuffer, float3 worldPos)
 {
-    return mul(smBuffer.m_matrix, float4(worldPos, 1));
+    SingleSM singleSM = smBuffer.m_sms[0];
+    return mul(singleSM.m_matrix, float4(worldPos, 1));
 }
 
 float4 CalculateShadowMapUV(SMBuffer smBuffer, float3 worldPos)
@@ -47,8 +48,9 @@ float CalculateShadowMapBiasedDepth(SMBuffer smBuffer, float3 worldPos, float3 w
     float3 biasDir;
     float3 biasOrigin;
     {
-        float4 biasStart = mul(smBuffer.m_inv, float4(uv + uvDir, 0, 1));
-        float4 biasEnd = mul(smBuffer.m_inv, float4(uv + uvDir, 1, 1));
+        SingleSM singleSM = smBuffer.m_sms[0];
+        float4 biasStart = mul(singleSM.m_inv, float4(uv + uvDir, 0, 1));
+        float4 biasEnd = mul(singleSM.m_inv, float4(uv + uvDir, 1, 1));
         
         biasStart /= biasStart.w;
         biasEnd /= biasEnd.w;

@@ -33,6 +33,8 @@
 #include "DXMaterialRepo.h"
 #include "DXMaterialRepoMeta.h"
 
+#include "utils.h"
+
 #include <set>
 #include <list>
 
@@ -47,6 +49,8 @@ namespace
     rendering::DXMaterial* m_postLightCalculationsMat = nullptr;
 
     rendering::LightsManager* m_lightsManager = nullptr;
+    rendering::CascadedSM* m_cascadedSM = nullptr;
+
     rendering::DXDevice* m_device = nullptr;
     rendering::DXScene* m_scene = nullptr;
     rendering::DXMaterialRepo* m_materialRepo = nullptr;
@@ -58,14 +62,12 @@ namespace
         using namespace rendering;
         if (!m_lightsManager)
         {
-            BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-            BaseObject* obj = container.GetObjectOfClass(LightsManagerMeta::GetInstance());
+            m_lightsManager = deferred::GetLightsManager();
+        }
 
-            if (!obj)
-            {
-                throw "Can't find Lights Manager!";
-            }
-            m_lightsManager = static_cast<LightsManager*>(obj);
+        if (!m_cascadedSM)
+        {
+            m_cascadedSM = deferred::GetCascadedSM();
         }
 
         if (!m_device)
@@ -110,6 +112,7 @@ rendering::DXDeferredRP::DXDeferredRP() :
     using Microsoft::WRL::ComPtr;
 
     new LightsManager();
+    new CascadedSM();
 
     CacheObjects();
 
@@ -163,14 +166,12 @@ void rendering::DXDeferredRP::CreateRTVHeap()
 
 void rendering::DXDeferredRP::CreateSRVHeap()
 {
-    LightsManager* lightsManager = m_lightsManager;
-
     std::list<DXTexture*> textures;
     textures.push_back(rendering::deferred::GetGBufferDiffuseTex());
     textures.push_back(rendering::deferred::GetGBufferSpecularTex());
     textures.push_back(rendering::deferred::GetGBufferNormalTex());
     textures.push_back(rendering::deferred::GetGBufferPositionTex());
-    textures.push_back(lightsManager->GetShadowMap());
+    textures.push_back(m_cascadedSM->GetShadowMap());
 
     m_srvHeap = DXDescriptorHeap::CreateSRVDescriptorHeap(DXDescriptorHeapMeta::GetInstance(), textures);
 }
@@ -186,11 +187,10 @@ void rendering::DXDeferredRP::PrepareStartList()
         m_startList->Reset(m_commandAllocator.Get(), nullptr),
         "Can't reset Command List!")
 
-    LightsManager* lightsManager = m_lightsManager;
     {
         CD3DX12_RESOURCE_BARRIER barrier[] =
         {
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(lightsManager->GetShadowMap()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMap()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferDiffuseTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferNormalTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
@@ -208,12 +208,15 @@ void rendering::DXDeferredRP::PrepareStartList()
     }
 
     {
-        D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = lightsManager->GetShadowMapDSDescriptorHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
-        m_startList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+        DXDescriptorHeap* dsDescriptorHeap = m_cascadedSM->GetDSDescriptorHeap();
+        m_startList->ClearDepthStencilView(dsDescriptorHeap->GetDescriptorHandle(0), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+        m_startList->ClearDepthStencilView(dsDescriptorHeap->GetDescriptorHandle(1), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+        m_startList->ClearDepthStencilView(dsDescriptorHeap->GetDescriptorHandle(2), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+        m_startList->ClearDepthStencilView(dsDescriptorHeap->GetDescriptorHandle(3), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
         const float clearColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-        m_startList->ClearRenderTargetView(lightsManager->GetSMRTVHeap()->GetDescriptorHandle(0), clearColor, 0, nullptr);
+        m_startList->ClearRenderTargetView(m_cascadedSM->GetSMDescriptorHeap()->GetDescriptorHandle(0), clearColor, 0, nullptr);
     }
 
     THROW_ERROR(
@@ -424,11 +427,6 @@ void rendering::DXDeferredRP::LoadLightsBuffer(jobs::Job* done)
     m_lightsManager->LoadLightsBuffer(done);
 }
 
-void rendering::DXDeferredRP::LoadShadowMap(jobs::Job* done)
-{
-    m_lightsManager->LoadShadowMap(done);
-}
-
 
 void rendering::DXDeferredRP::Load(jobs::Job* done)
 {
@@ -484,7 +482,8 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
     deferred::LoadGBufferLitTextures(new ItemReady(*ctx));
 
     LoadLightsBuffer(new ItemReady(*ctx));
-    LoadShadowMap(new ItemReady(*ctx));
+
+    m_cascadedSM->LoadResources(new ItemReady(*ctx));
 }
 
 
