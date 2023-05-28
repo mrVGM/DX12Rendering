@@ -797,7 +797,7 @@ rendering::DXBuffer* rendering::CascadedSM::GetSettingsBuffer()
 	return m_smSettingsBuffer;
 }
 
-rendering::DXMaterial* rendering::CascadedSM::GetShadowMapMaterial()
+const std::list<rendering::DXMaterial*>& rendering::CascadedSM::GetShadowMapMaterials()
 {
-	return *m_shadowMapMaterials.begin();
+	return m_shadowMapMaterials;
 }

@@ -193,6 +193,8 @@ void rendering::DXDeferredRP::PrepareStartList()
         m_startList->ClearRenderTargetView(m_rtvHeap->GetDescriptorHandle(1), clearColor, 0, nullptr);
         m_startList->ClearRenderTargetView(m_rtvHeap->GetDescriptorHandle(2), clearColor, 0, nullptr);
         m_startList->ClearRenderTargetView(m_rtvHeap->GetDescriptorHandle(3), clearColor, 0, nullptr);
+
+        m_startList->ClearRenderTargetView(m_cascadedSM->GetSMDescriptorHeap()->GetDescriptorHandle(0), clearColor, 0, nullptr);
     }
 
     {
@@ -201,10 +203,6 @@ void rendering::DXDeferredRP::PrepareStartList()
         m_startList->ClearDepthStencilView(dsDescriptorHeap->GetDescriptorHandle(1), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
         m_startList->ClearDepthStencilView(dsDescriptorHeap->GetDescriptorHandle(2), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
         m_startList->ClearDepthStencilView(dsDescriptorHeap->GetDescriptorHandle(3), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
-
-        const float clearColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-
-        m_startList->ClearRenderTargetView(m_cascadedSM->GetSMDescriptorHeap()->GetDescriptorHandle(0), clearColor, 0, nullptr);
     }
 
     THROW_ERROR(
@@ -219,7 +217,12 @@ void rendering::DXDeferredRP::RenderShadowMap()
     DXScene* scene = m_scene;
     DXMaterialRepo* repo = m_materialRepo;
 
-    m_cascadedSM->GetShadowMapMaterial()->ResetCommandLists();
+    for (auto smMatIt = m_cascadedSM->GetShadowMapMaterials().begin();
+        smMatIt != m_cascadedSM->GetShadowMapMaterials().end();
+        ++smMatIt)
+    {
+        (*smMatIt)->ResetCommandLists();
+    }
 
     std::list<ID3D12CommandList*> deferredLists;
     for (int i = 0; i < scene->m_scenesLoaded; ++i)
@@ -256,13 +259,18 @@ void rendering::DXDeferredRP::RenderShadowMap()
                     continue;
                 }
 
-                deferredLists.push_back(m_cascadedSM->GetShadowMapMaterial()->GenerateCommandList(
-                    *vertBuf,
-                    *indexBuf,
-                    *instanceBuf,
-                    (*it).indexOffset,
-                    (*it).indexCount,
-                    instanceIndex));
+                for (auto smMatIt = m_cascadedSM->GetShadowMapMaterials().begin();
+                    smMatIt != m_cascadedSM->GetShadowMapMaterials().end();
+                    ++smMatIt)
+                {
+                    deferredLists.push_back((*smMatIt)->GenerateCommandList(
+                        *vertBuf,
+                        *indexBuf,
+                        *instanceBuf,
+                        (*it).indexOffset,
+                        (*it).indexCount,
+                        instanceIndex));
+                }
             }
         }
     }

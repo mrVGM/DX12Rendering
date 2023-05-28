@@ -47,6 +47,6 @@ namespace rendering
 		DXDescriptorHeap* GetSMDescriptorHeap();
 		DXBuffer* GetSettingsBuffer();
 
-		DXMaterial* GetShadowMapMaterial();
+		const std::list<DXMaterial*>& GetShadowMapMaterials();
 	};
 }

@@ -40,6 +40,16 @@ struct PS_OUTPUT
     float4 m_specularLit: SV_Target2;
 };
 
+float sampleShadowMap(float2 uv)
+{
+    float4 shadowMap = p_shadowMap.Sample(p_sampler, uv);
+    if (shadowMap.x == 0)
+    {
+        return 1;
+    }
+    return shadowMap.x;
+}
+
 float testForShadow(float3 position)
 {
     float pointDepth = CalculateShadowMapDepth(m_smBuffer, position);
@@ -51,8 +61,8 @@ float testForShadow(float3 position)
         return 0;
     }
 
-    float4 shadowMap = p_shadowMap.Sample(p_sampler, coord);
-    if (pointDepth < shadowMap.x)
+    float shadowMap = sampleShadowMap(coord);
+    if (pointDepth < shadowMap)
     {
         return 0;
     }
@@ -68,8 +78,8 @@ float testForShadow(float3 position)
             int2 indexCoord = int2(i, j) - int2(1, 1);
             float2 curCoord = coord + pixelSize * indexCoord;
 
-            float4 smSample = p_shadowMap.Sample(p_sampler, curCoord);
-            if (pointDepth > smSample.x)
+            float smSample = sampleShadowMap(curCoord);
+            if (pointDepth > smSample)
             {
                 shadowStrength += 1;
             }
