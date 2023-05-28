@@ -525,7 +525,7 @@ void rendering::CascadedSM::UpdateSMSettings()
 		FindProjectionOrthographic(
 			XMVectorSet(light.m_direction[0], light.m_direction[1], light.m_direction[2], 0),
 			m_camera->GetNearPlane(),
-			m_camera->GetFarPlane(),
+			m_cascadeSeparators[0],
 			mat,
 			origin);
 
@@ -568,8 +568,8 @@ void rendering::CascadedSM::UpdateSMSettings()
 
 		FindProjectionOrthographic(
 			XMVectorSet(light.m_direction[0], light.m_direction[1], light.m_direction[2], 0),
-			m_camera->GetNearPlane(),
-			m_camera->GetFarPlane(),
+			m_cascadeSeparators[0],
+			m_cascadeSeparators[1],
 			mat,
 			origin);
 
@@ -612,8 +612,8 @@ void rendering::CascadedSM::UpdateSMSettings()
 
 		FindProjectionOrthographic(
 			XMVectorSet(light.m_direction[0], light.m_direction[1], light.m_direction[2], 0),
-			m_camera->GetNearPlane(),
-			m_camera->GetFarPlane(),
+			m_cascadeSeparators[1],
+			m_cascadeSeparators[2],
 			mat,
 			origin);
 
@@ -656,7 +656,7 @@ void rendering::CascadedSM::UpdateSMSettings()
 
 		FindProjectionOrthographic(
 			XMVectorSet(light.m_direction[0], light.m_direction[1], light.m_direction[2], 0),
-			m_camera->GetNearPlane(),
+			m_cascadeSeparators[2],
 			m_camera->GetFarPlane(),
 			mat,
 			origin);

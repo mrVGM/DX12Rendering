@@ -18,7 +18,10 @@ namespace rendering
 	{
 	public:
 		static const UINT m_resolution;
+
 	private:
+		const float m_cascadeSeparators[3] = { 20, 50, 200 };
+
 		DXBuffer* m_smSettingsBuffer = nullptr;
 		DXTexture* m_smTex = nullptr;
 
