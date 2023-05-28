@@ -21,7 +21,7 @@ namespace rendering
 
 		jobs::JobSystem* m_copyJobSytem = nullptr;
 		DXFence* m_copyFence = nullptr;
-		UINT64 m_copyCounter = 0;
+		UINT64 m_copyCounter = 1;
 
 	public:
 		DXCopyBuffers();

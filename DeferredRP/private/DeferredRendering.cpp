@@ -31,15 +31,61 @@ namespace
 	rendering::DXTexture* m_diffuseLitTex = nullptr;
 	rendering::DXTexture* m_specularLitTex = nullptr;
 
+	struct Vertex
+	{
+		float m_pos[2];
+		float m_uv[2];
+	};
+
+	void StoreVertexBufferData(void* data)
+	{
+		Vertex* verts = static_cast<Vertex*>(data);
+		{
+			verts[0].m_pos[0] = -1;
+			verts[0].m_pos[1] = -1;
+			verts[0].m_uv[0] = 0;
+			verts[0].m_uv[1] = 1;
+		}
+
+		{
+			verts[1].m_pos[0] = -1;
+			verts[1].m_pos[1] = 1;
+			verts[1].m_uv[0] = 0;
+			verts[1].m_uv[1] = 0;
+		}
+
+		{
+			verts[2].m_pos[0] = 1;
+			verts[2].m_pos[1] = 1;
+			verts[2].m_uv[0] = 1;
+			verts[2].m_uv[1] = 0;
+		}
+
+		{
+			verts[3].m_pos[0] = -1;
+			verts[3].m_pos[1] = -1;
+			verts[3].m_uv[0] = 0;
+			verts[3].m_uv[1] = 1;
+		}
+
+		{
+			verts[4].m_pos[0] = 1;
+			verts[4].m_pos[1] = 1;
+			verts[4].m_uv[0] = 1;
+			verts[4].m_uv[1] = 0;
+		}
+
+		{
+			verts[5].m_pos[0] = 1;
+			verts[5].m_pos[1] = -1;
+			verts[5].m_uv[0] = 1;
+			verts[5].m_uv[1] = 1;
+		}
+	}
+
 	void LoadRenderTextureVertexBuffer(jobs::Job* done)
 	{
 		using namespace rendering;
-
-		struct Vertex
-		{
-			float m_pos[2];
-			float m_uv[2];
-		};
 
 		struct Context
 		{
@@ -49,13 +95,13 @@ namespace
 			DXHeap* m_heap = nullptr;
 			DXHeap* m_uploadHeap = nullptr;
 
-			UINT m_size = 6 * sizeof(Vertex);
-
-			bool m_heapReady = false;
-			bool m_uploadHeapReady = false;
+			int m_itemsToLoad = 2;
 
 			jobs::Job* m_done = nullptr;
 		};
+
+		Context* ctx = new Context();
+		ctx->m_done = done;
 
 		class Clear : public jobs::Job
 		{
@@ -70,13 +116,12 @@ namespace
 			void Do() override
 			{
 				m_renderTextureVertexBuffer = m_ctx.m_buffer;
-
-				delete m_ctx.m_uploadBuffer;
-				delete m_ctx.m_uploadHeap;
-
 				core::utils::RunSync(m_ctx.m_done);
 
-				delete &m_ctx;
+				core::utils::DisposeBaseObject(*m_ctx.m_uploadBuffer);
+				core::utils::DisposeBaseObject(*m_ctx.m_uploadHeap);
+
+				delete& m_ctx;
 			}
 		};
 
@@ -96,21 +141,20 @@ namespace
 			}
 		};
 
-		class UploadReady : public jobs::Job
+		class BufferReady : public jobs::Job
 		{
 		private:
 			Context& m_ctx;
 		public:
-			UploadReady(Context& ctx) :
+			BufferReady(Context& ctx) :
 				m_ctx(ctx)
 			{
 			}
 
 			void Do() override
 			{
-				m_ctx.m_uploadHeapReady = true;
-
-				if (!m_ctx.m_heapReady)
+				--m_ctx.m_itemsToLoad;
+				if (m_ctx.m_itemsToLoad > 0)
 				{
 					return;
 				}
@@ -119,12 +163,13 @@ namespace
 			}
 		};
 
-		class UploadData : public jobs::Job
+
+		class PlaceUploadBuffer : public jobs::Job
 		{
 		private:
 			Context& m_ctx;
 		public:
-			UploadData(Context& ctx) :
+			PlaceUploadBuffer(Context& ctx) :
 				m_ctx(ctx)
 			{
 			}
@@ -132,62 +177,23 @@ namespace
 			void Do() override
 			{
 				m_ctx.m_uploadBuffer->Place(m_ctx.m_uploadHeap, 0);
-				void* dst = m_ctx.m_uploadBuffer->Map();
-				Vertex* verts = static_cast<Vertex*>(dst);
 
-				{
-					verts[0].m_pos[0] = -1;
-					verts[0].m_pos[1] = -1;
-					verts[0].m_uv[0] = 0;
-					verts[0].m_uv[1] = 1;
-				}
+				m_ctx.m_uploadBuffer->GetBuffer()->SetName(L"RT Upload Buffer");
 
-				{
-					verts[1].m_pos[0] = -1;
-					verts[1].m_pos[1] = 1;
-					verts[1].m_uv[0] = 0;
-					verts[1].m_uv[1] = 0;
-				}
-
-				{
-					verts[2].m_pos[0] = 1;
-					verts[2].m_pos[1] = 1;
-					verts[2].m_uv[0] = 1;
-					verts[2].m_uv[1] = 0;
-				}
-
-				{
-					verts[3].m_pos[0] = -1;
-					verts[3].m_pos[1] = -1;
-					verts[3].m_uv[0] = 0;
-					verts[3].m_uv[1] = 1;
-				}
-
-				{
-					verts[4].m_pos[0] = 1;
-					verts[4].m_pos[1] = 1;
-					verts[4].m_uv[0] = 1;
-					verts[4].m_uv[1] = 0;
-				}
-
-				{
-					verts[5].m_pos[0] = 1;
-					verts[5].m_pos[1] = -1;
-					verts[5].m_uv[0] = 1;
-					verts[5].m_uv[1] = 1;
-				}
-
+				void* data = m_ctx.m_uploadBuffer->Map();
+				StoreVertexBufferData(data);
 				m_ctx.m_uploadBuffer->Unmap();
-				core::utils::RunSync(new UploadReady(m_ctx));
+
+				core::utils::RunSync(new BufferReady(m_ctx));
 			}
 		};
 
-		class DefaultReady : public jobs::Job
+		class PlaceBuffer : public jobs::Job
 		{
 		private:
 			Context& m_ctx;
 		public:
-			DefaultReady(Context& ctx) :
+			PlaceBuffer(Context& ctx) :
 				m_ctx(ctx)
 			{
 			}
@@ -195,58 +201,63 @@ namespace
 			void Do() override
 			{
 				m_ctx.m_buffer->Place(m_ctx.m_heap, 0);
-				m_ctx.m_heapReady = true;
 
-				if (!m_ctx.m_uploadHeapReady)
-				{
-					return;
-				}
+				m_ctx.m_buffer->GetBuffer()->SetName(L"RT Buffer");
 
-				core::utils::RunSync(new CopyBuffers(m_ctx));
+				core::utils::RunSync(new BufferReady(m_ctx));
 			}
 		};
 
-		class CreateResources : public jobs::Job
+		class CreateObjects : public jobs::Job
 		{
 		private:
 			Context& m_ctx;
 		public:
-			CreateResources(Context& ctx) :
+			CreateObjects(Context& ctx) :
 				m_ctx(ctx)
 			{
 			}
 
 			void Do() override
 			{
-				m_ctx.m_buffer = new DXBuffer(DXBufferMeta::GetInstance());
-				m_ctx.m_buffer->SetBufferSizeAndFlags(m_ctx.m_size, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE);
-				m_ctx.m_buffer->SetBufferStride(sizeof(Vertex));
+				UINT stride = sizeof(Vertex);
+				UINT size = 6 * stride;
 
-				m_ctx.m_uploadBuffer = new DXBuffer(DXBufferMeta::GetInstance());
-				m_ctx.m_uploadBuffer->SetBufferSizeAndFlags(m_ctx.m_size, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE);
-				m_ctx.m_uploadBuffer->SetBufferStride(sizeof(Vertex));
+				m_ctx.m_buffer = new DXBuffer(DXBufferMeta::GetInstance());
+				m_ctx.m_buffer->SetBufferSizeAndFlags(size, D3D12_RESOURCE_FLAG_NONE);
+				m_ctx.m_buffer->SetBufferStride(stride);
+
+
 
 				m_ctx.m_heap = new DXHeap();
-				m_ctx.m_heap->SetHeapSize(m_ctx.m_size);
+				m_ctx.m_heap->SetHeapSize(size);
 				m_ctx.m_heap->SetHeapType(D3D12_HEAP_TYPE_DEFAULT);
-				m_ctx.m_heap->SetHeapFlags(D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS);
+				m_ctx.m_heap->SetHeapFlags(D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS);
 				m_ctx.m_heap->Create();
 
+				m_ctx.m_uploadBuffer = new DXBuffer(DXBufferMeta::GetInstance());
+				m_ctx.m_uploadBuffer->SetBufferSizeAndFlags(size, D3D12_RESOURCE_FLAG_NONE);
+				m_ctx.m_uploadBuffer->SetBufferStride(stride);
+
 				m_ctx.m_uploadHeap = new DXHeap();
-				m_ctx.m_uploadHeap->SetHeapSize(m_ctx.m_size);
+				m_ctx.m_uploadHeap->SetHeapSize(size);
 				m_ctx.m_uploadHeap->SetHeapType(D3D12_HEAP_TYPE_UPLOAD);
-				m_ctx.m_uploadHeap->SetHeapFlags(D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS);
+				m_ctx.m_uploadHeap->SetHeapFlags(D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS);
 				m_ctx.m_uploadHeap->Create();
 
-				m_ctx.m_heap->MakeResident(new DefaultReady(m_ctx));
-				m_ctx.m_uploadHeap->MakeResident(new UploadData(m_ctx));
+
+				
+				m_ctx.m_heap->GetHeap()->SetName(L"RT Heap");
+				m_ctx.m_uploadHeap->GetHeap()->SetName(L"RT Upload Heap");
+
+				m_ctx.m_heap->MakeResident(new PlaceBuffer(m_ctx));
+				m_ctx.m_uploadHeap->MakeResident(new PlaceUploadBuffer(m_ctx));
 			}
 		};
 
-		Context* ctx = new Context();
-		ctx->m_done = done;
+		
 
-		core::utils::RunSync(new CreateResources(*ctx));
+		core::utils::RunSync(new CreateObjects(*ctx));
 	}
 
 	void LoadRenderTextures(jobs::Job* done)
