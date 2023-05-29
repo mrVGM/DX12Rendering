@@ -40,48 +40,40 @@ struct PS_OUTPUT
     float4 m_specularLit: SV_Target2;
 };
 
-int GetSMIndex(float3 worldPos)
-{
-    float3 offset = worldPos - m_camBuff.m_position;
-    float d = dot(offset, m_camBuff.m_fwd);
-
-    if (m_camBuff.m_nearPlane <= d && d <= m_smBuffer.m_separators[0])
-    {
-        return 0;
-    }
-
-    if (m_smBuffer.m_separators[0] <= d && d <= m_smBuffer.m_separators[1])
-    {
-        return 1;
-    }
-
-    if (m_smBuffer.m_separators[1] <= d && d <= m_smBuffer.m_separators[2])
-    {
-        return 2;
-    }
-
-    if (m_smBuffer.m_separators[2] <= d && d <= m_camBuff.m_farPlane)
-    {
-        return 3;
-    }
-    
-    return -1;
-}
-
-float sampleShadowMap(float2 uv)
+float sampleShadowMap(float2 uv, int index)
 {
     float4 shadowMap = p_shadowMap.Sample(p_sampler, uv);
-    if (shadowMap.x == 0)
+
+    float d = 0;
+    switch (index)
+    {
+    case 0:
+        d = shadowMap.x;
+        break;
+    case 1:
+        d = shadowMap.y;
+        break;
+    case 2:
+        d = shadowMap.z;
+        break;
+    case 3:
+        d = shadowMap.w;
+        break;
+    }
+
+    if (d == 0)
     {
         return 1;
     }
-    return shadowMap.x;
+    return d;
 }
 
 float testForShadow(float3 position)
 {
-    float pointDepth = CalculateShadowMapDepth(m_smBuffer, position);
-    float2 coord = CalculateShadowMapNormalizedUV(m_smBuffer, position);
+    int smIndex = GetSMIndex(m_smBuffer, position);
+
+    float pointDepth = CalculateShadowMapDepth(m_smBuffer, smIndex, position);
+    float2 coord = CalculateShadowMapNormalizedUV(m_smBuffer, smIndex, position);
 
     coord = float2(coord.x, 1 - coord.y);
     if (coord.x < 0 || coord.x > 1 || coord.y < 0 || coord.y > 1)
@@ -89,7 +81,7 @@ float testForShadow(float3 position)
         return 0;
     }
 
-    float shadowMap = sampleShadowMap(coord);
+    float shadowMap = sampleShadowMap(coord, smIndex);
     if (pointDepth < shadowMap)
     {
         return 0;
@@ -106,7 +98,7 @@ float testForShadow(float3 position)
             int2 indexCoord = int2(i, j) - int2(1, 1);
             float2 curCoord = coord + pixelSize * indexCoord;
 
-            float smSample = sampleShadowMap(curCoord);
+            float smSample = sampleShadowMap(curCoord, smIndex);
             if (pointDepth > smSample)
             {
                 shadowStrength += 1;
@@ -137,9 +129,11 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
         return output;
     }
 
+    output.m_ambientLit = float4(0.3 * diffuseTex.xyz, 1);
+
     if (false)
     {
-        int index = GetSMIndex(positionTex);
+        int index = GetSMIndex(m_smBuffer, positionTex);
 
         float4 color = float4(0, 1, 1, 1);
         switch (index)
@@ -160,10 +154,9 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
 
         output.m_ambientLit = color;
 
-        return output;
+        //return output;
     }
 
-    output.m_ambientLit = float4(0.3 * diffuseTex.xyz, 1);
 
     float3 color = float3(0, 0, 0);
     float3 specularColor = float3(0, 0, 0);

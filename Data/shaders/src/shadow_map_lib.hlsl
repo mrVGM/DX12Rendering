@@ -4,36 +4,51 @@
 #include "common_buffers_lib.hlsl"
 #include "objects_lib.hlsl"
 
-float4 CalculateShadowMap(SMBuffer smBuffer, float3 worldPos)
+float4 CalculateShadowMap(SMBuffer smBuffer, int index, float3 worldPos)
 {
-    SingleSM singleSM = smBuffer.m_sms[0];
+    SingleSM singleSM = smBuffer.m_sms[index];
     return mul(singleSM.m_matrix, float4(worldPos, 1));
 }
 
-float4 CalculateShadowMapUV(SMBuffer smBuffer, float3 worldPos)
+float2 CalculateShadowMapUV(SMBuffer smBuffer, int index, float3 worldPos)
 {
-    float4 proj = CalculateShadowMap(smBuffer, worldPos);
+    float4 proj = CalculateShadowMap(smBuffer, index, worldPos);
     return proj / proj.w;
 }
 
-float2 CalculateShadowMapNormalizedUV(SMBuffer smBuffer, float3 worldPos)
+int GetSMIndex(SMBuffer smBuffer, float3 position)
 {
-    float2 uv = CalculateShadowMapUV(smBuffer, worldPos);
+    for (int i = 0; i < 4; ++i)
+    {
+        float2 uv = CalculateShadowMapUV(smBuffer, i, position);
+
+        if (-1 <= uv.x && uv.x <= 1 && -1 <= uv.y && uv.y <= 1)
+        {
+            return i;
+        }
+    }
+
+    return 3;
+}
+
+float2 CalculateShadowMapNormalizedUV(SMBuffer smBuffer, int index, float3 worldPos)
+{
+    float2 uv = CalculateShadowMapUV(smBuffer, index, worldPos);
     uv += 1;
     uv /= 2;
     return uv;
 }
 
-float CalculateShadowMapDepth(SMBuffer smBuffer, float3 worldPos)
+float CalculateShadowMapDepth(SMBuffer smBuffer, int index, float3 worldPos)
 {
-    float4 proj = CalculateShadowMap(smBuffer, worldPos);
+    float4 proj = CalculateShadowMap(smBuffer, index, worldPos);
     return proj.z / proj.w;
 }
 
-float CalculateShadowMapBiasedDepth(SMBuffer smBuffer, float3 worldPos, float3 worldNormal)
+float CalculateShadowMapBiasedDepth(SMBuffer smBuffer, int index, float3 worldPos, float3 worldNormal)
 {
-    float2 uv = CalculateShadowMapUV(smBuffer, worldPos);
-    float2 biasedUV = CalculateShadowMapUV(smBuffer, worldPos + worldNormal);
+    float2 uv = CalculateShadowMapUV(smBuffer, index, worldPos);
+    float2 biasedUV = CalculateShadowMapUV(smBuffer, index, worldPos + worldNormal);
 
     float2 uvDir = biasedUV - uv;
 
@@ -48,7 +63,7 @@ float CalculateShadowMapBiasedDepth(SMBuffer smBuffer, float3 worldPos, float3 w
     float3 biasDir;
     float3 biasOrigin;
     {
-        SingleSM singleSM = smBuffer.m_sms[0];
+        SingleSM singleSM = smBuffer.m_sms[index];
         float4 biasStart = mul(singleSM.m_inv, float4(uv + uvDir, 0, 1));
         float4 biasEnd = mul(singleSM.m_inv, float4(uv + uvDir, 1, 1));
         
@@ -68,9 +83,9 @@ float CalculateShadowMapBiasedDepth(SMBuffer smBuffer, float3 worldPos, float3 w
 
     float3 biasedPoint = biasOrigin + factor * biasDir;
 
-    float biasedDepth = CalculateShadowMapDepth(smBuffer, biasedPoint);
+    float biasedDepth = CalculateShadowMapDepth(smBuffer, index, biasedPoint);
 
-    return biasedDepth + 0.001;
+    return biasedDepth;
 }
 
 #endif // __SHADOW_MAP_LIB_HLSL__

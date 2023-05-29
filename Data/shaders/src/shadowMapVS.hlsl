@@ -12,6 +12,11 @@ cbuffer SMBuff : register(b1)
     SMBuffer m_smBuff;
 };
 
+cbuffer SMSlot : register(b2)
+{
+    int m_slot;
+}
+
 struct PSInput
 {
     float4 position     : SV_POSITION;
@@ -40,9 +45,9 @@ PSInput VSMain(
         worldPos,
         worldNormal);
 
-    result.position = CalculateShadowMap(m_smBuff, worldPos);
+    result.position = CalculateShadowMap(m_smBuff, m_slot, worldPos);
 
-    float depth = CalculateShadowMapBiasedDepth(m_smBuff, worldPos, worldNormal);
+    float depth = CalculateShadowMapBiasedDepth(m_smBuff, m_slot, worldPos, worldNormal);
     result.depth = depth;
     
     return result;

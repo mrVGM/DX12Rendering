@@ -153,9 +153,6 @@ namespace
 		using namespace DirectX;
 		using namespace rendering;
 
-		XMVECTOR camFwd = m_camera->GetTarget() - m_camera->GetPosition();
-		camFwd = XMVector3Normalize(camFwd);
-
 		XMVECTOR up, right, fwd;
 		fwd = XMVector3Normalize(direction);
 		{
@@ -205,19 +202,6 @@ namespace
 			maxPoint = XMVectorMax(cur, maxPoint);
 		}
 
-		{
-			std::list<XMVECTOR> enclosingCorners;
-			m_camera->GetFrustrumCorners(enclosingCorners, m_camera->GetNearPlane(), m_camera->GetFarPlane());
-
-			for (auto it = enclosingCorners.begin(); it != enclosingCorners.end(); ++it)
-			{
-				XMVECTOR cur = XMVector4Transform(*it, view);
-				cur /= XMVectorGetW(cur);
-				float maxZ = max(XMVectorGetZ(cur), XMVectorGetZ(maxPoint));
-				maxPoint = XMVectorSetZ(maxPoint, maxZ);
-			}
-		}
-
 		// TODO: Better near plane calculation
 		{
 			XMVECTOR minBB, maxBB;
@@ -236,14 +220,21 @@ namespace
 				XMVectorSetZ(maxBB, XMVectorGetZ(minBB)),
 			};
 
+			{
+				XMVECTOR cur = XMVector4Transform((*corners.begin()), view);
+				cur /= XMVectorGetW(cur);
+				minPoint = XMVectorSetZ(minPoint, XMVectorGetZ(cur));
+				maxPoint = XMVectorSetZ(maxPoint, XMVectorGetZ(cur));
+			}
+
 			for (int i = 0; i < _countof(sceneBBCorners); ++i)
 			{
 				XMVECTOR cur = XMVectorSetW(sceneBBCorners[i], 1);
 				XMVECTOR proj = XMVector4Transform(cur, view);
 				proj /= XMVectorGetW(proj);
 
-				float minZ = min(XMVectorGetZ(proj), XMVectorGetZ(minPoint));
-				minPoint = XMVectorSetZ(minPoint, minZ);
+				minPoint = XMVectorSetZ(minPoint, min(XMVectorGetZ(proj), XMVectorGetZ(minPoint)));
+				maxPoint = XMVectorSetZ(maxPoint, max(XMVectorGetZ(proj), XMVectorGetZ(maxPoint)));
 			}
 		}
 
@@ -538,13 +529,25 @@ void rendering::CascadedSM::UpdateSMSettings()
 
 	ShadowMapSettings settings;
 
+	float planes[] =
 	{
-		SingleSM& singleSMSettings = settings.m_sms[0];
+		m_camera->GetNearPlane(),
+		m_cascadeSeparators[0],
+		m_cascadeSeparators[1],
+		m_cascadeSeparators[2],
+		m_camera->GetFarPlane(),
+	};
+
+	for (int i = 0; i < 4; ++i)
+	{
+		SingleSM& singleSMSettings = settings.m_sms[i];
+
+		float nearPlane = m_camera->GetNearPlane();
 
 		FindProjectionOrthographic(
 			XMVectorSet(light.m_direction[0], light.m_direction[1], light.m_direction[2], 0),
-			m_camera->GetNearPlane(),
-			m_cascadeSeparators[0],
+			planes[i],
+			planes[i + 1],
 			mat,
 			origin);
 
@@ -577,141 +580,9 @@ void rendering::CascadedSM::UpdateSMSettings()
 		}
 
 		singleSMSettings.m_position[0] = XMVectorGetX(origin);
-		singleSMSettings.m_position[1] = XMVectorGetX(origin);
-		singleSMSettings.m_position[2] = XMVectorGetX(origin);
-		singleSMSettings.m_position[3] = XMVectorGetX(origin);
-	}
-
-	{
-		SingleSM& singleSMSettings = settings.m_sms[1];
-
-		FindProjectionOrthographic(
-			XMVectorSet(light.m_direction[0], light.m_direction[1], light.m_direction[2], 0),
-			m_cascadeSeparators[0],
-			m_cascadeSeparators[1],
-			mat,
-			origin);
-
-		int index = 0;
-		for (int r = 0; r < 4; ++r) {
-			float x = DirectX::XMVectorGetX(mat.r[r]);
-			float y = DirectX::XMVectorGetY(mat.r[r]);
-			float z = DirectX::XMVectorGetZ(mat.r[r]);
-			float w = DirectX::XMVectorGetW(mat.r[r]);
-
-			singleSMSettings.m_matrix[index++] = x;
-			singleSMSettings.m_matrix[index++] = y;
-			singleSMSettings.m_matrix[index++] = z;
-			singleSMSettings.m_matrix[index++] = w;
-		}
-
-		XMVECTOR determinant;
-		XMMATRIX inv = XMMatrixInverse(&determinant, mat);
-		index = 0;
-		for (int r = 0; r < 4; ++r) {
-			float x = DirectX::XMVectorGetX(inv.r[r]);
-			float y = DirectX::XMVectorGetY(inv.r[r]);
-			float z = DirectX::XMVectorGetZ(inv.r[r]);
-			float w = DirectX::XMVectorGetW(inv.r[r]);
-
-			singleSMSettings.m_inv[index++] = x;
-			singleSMSettings.m_inv[index++] = y;
-			singleSMSettings.m_inv[index++] = z;
-			singleSMSettings.m_inv[index++] = w;
-		}
-
-		singleSMSettings.m_position[0] = XMVectorGetX(origin);
-		singleSMSettings.m_position[1] = XMVectorGetX(origin);
-		singleSMSettings.m_position[2] = XMVectorGetX(origin);
-		singleSMSettings.m_position[3] = XMVectorGetX(origin);
-	}
-
-	{
-		SingleSM& singleSMSettings = settings.m_sms[2];
-
-		FindProjectionOrthographic(
-			XMVectorSet(light.m_direction[0], light.m_direction[1], light.m_direction[2], 0),
-			m_cascadeSeparators[1],
-			m_cascadeSeparators[2],
-			mat,
-			origin);
-
-		int index = 0;
-		for (int r = 0; r < 4; ++r) {
-			float x = DirectX::XMVectorGetX(mat.r[r]);
-			float y = DirectX::XMVectorGetY(mat.r[r]);
-			float z = DirectX::XMVectorGetZ(mat.r[r]);
-			float w = DirectX::XMVectorGetW(mat.r[r]);
-
-			singleSMSettings.m_matrix[index++] = x;
-			singleSMSettings.m_matrix[index++] = y;
-			singleSMSettings.m_matrix[index++] = z;
-			singleSMSettings.m_matrix[index++] = w;
-		}
-
-		XMVECTOR determinant;
-		XMMATRIX inv = XMMatrixInverse(&determinant, mat);
-		index = 0;
-		for (int r = 0; r < 4; ++r) {
-			float x = DirectX::XMVectorGetX(inv.r[r]);
-			float y = DirectX::XMVectorGetY(inv.r[r]);
-			float z = DirectX::XMVectorGetZ(inv.r[r]);
-			float w = DirectX::XMVectorGetW(inv.r[r]);
-
-			singleSMSettings.m_inv[index++] = x;
-			singleSMSettings.m_inv[index++] = y;
-			singleSMSettings.m_inv[index++] = z;
-			singleSMSettings.m_inv[index++] = w;
-		}
-
-		singleSMSettings.m_position[0] = XMVectorGetX(origin);
-		singleSMSettings.m_position[1] = XMVectorGetX(origin);
-		singleSMSettings.m_position[2] = XMVectorGetX(origin);
-		singleSMSettings.m_position[3] = XMVectorGetX(origin);
-	}
-
-	{
-		SingleSM& singleSMSettings = settings.m_sms[3];
-
-		FindProjectionOrthographic(
-			XMVectorSet(light.m_direction[0], light.m_direction[1], light.m_direction[2], 0),
-			m_cascadeSeparators[2],
-			m_camera->GetFarPlane(),
-			mat,
-			origin);
-
-		int index = 0;
-		for (int r = 0; r < 4; ++r) {
-			float x = DirectX::XMVectorGetX(mat.r[r]);
-			float y = DirectX::XMVectorGetY(mat.r[r]);
-			float z = DirectX::XMVectorGetZ(mat.r[r]);
-			float w = DirectX::XMVectorGetW(mat.r[r]);
-
-			singleSMSettings.m_matrix[index++] = x;
-			singleSMSettings.m_matrix[index++] = y;
-			singleSMSettings.m_matrix[index++] = z;
-			singleSMSettings.m_matrix[index++] = w;
-		}
-
-		XMVECTOR determinant;
-		XMMATRIX inv = XMMatrixInverse(&determinant, mat);
-		index = 0;
-		for (int r = 0; r < 4; ++r) {
-			float x = DirectX::XMVectorGetX(inv.r[r]);
-			float y = DirectX::XMVectorGetY(inv.r[r]);
-			float z = DirectX::XMVectorGetZ(inv.r[r]);
-			float w = DirectX::XMVectorGetW(inv.r[r]);
-
-			singleSMSettings.m_inv[index++] = x;
-			singleSMSettings.m_inv[index++] = y;
-			singleSMSettings.m_inv[index++] = z;
-			singleSMSettings.m_inv[index++] = w;
-		}
-
-		singleSMSettings.m_position[0] = XMVectorGetX(origin);
-		singleSMSettings.m_position[1] = XMVectorGetX(origin);
-		singleSMSettings.m_position[2] = XMVectorGetX(origin);
-		singleSMSettings.m_position[3] = XMVectorGetX(origin);
+		singleSMSettings.m_position[1] = XMVectorGetY(origin);
+		singleSMSettings.m_position[2] = XMVectorGetZ(origin);
+		singleSMSettings.m_position[3] = XMVectorGetW(origin);
 	}
 
 	settings.m_resolution = CascadedSM::m_resolution;
