@@ -157,18 +157,11 @@ namespace
 		XMVECTOR up, right, fwd;
 		fwd = XMVector3Normalize(direction);
 		{
-			up = camFwd;
+			up = XMVectorSet(0, 1, 0, 0);
 			right = XMVector3Cross(up, direction);
 
 			{
 				XMVECTOR l = XMVector3LengthSq(right);
-				if (XMVectorGetX(l) < eps)
-				{
-					up = XMVectorSet(0, 1, 0, 0);
-					right = XMVector3Cross(up, direction);
-				}
-
-				l = XMVector3LengthSq(right);
 				if (XMVectorGetX(l) < eps)
 				{
 					up = XMVectorSet(1, 0, 0, 0);
@@ -195,6 +188,12 @@ namespace
 
 		XMVECTOR minPoint = XMVectorSet(0, 0, 0, 0);
 		XMVECTOR maxPoint = XMVectorSet(0, 0, 0, 0);
+
+		{
+			XMVECTOR cur = XMVector4Transform((*corners.begin()), view);
+			cur /= XMVectorGetW(cur);
+			minPoint = maxPoint = cur;
+		}
 
 		for (auto it = corners.begin(); it != corners.end(); ++it)
 		{
@@ -235,7 +234,10 @@ namespace
 
 		origin = (minPoint + maxPoint) / 2;
 		XMVECTOR extents = maxPoint - origin;
-		origin = XMVectorGetZ(minPoint) * fwd;
+		origin = XMVectorSetZ(origin, XMVectorGetZ(minPoint));
+		origin = XMVectorSetW(origin, 1);
+
+		origin = XMVector4Transform(origin, viewRaw);
 
 		float maxExtents = max(XMVectorGetX(extents), XMVectorGetY(extents));
 
