@@ -40,6 +40,34 @@ struct PS_OUTPUT
     float4 m_specularLit: SV_Target2;
 };
 
+int GetSMIndex(float3 worldPos)
+{
+    float3 offset = worldPos - m_camBuff.m_position;
+    float d = dot(offset, m_camBuff.m_fwd);
+
+    if (m_camBuff.m_nearPlane <= d && d <= m_smBuffer.m_separators[0])
+    {
+        return 0;
+    }
+
+    if (m_smBuffer.m_separators[0] <= d && d <= m_smBuffer.m_separators[1])
+    {
+        return 1;
+    }
+
+    if (m_smBuffer.m_separators[1] <= d && d <= m_smBuffer.m_separators[2])
+    {
+        return 2;
+    }
+
+    if (m_smBuffer.m_separators[2] <= d && d <= m_camBuff.m_farPlane)
+    {
+        return 3;
+    }
+    
+    return -1;
+}
+
 float sampleShadowMap(float2 uv)
 {
     float4 shadowMap = p_shadowMap.Sample(p_sampler, uv);
@@ -106,6 +134,32 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
 
     if (dot(normalTex, normalTex) < 1)
     {
+        return output;
+    }
+
+    if (false)
+    {
+        int index = GetSMIndex(positionTex);
+
+        float4 color = float4(0, 1, 1, 1);
+        switch (index)
+        {
+        case 0:
+            color = float4(1, 0, 0, 1);
+            break;
+        case 1:
+            color = float4(0, 1, 0, 1);
+            break;
+        case 2:
+            color = float4(0, 0, 1, 1);
+            break;
+        case 3:
+            color = float4(1, 1, 0, 1);
+            break;
+        }
+
+        output.m_ambientLit = color;
+
         return output;
     }
 

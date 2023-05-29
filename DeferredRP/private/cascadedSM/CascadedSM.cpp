@@ -205,6 +205,19 @@ namespace
 			maxPoint = XMVectorMax(cur, maxPoint);
 		}
 
+		{
+			std::list<XMVECTOR> enclosingCorners;
+			m_camera->GetFrustrumCorners(enclosingCorners, m_camera->GetNearPlane(), m_camera->GetFarPlane());
+
+			for (auto it = enclosingCorners.begin(); it != enclosingCorners.end(); ++it)
+			{
+				XMVECTOR cur = XMVector4Transform(*it, view);
+				cur /= XMVectorGetW(cur);
+				float maxZ = max(XMVectorGetZ(cur), XMVectorGetZ(maxPoint));
+				maxPoint = XMVectorSetZ(maxPoint, maxZ);
+			}
+		}
+
 		// TODO: Better near plane calculation
 		{
 			XMVECTOR minBB, maxBB;
