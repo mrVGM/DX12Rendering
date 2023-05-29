@@ -43,7 +43,7 @@ struct SMBuffer
 {
     SingleSM m_sms[4];
     int m_resolution;
-    float3 m_separators[3];
+    float3 m_separators;
 };
 
 struct SMBuffer1
