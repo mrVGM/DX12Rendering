@@ -56,8 +56,8 @@ float CalculateShadowMapBiasedDepth(SMBuffer smBuffer, int index, float3 worldPo
         float maxUVOffset = max(abs(uvDir.x), abs(uvDir.y));
         uvDir /= maxUVOffset;
 
-        float halfPixel = 1.0 / smBuffer.m_resolution;
-        uvDir *= halfPixel;
+        float pixel = 2.0 / smBuffer.m_resolution;
+        uvDir *= pixel;
     }
 
     float3 biasDir;
