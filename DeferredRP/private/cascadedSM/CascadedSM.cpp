@@ -138,7 +138,7 @@ namespace
 	{
 		SingleSM m_sms[4];
 		int m_resolution;
-		float m_placeholder[3];
+		float m_saparators[3];
 	};
 
 	void FindProjectionOrthographic(
@@ -698,6 +698,9 @@ void rendering::CascadedSM::UpdateSMSettings()
 	}
 
 	settings.m_resolution = CascadedSM::m_resolution;
+	settings.m_saparators[0] = m_cascadeSeparators[0];
+	settings.m_saparators[1] = m_cascadeSeparators[1];
+	settings.m_saparators[2] = m_cascadeSeparators[2];
 
 	void* data = m_smSettingsBuffer->Map();
 	ShadowMapSettings* shadowMapSettingsData = static_cast<ShadowMapSettings*>(data);
