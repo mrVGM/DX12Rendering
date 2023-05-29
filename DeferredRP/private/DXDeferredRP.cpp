@@ -416,6 +416,16 @@ void rendering::DXDeferredRP::Execute()
         ID3D12CommandList* ppCommandLists[] = { commandList };
         m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
     }
+
+    {
+        m_cascadedSM->m_displaySMMat->ResetCommandLists();
+        DXBuffer* dummy = nullptr;
+        ID3D12CommandList* commandList = m_cascadedSM->m_displaySMMat->GenerateCommandList(
+            *deferred::GetRenderTextureVertexBuffer(),
+            *dummy, *dummy, 0, 0, 0);
+        ID3D12CommandList* ppCommandLists[] = { commandList };
+        m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+    }
 }
 
 void rendering::DXDeferredRP::LoadLightsBuffer(jobs::Job* done)

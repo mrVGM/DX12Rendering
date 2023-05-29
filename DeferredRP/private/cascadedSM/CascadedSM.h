@@ -42,6 +42,8 @@ namespace rendering
 		CascadedSM();
 		virtual ~CascadedSM();
 		
+		DXMaterial* m_displaySMMat = nullptr;
+
 		void LoadResources(jobs::Job* done);
 
 		void UpdateSMSettings();

@@ -33,6 +33,8 @@
 
 #include "utils.h"
 
+#include "HelperMaterials/DXDisplaySMMaterial.h"
+
 #include <DirectXMath.h>
 
 namespace
@@ -359,6 +361,8 @@ void rendering::CascadedSM::LoadSMTexture(jobs::Job* done)
 		{
 			m_ctx.m_tex->Place(*m_ctx.m_heap, 0);
 			m_ctx.m_cascadedSM->m_smTex = m_ctx.m_tex;
+
+			m_ctx.m_cascadedSM->m_displaySMMat = new DXDisplaySMMaterial(*shader_repo::GetDeferredRPVertexShader(), *shader_repo::GetDisplayShadowMapPixelShader());
 
 			core::utils::RunSync(m_ctx.m_done);
 		}

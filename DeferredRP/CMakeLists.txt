@@ -60,7 +60,15 @@ add_library (DeferredRP
 	"private/resources/DXLightsBufferMeta.cpp"
 	"private/utils.h"
 	"private/utils.cpp"
- "private/cascadedSM/CascadedSMMeta.h" "private/cascadedSM/CascadedSMMeta.cpp" "private/cascadedSM/CascadedSM.h" "private/cascadedSM/CascadedSM.cpp")
+	"private/cascadedSM/CascadedSMMeta.h"
+	"private/cascadedSM/CascadedSMMeta.cpp"
+	"private/cascadedSM/CascadedSM.h"
+	"private/cascadedSM/CascadedSM.cpp"
+	"private/HelperMaterials/DXDisplaySMMaterialMeta.cpp"
+	"private/HelperMaterials/DXDisplaySMMaterialMeta.h"
+	"private/HelperMaterials/DXDisplaySMMaterial.cpp"
+	"private/HelperMaterials/DXDisplaySMMaterial.h"
+)
 
 target_include_directories(DeferredRP INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(DeferredRP PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
