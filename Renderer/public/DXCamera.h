@@ -19,7 +19,7 @@ namespace rendering
 		float m_nearPlane = 0.1;
 		float m_farPlane = 1000;
 
-		DirectX::XMMATRIX GetMVPMatrix() const;
+		DirectX::XMMATRIX GetMVPMatrix(DirectX::XMVECTOR& right, DirectX::XMVECTOR& fwd, DirectX::XMVECTOR& up) const;
 		void GetCoordinateVectors(DirectX::XMVECTOR& right, DirectX::XMVECTOR& fwd, DirectX::XMVECTOR& up) const;
 
 	public:

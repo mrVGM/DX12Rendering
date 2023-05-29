@@ -17,9 +17,22 @@
 #include <list>
 #include <corecrt_math_defines.h>
 
-DirectX::XMMATRIX rendering::DXCamera::GetMVPMatrix() const
+namespace
 {
-	DirectX::XMVECTOR right, fwd, up;
+	struct CameraSettings
+	{
+		float m_matrix[16];
+		float m_position[4];
+		float m_fwd[4];
+		float m_nearPlane;
+		float m_farPlane;
+		float m_fov;
+		float m_aspect;
+	};
+}
+
+DirectX::XMMATRIX rendering::DXCamera::GetMVPMatrix(DirectX::XMVECTOR& right, DirectX::XMVECTOR& fwd, DirectX::XMVECTOR& up) const
+{
 	GetCoordinateVectors(right, fwd, up);
 	
 	float fovRad = DirectX::XMConvertToRadians(m_fov);
@@ -71,8 +84,10 @@ void rendering::DXCamera::UpdateCamBuffer()
 {
 	using namespace DirectX;
 
-	float matrixCoefs[20];
-	DirectX::XMMATRIX mvp = GetMVPMatrix();
+	CameraSettings camSettings;
+
+	XMVECTOR right, fwd, up;
+	DirectX::XMMATRIX mvp = GetMVPMatrix(right, fwd, up);
 
 	int index = 0;
 	for (int r = 0; r < 4; ++r) {
@@ -81,26 +96,35 @@ void rendering::DXCamera::UpdateCamBuffer()
 		float z = DirectX::XMVectorGetZ(mvp.r[r]);
 		float w = DirectX::XMVectorGetW(mvp.r[r]);
 
-		matrixCoefs[index++] = x;
-		matrixCoefs[index++] = y;
-		matrixCoefs[index++] = z;
-		matrixCoefs[index++] = w;
+		camSettings.m_matrix[index++] = x;
+		camSettings.m_matrix[index++] = y;
+		camSettings.m_matrix[index++] = z;
+		camSettings.m_matrix[index++] = w;
 	}
 
-	matrixCoefs[index++] = XMVectorGetX(m_position);
-	matrixCoefs[index++] = XMVectorGetY(m_position);
-	matrixCoefs[index++] = XMVectorGetZ(m_position);
-	matrixCoefs[index++] = 1;
+	camSettings.m_position[0] = XMVectorGetX(m_position);
+	camSettings.m_position[1] = XMVectorGetY(m_position);
+	camSettings.m_position[2] = XMVectorGetZ(m_position);
+	camSettings.m_position[3] = 1;
 
-	CD3DX12_RANGE readRange(0, 0);
-	void* dst = nullptr;
+	camSettings.m_fwd[0] = XMVectorGetX(fwd);
+	camSettings.m_fwd[1] = XMVectorGetY(fwd);
+	camSettings.m_fwd[2] = XMVectorGetZ(fwd);
+	camSettings.m_fwd[3] = 1;
+
+	camSettings.m_nearPlane = m_nearPlane;
+	camSettings.m_farPlane = m_farPlane;
+	camSettings.m_fov = m_fov;
+	camSettings.m_aspect = m_aspect;
+
+
 	DXBuffer* camBuff = rendering::utils::GetCameraBuffer();
+	void* data = camBuff->Map();
+	CameraSettings* camSettingsData = static_cast<CameraSettings*>(data);
 
-	if (FAILED(camBuff->GetBuffer()->Map(0, &readRange, &dst))) {
-		return;
-	}
-	memcpy(dst, matrixCoefs, _countof(matrixCoefs) * sizeof(float));
-	camBuff->GetBuffer()->Unmap(0, nullptr);
+	*camSettingsData = camSettings;
+
+	camBuff->Unmap();
 }
 
 rendering::DXCamera::DXCamera() :

@@ -21,7 +21,15 @@ struct CameraBuffer
 {
     float4x4 m_matrix;
     float3 m_position;
-    float m_placeholder;
+    float m_placeholder1;
+
+    float3 m_fwd;
+    float m_placeholder2;
+
+    float m_nearPlane;
+    float m_farPlane;
+    float m_fov;
+    float m_aspect;
 };
 
 struct SingleSM
