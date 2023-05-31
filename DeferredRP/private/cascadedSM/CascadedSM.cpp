@@ -19,6 +19,7 @@
 
 #include "resources/DXShadowMapMeta.h"
 #include "resources/DXShadowMapDSMeta.h"
+#include "resources/DXShadowMaskMeta.h"
 
 #include "updaters/DXShadowMapUpdater.h"
 #include "updaters/DXShadowMapRDU.h"
@@ -471,7 +472,7 @@ void rendering::CascadedSM::LoadShadowMaskTexture(jobs::Job* done)
 
 		void Do() override
 		{
-			m_ctx.m_tex = DXTexture::CreateRenderTargetTexture(DXShadowMapMeta::GetInstance(), m_wnd->m_width / 2, m_wnd->m_height / 2);
+			m_ctx.m_tex = DXTexture::CreateRenderTargetTexture(DXShadowMaskMeta::GetInstance(), m_wnd->m_width / 2, m_wnd->m_height / 2);
 
 			m_ctx.m_heap = new DXHeap();
 			m_ctx.m_heap->SetHeapSize(m_ctx.m_tex->GetTextureAllocationInfo().SizeInBytes);
