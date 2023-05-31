@@ -269,7 +269,8 @@ namespace
 		XMMATRIX view = XMMatrixTranspose(viewRaw);
 
 		std::list<XMVECTOR> corners;
-		m_camera->GetFrustrumCorners(corners, m_camera->GetNearPlane(), m_camera->GetFarPlane());
+		float maxDist;
+		m_camera->GetFrustrumCorners(corners, maxDist, m_camera->GetNearPlane(), m_camera->GetFarPlane());
 
 		XMVECTOR minPoint = XMVectorSet(0, 0, 0, 0);
 		XMVECTOR maxPoint = XMVectorSet(0, 0, 0, 0);
@@ -343,7 +344,8 @@ namespace
 		using namespace rendering;
 
 		std::list<XMVECTOR> corners;
-		m_camera->GetFrustrumCorners(corners, m_camera->GetNearPlane(), m_camera->GetFarPlane());
+		float maxDist;
+		m_camera->GetFrustrumCorners(corners, maxDist, m_camera->GetNearPlane(), m_camera->GetFarPlane());
 
 		XMVECTOR camFwd = m_camera->GetTarget() - m_camera->GetPosition();
 		camFwd = XMVector3Normalize(camFwd);

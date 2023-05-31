@@ -209,7 +209,7 @@ void rendering::DXCamera::InitBuffer(jobs::Job* done)
 	heap->MakeResident(new InitBufferJob(jobContext));
 }
 
-void rendering::DXCamera::GetFrustrumCorners(std::list<DirectX::XMVECTOR>& corners, float nearPlane, float farPlane)
+void rendering::DXCamera::GetFrustrumCorners(std::list<DirectX::XMVECTOR>& corners, float& maxDist, float nearPlane, float farPlane)
 {
 	using namespace DirectX;
 
@@ -239,6 +239,23 @@ void rendering::DXCamera::GetFrustrumCorners(std::list<DirectX::XMVECTOR>& corne
 	{
 		XMVECTOR& cur = *it;
 		cur = XMVectorSet(XMVectorGetX(cur), XMVectorGetY(cur), XMVectorGetZ(cur), 1);
+	}
+
+	{
+		XMVECTOR tmp = farPlane * topRight - nearPlane * bottomLeft;
+		tmp = XMVector3Length(tmp);
+
+		maxDist = 0;
+		for (auto i = corners.begin(); i != corners.end(); ++i)
+		{
+			for (auto j = corners.begin(); j != corners.end(); ++j)
+			{
+				XMVECTOR tmp = (*i) - (*j);
+				tmp = XMVector3Length(tmp);
+
+				maxDist = max(maxDist, XMVectorGetX(tmp));
+			}
+		}
 	}
 }
 

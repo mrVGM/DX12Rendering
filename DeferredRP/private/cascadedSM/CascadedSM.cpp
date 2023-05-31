@@ -183,7 +183,8 @@ namespace
 		XMMATRIX view = XMMatrixTranspose(viewRaw);
 
 		std::list<XMVECTOR> corners;
-		m_camera->GetFrustrumCorners(corners, nearPlane, farPlane);
+		float maxDist;
+		m_camera->GetFrustrumCorners(corners, maxDist, nearPlane, farPlane);
 
 		XMVECTOR minPoint = XMVectorSet(0, 0, 0, 0);
 		XMVECTOR maxPoint = XMVectorSet(0, 0, 0, 0);
@@ -239,13 +240,30 @@ namespace
 		}
 
 		origin = (minPoint + maxPoint) / 2;
-		XMVECTOR extents = maxPoint - origin;
+
+		{
+			float pixelSize = maxDist / CascadedSM::m_resolution;
+			XMVECTOR tmp = origin;
+			tmp /= pixelSize;
+
+			tmp = XMVectorFloor(tmp);
+			tmp *= pixelSize;
+
+			origin = XMVectorSetX(origin, XMVectorGetX(tmp));
+			origin = XMVectorSetY(origin, XMVectorGetY(tmp));
+		}
+		
+
+		maxDist /= 2;
+		{
+			XMVECTOR extents = maxPoint - origin;
+			float maxExtents = max(XMVectorGetX(extents), XMVectorGetY(extents));
+			assert(maxExtents <= maxDist);
+		}
+		
 		origin = XMVectorSetZ(origin, XMVectorGetZ(minPoint));
 		origin = XMVectorSetW(origin, 1);
-
 		origin = XMVector4Transform(origin, viewRaw);
-
-		float maxExtents = max(XMVectorGetX(extents), XMVectorGetY(extents));
 
 		DirectX::XMMATRIX translate(
 			DirectX::XMVECTOR{ 1, 0, 0, -XMVectorGetX(origin) },
@@ -257,8 +275,8 @@ namespace
 		float depth = XMVectorGetZ(maxPoint) - XMVectorGetZ(minPoint);
 
 		DirectX::XMMATRIX scale(
-			DirectX::XMVECTOR{ 1 / maxExtents, 0, 0, 0 },
-			DirectX::XMVECTOR{ 0, 1 / maxExtents, 0, 0 },
+			DirectX::XMVECTOR{ 1 / maxDist, 0, 0, 0 },
+			DirectX::XMVECTOR{ 0, 1 / maxDist, 0, 0 },
 			DirectX::XMVECTOR{ 0, 0, 1 / depth, 0 },
 			DirectX::XMVECTOR{ 0, 0, 0, 1 }
 		);
