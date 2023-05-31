@@ -68,6 +68,10 @@ add_library (DeferredRP
 	"private/HelperMaterials/DXDisplaySMMaterialMeta.h"
 	"private/HelperMaterials/DXDisplaySMMaterial.cpp"
 	"private/HelperMaterials/DXDisplaySMMaterial.h"
+	"private/HelperMaterials/DXShadowMaskMaterialMeta.h"
+	"private/HelperMaterials/DXShadowMaskMaterialMeta.cpp"
+	"private/HelperMaterials/DXShadowMaskMaterial.h"
+	"private/HelperMaterials/DXShadowMaskMaterial.cpp"
 )
 
 target_include_directories(DeferredRP INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

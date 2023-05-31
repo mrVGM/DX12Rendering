@@ -21,6 +21,7 @@
 
 #include "HelperMaterials/DXLightsCalculationsMaterial.h"
 #include "HelperMaterials/DXPostLightsCalculationsMaterial.h"
+#include "HelperMaterials/DXShadowMaskMaterial.h"
 
 #include "LightsManager.h"
 #include "LightsManagerMeta.h"
@@ -47,6 +48,7 @@ namespace
 {
     rendering::DXMaterial* m_lightCalculationsMat = nullptr;
     rendering::DXMaterial* m_postLightCalculationsMat = nullptr;
+    rendering::DXMaterial* m_shadowMaskMat = nullptr;
 
     rendering::LightsManager* m_lightsManager = nullptr;
     rendering::CascadedSM* m_cascadedSM = nullptr;
@@ -445,6 +447,15 @@ void rendering::DXDeferredRP::Execute()
 
     {
         DXBuffer* dummy = nullptr;
+        ID3D12CommandList* commandList = m_shadowMaskMat->GenerateCommandList(
+            *deferred::GetRenderTextureVertexBuffer(),
+            *dummy, *dummy, 0, 0, 0);
+        ID3D12CommandList* ppCommandLists[] = { commandList };
+        m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+    }
+
+    {
+        DXBuffer* dummy = nullptr;
         ID3D12CommandList* commandList = m_lightCalculationsMat->GenerateCommandList(
             *deferred::GetRenderTextureVertexBuffer(), 
             *dummy, *dummy, 0, 0, 0);
@@ -518,6 +529,10 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
             m_postLightCalculationsMat = new DXPostLightsCalculationsMaterial(
                 *shader_repo::GetDeferredRPVertexShader(),
                 *shader_repo::GetDeferredRPPostLightingPixelShader());
+
+            m_shadowMaskMat = new DXShadowMaskMaterial(
+                *shader_repo::GetDeferredRPVertexShader(),
+                *shader_repo::GetShadowMaskPixelShader());
 
             core::utils::RunSync(m_ctx.m_done);
 

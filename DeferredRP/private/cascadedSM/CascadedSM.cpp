@@ -44,6 +44,7 @@ namespace
 	rendering::ICamera* m_camera = nullptr;
 	rendering::DXScene* m_scene = nullptr;
 	rendering::LightsManager* m_lightsManager = nullptr;
+	rendering::Window* m_wnd = nullptr;
 
 	void CacheObjects()
 	{
@@ -61,6 +62,11 @@ namespace
 		if (!m_lightsManager)
 		{
 			m_lightsManager = deferred::GetLightsManager();
+		}
+
+		if (!m_wnd)
+		{
+			m_wnd = core::utils::GetWindow();
 		}
 	}
 
@@ -419,6 +425,67 @@ void rendering::CascadedSM::LoadSMTexture(jobs::Job* done)
 	core::utils::RunSync(new CreateTex(ctx));
 }
 
+void rendering::CascadedSM::LoadShadowMaskTexture(jobs::Job* done)
+{
+	struct Context
+	{
+		CascadedSM* m_cascadedSM = nullptr;
+		DXTexture* m_tex = nullptr;
+		DXHeap* m_heap = nullptr;
+
+		jobs::Job* m_done = nullptr;
+	};
+
+	Context ctx;
+	ctx.m_cascadedSM = this;
+	ctx.m_done = done;
+
+	class PlaceTex : public jobs::Job
+	{
+	private:
+		Context m_ctx;
+	public:
+		PlaceTex(const Context& ctx) :
+			m_ctx(ctx)
+		{
+		}
+
+		void Do() override
+		{
+			m_ctx.m_tex->Place(*m_ctx.m_heap, 0);
+			m_ctx.m_cascadedSM->m_shadowMaskTex = m_ctx.m_tex;
+
+			core::utils::RunSync(m_ctx.m_done);
+		}
+	};
+
+	class CreateTex : public jobs::Job
+	{
+	private:
+		Context m_ctx;
+	public:
+		CreateTex(const Context& ctx) :
+			m_ctx(ctx)
+		{
+		}
+
+		void Do() override
+		{
+			m_ctx.m_tex = DXTexture::CreateRenderTargetTexture(DXShadowMapMeta::GetInstance(), m_wnd->m_width / 2, m_wnd->m_height / 2);
+
+			m_ctx.m_heap = new DXHeap();
+			m_ctx.m_heap->SetHeapSize(m_ctx.m_tex->GetTextureAllocationInfo().SizeInBytes);
+			m_ctx.m_heap->SetHeapType(D3D12_HEAP_TYPE_DEFAULT);
+			m_ctx.m_heap->SetHeapFlags(D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES);
+			m_ctx.m_heap->Create();
+
+			m_ctx.m_heap->MakeResident(new PlaceTex(m_ctx));
+		}
+	};
+
+	core::utils::RunSync(new CreateTex(ctx));
+}
+
 void rendering::CascadedSM::LoadSMMaterials(jobs::Job* done)
 {
 	struct Context
@@ -630,7 +697,7 @@ void rendering::CascadedSM::LoadResources(jobs::Job* done)
 	struct Context
 	{
 		CascadedSM* m_cascadedSM = nullptr;
-		int m_itemsToWaitFor = 4;
+		int m_itemsToWaitFor = 5;
 
 		jobs::Job* m_done = nullptr;
 	};
@@ -685,12 +752,18 @@ void rendering::CascadedSM::LoadResources(jobs::Job* done)
 	LoadSettingsBuffer(new ItemReady(*ctx));
 	LoadDepthTextures(new ItemReady(*ctx));
 	LoadSMTexture(new ItemReady(*ctx));
+	LoadShadowMaskTexture(new ItemReady(*ctx));
 	LoadSMMaterials(new ItemReady(*ctx));
 }
 
 rendering::DXTexture* rendering::CascadedSM::GetShadowMap()
 {
 	return m_smTex;
+}
+
+rendering::DXTexture* rendering::CascadedSM::GetShadowMask()
+{
+	return m_shadowMaskTex;
 }
 
 rendering::DXDescriptorHeap* rendering::CascadedSM::GetDSDescriptorHeap()

@@ -26,6 +26,8 @@ namespace rendering
 		DXShader* GetShadowMapPixelShader();
 		DXShader* GetDisplayShadowMapPixelShader();
 
+		DXShader* GetShadowMaskPixelShader();
+
 		void LoadShaderPrograms();
 	}
 }

@@ -20,6 +20,8 @@ namespace
 	rendering::DXShader* m_shadowMapVertexShader = nullptr;
 	rendering::DXShader* m_shadowMapPixelShader = nullptr;
 	rendering::DXShader* m_displayShadowMapPixelShader = nullptr;
+
+	rendering::DXShader* m_shadowMaskPixelShader = nullptr;
 }
 
 rendering::DXShader* rendering::shader_repo::GetMainVertexShader()
@@ -72,6 +74,11 @@ rendering::DXShader* rendering::shader_repo::GetDisplayShadowMapPixelShader()
 	return m_displayShadowMapPixelShader;
 }
 
+rendering::DXShader* rendering::shader_repo::GetShadowMaskPixelShader()
+{
+	return m_shadowMaskPixelShader;
+}
+
 void rendering::shader_repo::LoadShaderPrograms()
 {
 	m_mainVertexShader = new DXShader(DXVertexShaderMeta::GetInstance(), "shaders/bin/vs_mainVS.fxc");
@@ -87,4 +94,6 @@ void rendering::shader_repo::LoadShaderPrograms()
 	m_shadowMapPixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_shadowMap.fxc");
 
 	m_displayShadowMapPixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_displayShadowMap.fxc");
+
+	m_shadowMaskPixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_shadowMaskPS.fxc");
 }
