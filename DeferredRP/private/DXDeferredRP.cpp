@@ -11,6 +11,8 @@
 #include "HelperMaterials/DXShadowMapMaterial.h"
 #include "HelperMaterials/DXShadowMapMaterialMeta.h"
 
+#include "HelperMaterials/DXDisplaySMMaterial.h"
+
 #include "DXBufferMeta.h"
 #include "DXHeap.h"
 
@@ -49,6 +51,8 @@ namespace
     rendering::DXMaterial* m_lightCalculationsMat = nullptr;
     rendering::DXMaterial* m_postLightCalculationsMat = nullptr;
     rendering::DXMaterial* m_shadowMaskMat = nullptr;
+
+    rendering::DXMaterial* m_displayTexMaterial = nullptr;
 
     rendering::LightsManager* m_lightsManager = nullptr;
     rendering::CascadedSM* m_cascadedSM = nullptr;
@@ -474,9 +478,9 @@ void rendering::DXDeferredRP::Execute()
     }
 
     {
-        m_cascadedSM->m_displaySMMat->ResetCommandLists();
+        m_displayTexMaterial->ResetCommandLists();
         DXBuffer* dummy = nullptr;
-        ID3D12CommandList* commandList = m_cascadedSM->m_displaySMMat->GenerateCommandList(
+        ID3D12CommandList* commandList = m_displayTexMaterial->GenerateCommandList(
             *deferred::GetRenderTextureVertexBuffer(),
             *dummy, *dummy, 0, 0, 0);
         ID3D12CommandList* ppCommandLists[] = { commandList };
@@ -533,6 +537,12 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
             m_shadowMaskMat = new DXShadowMaskMaterial(
                 *shader_repo::GetDeferredRPVertexShader(),
                 *shader_repo::GetShadowMaskPixelShader());
+
+            m_displayTexMaterial = new DXDisplaySMMaterial(
+                *shader_repo::GetDeferredRPVertexShader(),
+                *shader_repo::GetDisplayShadowMapPixelShader(),
+                m_cascadedSM->GetShadowMap()
+            );
 
             core::utils::RunSync(m_ctx.m_done);
 

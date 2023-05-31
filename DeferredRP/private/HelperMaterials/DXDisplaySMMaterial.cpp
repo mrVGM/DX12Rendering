@@ -38,7 +38,6 @@ namespace
 {
     rendering::DXDevice* m_device = nullptr;
     rendering::DXSwapChain* m_swapChain = nullptr;
-    rendering::CascadedSM* m_cascadedSM = nullptr;
 
     void CacheObjects()
     {
@@ -54,17 +53,13 @@ namespace
         {
             m_swapChain = core::utils::GetSwapChain();
         }
-
-        if (!m_cascadedSM)
-        {
-            m_cascadedSM = deferred::GetCascadedSM();
-        }
     }
 }
 
 
-rendering::DXDisplaySMMaterial::DXDisplaySMMaterial(const rendering::DXShader& vertexShader, const rendering::DXShader& pixelShader) :
-    DXMaterial(DXDisplaySMMaterialMeta::GetInstance(), vertexShader, pixelShader)
+rendering::DXDisplaySMMaterial::DXDisplaySMMaterial(const rendering::DXShader& vertexShader, const rendering::DXShader& pixelShader, DXTexture* texture) :
+    DXMaterial(DXDisplaySMMaterialMeta::GetInstance(), vertexShader, pixelShader),
+    m_texture(texture)
 {
     CacheObjects();
     CreatePipelineStateAndRootSignature();
@@ -103,7 +98,7 @@ ID3D12CommandList* rendering::DXDisplaySMMaterial::GenerateCommandList(
         CD3DX12_RESOURCE_BARRIER barrier[] =
         {
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_swapChain->GetCurrentRenderTarget(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMap()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_texture->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
         };
         commandList->ResourceBarrier(_countof(barrier), barrier);
     }
@@ -137,7 +132,7 @@ ID3D12CommandList* rendering::DXDisplaySMMaterial::GenerateCommandList(
         CD3DX12_RESOURCE_BARRIER barrier[] =
         {
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_swapChain->GetCurrentRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMap()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_texture->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
         };
         commandList->ResourceBarrier(_countof(barrier), barrier);
     }
@@ -251,7 +246,7 @@ void rendering::DXDisplaySMMaterial::CreateDescriptorHeaps()
 {
     {
         std::list<DXTexture*> textures;
-        textures.push_back(m_cascadedSM->GetShadowMap());
+        textures.push_back(m_texture);
         m_srvHeap = DXDescriptorHeap::CreateSRVDescriptorHeap(DXDescriptorHeapMeta::GetInstance(), textures);
     }
 }
