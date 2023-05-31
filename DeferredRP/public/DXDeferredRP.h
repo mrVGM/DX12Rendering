@@ -25,16 +25,19 @@ namespace rendering
 
 		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocator;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_startList;
+		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_afterRenderSceneList;
 
-		DXDescriptorHeap* m_rtvHeap;
-		DXDescriptorHeap* m_srvHeap;
+		DXDescriptorHeap* m_rtvHeap = nullptr;
+		DXDescriptorHeap* m_srvHeap = nullptr;
 
 		bool m_startListPrepared = false;
+		bool m_afterRenderSceneListPrepared = false;
 		
 		void CreateRTVHeap();
 		void CreateSRVHeap();
 
 		void PrepareStartList();
+		void PrepareAfterRenderSceneList();
 
 		void LoadLightsBuffer(jobs::Job* done);
 

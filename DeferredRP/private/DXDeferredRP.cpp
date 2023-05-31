@@ -130,6 +130,14 @@ rendering::DXDeferredRP::DXDeferredRP() :
         THROW_ERROR(
             m_startList->Close(),
             "Can't close Command List!")
+
+        THROW_ERROR(
+            device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&m_afterRenderSceneList)),
+            "Can't reset Command List!")
+
+        THROW_ERROR(
+            m_afterRenderSceneList->Close(),
+            "Can't close Command List!")
     }
 }
 
@@ -211,6 +219,37 @@ void rendering::DXDeferredRP::PrepareStartList()
 
     m_startListPrepared = true;
 }
+
+void rendering::DXDeferredRP::PrepareAfterRenderSceneList()
+{
+    if (m_afterRenderSceneListPrepared)
+    {
+        return;
+    }
+
+    THROW_ERROR(
+        m_afterRenderSceneList->Reset(m_commandAllocator.Get(), nullptr),
+        "Can't reset Command List!")
+
+    {
+        CD3DX12_RESOURCE_BARRIER barrier[] =
+        {
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMap()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferDiffuseTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferNormalTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferPositionTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
+        };
+        m_afterRenderSceneList->ResourceBarrier(_countof(barrier), barrier);
+    }
+
+    THROW_ERROR(
+        m_afterRenderSceneList->Close(),
+        "Can't close Command List!")
+
+    m_afterRenderSceneListPrepared = true;
+}
+
 
 void rendering::DXDeferredRP::RenderShadowMap()
 {
@@ -386,6 +425,7 @@ void rendering::DXDeferredRP::RenderDeferred()
 void rendering::DXDeferredRP::Prepare()
 {
     PrepareStartList();
+    PrepareAfterRenderSceneList();
 }
 
 void rendering::DXDeferredRP::Execute()
@@ -397,6 +437,11 @@ void rendering::DXDeferredRP::Execute()
 
     RenderDeferred();
     RenderShadowMap();
+
+    {
+        ID3D12CommandList* ppCommandLists[] = { m_afterRenderSceneList.Get() };
+        m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+    }
 
     {
         DXBuffer* dummy = nullptr;
