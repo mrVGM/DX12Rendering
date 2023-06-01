@@ -477,6 +477,7 @@ void rendering::DXDeferredRP::Execute()
         m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
     }
 
+    if (false)
     {
         m_displayTexMaterial->ResetCommandLists();
         DXBuffer* dummy = nullptr;

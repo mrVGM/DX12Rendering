@@ -30,6 +30,7 @@ Texture2D p_specular     : register(t1);
 Texture2D p_normal       : register(t2);
 Texture2D p_position     : register(t3);
 Texture2D p_shadowMap    : register(t4);
+Texture2D p_shadowMask    : register(t5);
 
 SamplerState p_sampler  : register(s0);
 
@@ -43,6 +44,7 @@ struct PS_OUTPUT
 float sampleShadowMap(float2 uv, int index)
 {
     float4 shadowMap = p_shadowMap.Sample(p_sampler, uv);
+    uv = float2(uv.x, 1 - uv.y);
 
     float d = 0;
     switch (index)
@@ -190,8 +192,7 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
 
         if (i == 0)
         {
-            float shadowTest = testForShadow(positionTex.xyz);
-            lightIntensity = 1 - shadowTest;
+            lightIntensity = p_shadowMask.Sample(p_sampler, uv);
         }
 
         Light cur = m_lights[i];

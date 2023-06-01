@@ -21,6 +21,8 @@
 
 #include "resources/DXSMSettingsBufferMeta.h"
 
+#include "utils.h"
+
 #include "CoreUtils.h"
 
 #define THROW_ERROR(hRes, error) \
@@ -32,8 +34,7 @@ namespace
 {
     rendering::DXBuffer* m_cameraBuffer = nullptr;
     rendering::DXBuffer* m_lightsBuffer = nullptr;
-    rendering::DXBuffer* m_smSettingsBuffer = nullptr;
-    rendering::DXTexture* m_shadowMap = nullptr;
+    rendering::CascadedSM* m_cascadedSM = nullptr;
 
     rendering::DXDevice* m_device = nullptr;
     rendering::DXSwapChain* m_swapChain = nullptr;
@@ -67,31 +68,6 @@ namespace
             m_lightsBuffer = static_cast<DXBuffer*>(obj);
         }
 
-        if (!m_shadowMap)
-        {
-            BaseObject* obj = container.GetObjectOfClass(DXShadowMapMeta::GetInstance());
-
-            if (!obj)
-            {
-                throw "Can't find Shadow Map!";
-            }
-
-            m_shadowMap = static_cast<DXTexture*>(obj);
-        }
-
-        if (!m_smSettingsBuffer)
-        {
-            BaseObject* obj = container.GetObjectOfClass(DXSMSettingsBufferMeta::GetInstance());
-
-            if (!obj)
-            {
-                throw "Can't find Shadow Map Settings!";
-            }
-
-            m_smSettingsBuffer = static_cast<DXBuffer*>(obj);
-        }
-
-
         if (!m_device)
         {
             m_device = core::utils::GetDevice();
@@ -100,6 +76,11 @@ namespace
         if (!m_swapChain)
         {
             m_swapChain = core::utils::GetSwapChain();
+        }
+
+        if (!m_cascadedSM)
+        {
+            m_cascadedSM = deferred::GetCascadedSM();
         }
     }
 }
@@ -153,7 +134,8 @@ ID3D12CommandList* rendering::DXLightsCalculationsMaterial::GenerateCommandList(
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferNormalTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferPositionTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_shadowMap->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMap()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMask()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
         };
         commandList->ResourceBarrier(_countof(barrier), barrier);
     }
@@ -171,7 +153,7 @@ ID3D12CommandList* rendering::DXLightsCalculationsMaterial::GenerateCommandList(
 
     commandList->SetGraphicsRootConstantBufferView(0, m_cameraBuffer->GetBuffer()->GetGPUVirtualAddress());
     commandList->SetGraphicsRootConstantBufferView(1, m_lightsBuffer->GetBuffer()->GetGPUVirtualAddress());
-    commandList->SetGraphicsRootConstantBufferView(2, m_smSettingsBuffer->GetBuffer()->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootConstantBufferView(2, m_cascadedSM->GetSettingsBuffer()->GetBuffer()->GetGPUVirtualAddress());
     commandList->SetGraphicsRootDescriptorTable(3, descriptorHeaps[0]->GetGPUDescriptorHandleForHeapStart());
 
     commandList->RSSetViewports(1, &swapChain->GetViewport());
@@ -208,7 +190,8 @@ ID3D12CommandList* rendering::DXLightsCalculationsMaterial::GenerateCommandList(
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferNormalTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferPositionTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_shadowMap->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMap()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMask()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
         };
         commandList->ResourceBarrier(_countof(barrier), barrier);
     }
@@ -258,7 +241,7 @@ void rendering::DXLightsCalculationsMaterial::CreatePipelineStateAndRootSignatur
             D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 
         CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
-        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 5, 0, 0);
+        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 6, 0, 0);
         CD3DX12_ROOT_PARAMETER1 rootParameters[4];
         rootParameters[0].InitAsConstantBufferView(0, 0);
         rootParameters[1].InitAsConstantBufferView(1, 0);
@@ -333,7 +316,8 @@ void rendering::DXLightsCalculationsMaterial::CreateDescriptorHeaps()
         textures.push_back(deferred::GetGBufferSpecularTex());
         textures.push_back(deferred::GetGBufferNormalTex());
         textures.push_back(deferred::GetGBufferPositionTex());
-        textures.push_back(m_shadowMap);
+        textures.push_back(m_cascadedSM->GetShadowMap());
+        textures.push_back(m_cascadedSM->GetShadowMask());
 
         m_srvHeap = DXDescriptorHeap::CreateSRVDescriptorHeap(DXDescriptorHeapMeta::GetInstance(), textures);
     }
