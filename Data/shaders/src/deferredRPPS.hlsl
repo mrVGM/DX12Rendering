@@ -49,9 +49,11 @@ float random(float2 st) {
     return tmp - floor(tmp);
 }
 
+static const float PI = 3.14159265f;
+
 float4 GaussianBlurShadowMask(float2 coord)
 {
-    float Pi = 6.28318530718; // Pi*2
+    float Pi = 2 * PI; // Pi*2
 
     // GAUSSIAN BLUR SETTINGS {{{
     float Directions = 16.0; // BLUR DIRECTIONS (Default 16.0 - More is better but slower)
@@ -130,16 +132,19 @@ bool hardShadowTest(float3 position)
 float pcf(float2 coords, int index, float refDepth)
 {
     float pixelSize = 1.0 / m_smBuffer.m_resolution;
-
-    float2 randOffset = float2(random(coords), random(1 - coords));
-    randOffset -= 0.5;
+    float2 pixelCenter = coords / pixelSize;
+    pixelCenter = floor(pixelCenter);
+    pixelCenter += 0.5;
+    pixelCenter *= pixelSize;
 
     float density = 0.0;
     for (int i = -2; i <= 2; ++i)
     {
         for (int j = -2; j <= 2; ++j)
         {
-            float smSample = sampleShadowMap(coords + pixelSize * (float2(i, j) + randOffset), index);
+            float2 curOffset = float2(i, j);
+
+            float smSample = sampleShadowMap(pixelCenter + pixelSize * curOffset, index);
             density += refDepth > smSample;
         }
     }
