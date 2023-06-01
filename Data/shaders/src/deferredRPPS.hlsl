@@ -41,10 +41,38 @@ struct PS_OUTPUT
     float4 m_specularLit: SV_Target2;
 };
 
+float4 GaussianBlurShadowMask(float2 coord)
+{
+    float Pi = 6.28318530718; // Pi*2
+
+    // GAUSSIAN BLUR SETTINGS {{{
+    float Directions = 16.0; // BLUR DIRECTIONS (Default 16.0 - More is better but slower)
+    float Quality = 3.0; // BLUR QUALITY (Default 4.0 - More is better but slower)
+    float Size = 15.0; // BLUR SIZE (Radius)
+    // GAUSSIAN BLUR SETTINGS }}}
+
+    float2 Radius = Size / float2(600, 400);
+
+    float4 Color = p_shadowMask.Sample(p_sampler, coord);
+
+    // Blur calculations
+    for (float d = 0.0; d < Pi; d += Pi / Directions)
+    {
+        for (float i = 1.0 / Quality; i <= 1.0; i += 1.0 / Quality)
+        {
+            Color += p_shadowMask.Sample(p_sampler, coord + float2(cos(d), sin(d)) * Radius * i);
+        }
+    }
+
+    // Output to screen
+    Color /= Quality * Directions - 15.0;
+    return Color;
+}
+
 float sampleShadowMap(float2 uv, int index)
 {
-    float4 shadowMap = p_shadowMap.Sample(p_sampler, uv);
     uv = float2(uv.x, 1 - uv.y);
+    float4 shadowMap = p_shadowMap.Sample(p_sampler, uv);
 
     float d = 0;
     switch (index)
@@ -70,46 +98,87 @@ float sampleShadowMap(float2 uv, int index)
     return d;
 }
 
-float testForShadow(float3 position)
+bool hardShadowTest(float3 position)
 {
     int smIndex = GetSMIndex(m_smBuffer, position);
 
     float pointDepth = CalculateShadowMapDepth(m_smBuffer, smIndex, position);
     float2 coord = CalculateShadowMapNormalizedUV(m_smBuffer, smIndex, position);
 
-    coord = float2(coord.x, 1 - coord.y);
     if (coord.x < 0 || coord.x > 1 || coord.y < 0 || coord.y > 1)
     {
-        return 0;
+        return false;
     }
 
     float shadowMap = sampleShadowMap(coord, smIndex);
-    if (pointDepth < shadowMap)
+    if (pointDepth > shadowMap)
     {
-        return 0;
+        return true;
     }
+
+    return false;
+}
+
+float bilinearInterpolation(float2 anchor, int index, float2 fractOffset, float refDepth)
+{
+    float pixelSize = 1.0 / m_smBuffer.m_resolution;
+
+    anchor /= pixelSize;
+    float tl = anchor;
+    float tr = anchor + float2(1, 0);
+    float bl = anchor + float2(0, 1);
+    float br = anchor + float2(1, 1);
+
+    tl *= pixelSize;
+    tr *= pixelSize;
+    bl *= pixelSize;
+    br *= pixelSize;
+
+    float tld = refDepth > sampleShadowMap(tl, index);
+    float trd = refDepth > sampleShadowMap(tr, index);
+    float bld = refDepth > sampleShadowMap(bl, index);
+    float brd = refDepth > sampleShadowMap(br, index);
+
+    float top = (1 - fractOffset.x) * tld + fractOffset.x * trd;
+    float bottom = (1 - fractOffset.x) * bld + fractOffset.x * brd;
+
+    float res = (1 - fractOffset.y) * top + fractOffset.y * bottom;
+    return res;
+}
+
+float softShadowTest(float3 position, int index)
+{
+    float2 coords = CalculateShadowMapNormalizedUV(m_smBuffer, index, position);
+    float pointDepth = CalculateShadowMapDepth(m_smBuffer, index, position);
 
     float pixelSize = 1.0 / m_smBuffer.m_resolution;
 
-    float shadowStrength = 0;
-    int sampleCount = 0;
-    for (int i = 0; i < 3; ++i)
-    {
-        for (int j = 0; j < 3; ++j)
-        {
-            int2 indexCoord = int2(i, j) - int2(1, 1);
-            float2 curCoord = coord + pixelSize * indexCoord;
+    coords /= pixelSize;
+    coords += 0.5;
 
-            float smSample = sampleShadowMap(curCoord, smIndex);
-            if (pointDepth > smSample)
-            {
-                shadowStrength += 1;
-            }
-            ++sampleCount;
-        }
-    }
+    float2 tl = floor(coords);
+    float2 fractOffset = coords - tl;
 
-    return shadowStrength / sampleCount;
+    tl -= 0.5;
+    float2 tr = tl + float2(1, 0);
+    float2 bl = tl + float2(0, 1);
+    float2 br = tl + float2(1, 1);
+
+    tl *= pixelSize;
+    tr *= pixelSize;
+    bl *= pixelSize;
+    br *= pixelSize;
+
+    float tld = pointDepth > sampleShadowMap(tl, index);
+    float trd = pointDepth > sampleShadowMap(tr, index);
+    float bld = pointDepth > sampleShadowMap(bl, index);
+    float brd = pointDepth > sampleShadowMap(br, index);
+
+    float top = (1 - fractOffset.x) * tld + fractOffset.x * trd;
+    float bottom = (1 - fractOffset.x) * bld + fractOffset.x * brd;
+
+    float res = (1 - fractOffset.y) * top + fractOffset.y * bottom;
+    return res;
 }
 
 PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
@@ -132,33 +201,6 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
     }
 
     output.m_ambientLit = float4(0.3 * diffuseTex.xyz, 1);
-
-    if (false)
-    {
-        int index = GetSMIndex(m_smBuffer, positionTex);
-
-        float4 color = float4(0, 1, 1, 1);
-        switch (index)
-        {
-        case 0:
-            color = float4(1, 0, 0, 1);
-            break;
-        case 1:
-            color = float4(0, 1, 0, 1);
-            break;
-        case 2:
-            color = float4(0, 0, 1, 1);
-            break;
-        case 3:
-            color = float4(1, 1, 0, 1);
-            break;
-        }
-
-        output.m_ambientLit = color;
-
-        //return output;
-    }
-
 
     float3 color = float3(0, 0, 0);
     float3 specularColor = float3(0, 0, 0);
@@ -192,7 +234,16 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
 
         if (i == 0)
         {
-            lightIntensity = p_shadowMask.Sample(p_sampler, uv);
+            float shadowMaskHard = p_shadowMask.Sample(p_sampler, uv);
+            float shadowMaskBlurry = GaussianBlurShadowMask(uv);
+
+            if (shadowMaskHard < 1 || shadowMaskBlurry < 1) {
+                int index = GetSMIndex(m_smBuffer, positionTex);
+                float softShadow = softShadowTest(positionTex, index);
+                //bool hardShadow = hardShadowTest(positionTex);
+                //lightIntensity = p_shadowMask.Sample(p_sampler, uv);
+                lightIntensity = 1 - softShadow;
+            }
         }
 
         Light cur = m_lights[i];
