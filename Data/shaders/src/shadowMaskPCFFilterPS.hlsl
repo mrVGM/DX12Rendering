@@ -37,7 +37,7 @@ float4 GaussianBlurShadowMask(float2 coord)
     float Size = 15.0; // BLUR SIZE (Radius)
     // GAUSSIAN BLUR SETTINGS }}}
 
-    float2 Radius = Size / float2(600, 400);
+    float2 Radius = Size / m_camBuff.m_resolution;
 
     float4 Color = p_shadowMask.Sample(p_sampler, coord);
 

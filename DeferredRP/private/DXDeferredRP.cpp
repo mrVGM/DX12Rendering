@@ -568,7 +568,7 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
 
             m_shadowMaskDitherFilterMat = new DXShadowMaskFilterMaterial(
                 *shader_repo::GetDeferredRPVertexShader(),
-                *shader_repo::GetShadowMaskPCFFilterPixelShader(),
+                *shader_repo::GetShadowMaskDitherFilterPixelShader(),
                 0
             );
 
