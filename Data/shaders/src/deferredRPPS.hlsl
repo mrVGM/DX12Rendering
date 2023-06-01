@@ -41,6 +41,14 @@ struct PS_OUTPUT
     float4 m_specularLit: SV_Target2;
 };
 
+float random(float2 st) {
+    float tmp = sin(dot(st.xy,
+        float2(12.9898, 78.233))) *
+        43758.5453123;
+
+    return tmp - floor(tmp);
+}
+
 float4 GaussianBlurShadowMask(float2 coord)
 {
     float Pi = 6.28318530718; // Pi*2
@@ -119,6 +127,32 @@ bool hardShadowTest(float3 position)
     return false;
 }
 
+float pcf(float2 coords, int index, float refDepth)
+{
+    float pixelSize = 1.0 / m_smBuffer.m_resolution;
+
+    float2 randOffset = float2(random(coords), random(1 - coords));
+    randOffset -= 0.5;
+
+    float density = 0.0;
+    for (int i = -2; i <= 2; ++i)
+    {
+        for (int j = -2; j <= 2; ++j)
+        {
+            float smSample = sampleShadowMap(coords + pixelSize * (float2(i, j) + randOffset), index);
+            density += refDepth > smSample;
+        }
+    }
+
+    float res = density / 25.0;
+    if (res < 0.5)
+    {
+        return 0.0;
+    }
+
+    return (res - 0.5) / 0.5;
+}
+
 float bilinearInterpolation(float2 anchor, int index, float2 fractOffset, float refDepth)
 {
     float pixelSize = 1.0 / m_smBuffer.m_resolution;
@@ -134,10 +168,10 @@ float bilinearInterpolation(float2 anchor, int index, float2 fractOffset, float 
     bl *= pixelSize;
     br *= pixelSize;
 
-    float tld = refDepth > sampleShadowMap(tl, index);
-    float trd = refDepth > sampleShadowMap(tr, index);
-    float bld = refDepth > sampleShadowMap(bl, index);
-    float brd = refDepth > sampleShadowMap(br, index);
+    float tld = pcf(tl, index, refDepth);
+    float trd = pcf(tr, index, refDepth);
+    float bld = pcf(bl, index, refDepth);
+    float brd = pcf(br, index, refDepth);
 
     float top = (1 - fractOffset.x) * tld + fractOffset.x * trd;
     float bottom = (1 - fractOffset.x) * bld + fractOffset.x * brd;
@@ -224,13 +258,25 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
             float shadowMaskHard = p_shadowMask.Sample(p_sampler, uv);
             float shadowMaskBlurry = GaussianBlurShadowMask(uv);
 
+
             if (shadowMaskHard < 1 || shadowMaskBlurry < 1) {
+            //if (shadowMaskHard < 1) {
                 int index = GetSMIndex(m_smBuffer, positionTex);
                 float softShadow = softShadowTest(positionTex, index);
                 //bool hardShadow = hardShadowTest(positionTex);
                 //lightIntensity = p_shadowMask.Sample(p_sampler, uv);
                 lightIntensity = 1 - softShadow;
+
+                /*
+                float refDepth = CalculateShadowMapDepth(m_smBuffer, index, positionTex);
+                float2 coords = CalculateShadowMapNormalizedUV(m_smBuffer, index, positionTex);
+                float pcfTest = pcf(coords, index, refDepth);
+
+                lightIntensity = 1 - pcfTest;
+                */
             }
+
+            
         }
 
         Light cur = m_lights[i];
