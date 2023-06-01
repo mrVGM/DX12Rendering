@@ -6,6 +6,7 @@
 #include <d3d12.h>
 
 #include <list>
+#include <vector>
 
 namespace rendering
 {
@@ -24,7 +25,7 @@ namespace rendering
 
 		DXBuffer* m_smSettingsBuffer = nullptr;
 		DXTexture* m_smTex = nullptr;
-		DXTexture* m_shadowMaskTex = nullptr;
+		std::vector<DXTexture*> m_shadowMaskTex;
 
 		std::list<DXMaterial*> m_shadowMapMaterials;
 
@@ -48,7 +49,7 @@ namespace rendering
 
 		void UpdateSMSettings();
 		DXTexture* GetShadowMap();
-		DXTexture* GetShadowMask();
+		DXTexture* GetShadowMask(int index);
 		DXDescriptorHeap* GetDSDescriptorHeap();
 		DXDescriptorHeap* GetSMDescriptorHeap();
 		DXBuffer* GetSettingsBuffer();

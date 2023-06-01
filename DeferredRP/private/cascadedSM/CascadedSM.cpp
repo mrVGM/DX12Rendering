@@ -439,6 +439,23 @@ void rendering::CascadedSM::LoadShadowMaskTexture(jobs::Job* done)
 	ctx.m_cascadedSM = this;
 	ctx.m_done = done;
 
+	class PushTexture : public jobs::Job
+	{
+	private:
+		Context m_ctx;
+	public:
+		PushTexture(const Context& ctx) :
+			m_ctx(ctx)
+		{
+		}
+
+		void Do() override
+		{
+			m_ctx.m_cascadedSM->m_shadowMaskTex.push_back(m_ctx.m_tex);
+			core::utils::RunSync(m_ctx.m_done);
+		}
+	};
+
 	class PlaceTex : public jobs::Job
 	{
 	private:
@@ -452,9 +469,7 @@ void rendering::CascadedSM::LoadShadowMaskTexture(jobs::Job* done)
 		void Do() override
 		{
 			m_ctx.m_tex->Place(*m_ctx.m_heap, 0);
-			m_ctx.m_cascadedSM->m_shadowMaskTex = m_ctx.m_tex;
-
-			core::utils::RunSync(m_ctx.m_done);
+			core::utils::RunSync(new PushTexture(m_ctx));
 		}
 	};
 
@@ -696,7 +711,7 @@ void rendering::CascadedSM::LoadResources(jobs::Job* done)
 	struct Context
 	{
 		CascadedSM* m_cascadedSM = nullptr;
-		int m_itemsToWaitFor = 5;
+		int m_itemsToWaitFor = 6;
 
 		jobs::Job* m_done = nullptr;
 	};
@@ -752,6 +767,7 @@ void rendering::CascadedSM::LoadResources(jobs::Job* done)
 	LoadDepthTextures(new ItemReady(*ctx));
 	LoadSMTexture(new ItemReady(*ctx));
 	LoadShadowMaskTexture(new ItemReady(*ctx));
+	LoadShadowMaskTexture(new ItemReady(*ctx));
 	LoadSMMaterials(new ItemReady(*ctx));
 }
 
@@ -760,9 +776,9 @@ rendering::DXTexture* rendering::CascadedSM::GetShadowMap()
 	return m_smTex;
 }
 
-rendering::DXTexture* rendering::CascadedSM::GetShadowMask()
+rendering::DXTexture* rendering::CascadedSM::GetShadowMask(int index)
 {
-	return m_shadowMaskTex;
+	return m_shadowMaskTex[index];
 }
 
 rendering::DXDescriptorHeap* rendering::CascadedSM::GetDSDescriptorHeap()

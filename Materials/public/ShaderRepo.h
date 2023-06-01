@@ -28,6 +28,9 @@ namespace rendering
 
 		DXShader* GetShadowMaskPixelShader();
 
+		DXShader* GetShadowMaskPCFFilterPixelShader();
+		DXShader* GetShadowMaskDitherFilterPixelShader();
+
 		void LoadShaderPrograms();
 	}
 }

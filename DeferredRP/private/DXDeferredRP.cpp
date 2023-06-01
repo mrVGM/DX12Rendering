@@ -12,6 +12,7 @@
 #include "HelperMaterials/DXShadowMapMaterialMeta.h"
 
 #include "HelperMaterials/DXDisplaySMMaterial.h"
+#include "HelperMaterials/DXShadowMaskFilterMaterial.h"
 
 #include "DXBufferMeta.h"
 #include "DXHeap.h"
@@ -51,6 +52,8 @@ namespace
     rendering::DXMaterial* m_lightCalculationsMat = nullptr;
     rendering::DXMaterial* m_postLightCalculationsMat = nullptr;
     rendering::DXMaterial* m_shadowMaskMat = nullptr;
+    rendering::DXMaterial* m_shadowMaskPCFFilterMat = nullptr;
+    rendering::DXMaterial* m_shadowMaskDitherFilterMat = nullptr;
 
     rendering::DXMaterial* m_displayTexMaterial = nullptr;
 
@@ -460,6 +463,24 @@ void rendering::DXDeferredRP::Execute()
 
     {
         DXBuffer* dummy = nullptr;
+        ID3D12CommandList* commandList = m_shadowMaskPCFFilterMat->GenerateCommandList(
+            *deferred::GetRenderTextureVertexBuffer(),
+            *dummy, *dummy, 0, 0, 0);
+        ID3D12CommandList* ppCommandLists[] = { commandList };
+        m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+    }
+
+    {
+        DXBuffer* dummy = nullptr;
+        ID3D12CommandList* commandList = m_shadowMaskDitherFilterMat->GenerateCommandList(
+            *deferred::GetRenderTextureVertexBuffer(),
+            *dummy, *dummy, 0, 0, 0);
+        ID3D12CommandList* ppCommandLists[] = { commandList };
+        m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+    }
+
+    {
+        DXBuffer* dummy = nullptr;
         ID3D12CommandList* commandList = m_lightCalculationsMat->GenerateCommandList(
             *deferred::GetRenderTextureVertexBuffer(), 
             *dummy, *dummy, 0, 0, 0);
@@ -539,10 +560,22 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
                 *shader_repo::GetDeferredRPVertexShader(),
                 *shader_repo::GetShadowMaskPixelShader());
 
+            m_shadowMaskPCFFilterMat = new DXShadowMaskFilterMaterial(
+                *shader_repo::GetDeferredRPVertexShader(),
+                *shader_repo::GetShadowMaskPCFFilterPixelShader(),
+                1
+            );
+
+            m_shadowMaskDitherFilterMat = new DXShadowMaskFilterMaterial(
+                *shader_repo::GetDeferredRPVertexShader(),
+                *shader_repo::GetShadowMaskPCFFilterPixelShader(),
+                0
+            );
+
             m_displayTexMaterial = new DXDisplaySMMaterial(
                 *shader_repo::GetDeferredRPVertexShader(),
                 *shader_repo::GetDisplayShadowMapPixelShader(),
-                m_cascadedSM->GetShadowMask()
+                m_cascadedSM->GetShadowMask(0)
             );
 
             core::utils::RunSync(m_ctx.m_done);

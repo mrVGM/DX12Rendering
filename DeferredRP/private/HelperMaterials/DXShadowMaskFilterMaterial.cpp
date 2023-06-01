@@ -1,5 +1,5 @@
-#include "DXShadowMaskMaterial.h"
-#include "DXShadowMaskMaterialMeta.h"
+#include "DXShadowMaskFilterMaterial.h"
+#include "DXShadowMaskFilterMaterialMeta.h"
 
 #include "DXShader.h"
 #include "DXDescriptorHeap.h"
@@ -114,19 +114,21 @@ namespace
 }
 
 
-rendering::DXShadowMaskMaterial::DXShadowMaskMaterial(const rendering::DXShader& vertexShader, const rendering::DXShader& pixelShader) :
-    DXMaterial(DXShadowMaskMaterialMeta::GetInstance(), vertexShader, pixelShader)
+rendering::DXShadowMaskFilterMaterial::DXShadowMaskFilterMaterial(const rendering::DXShader& vertexShader, const rendering::DXShader& pixelShader, int renderTargetTex) :
+    DXMaterial(DXShadowMaskFilterMaterialMeta::GetInstance(), vertexShader, pixelShader),
+    m_rtvTexIndex(renderTargetTex),
+    m_srvTexIndex((renderTargetTex + 1) % 2)
 {
     CacheObjects();
     CreatePipelineStateAndRootSignature();
     CreateDescriptorHeaps();
 }
 
-rendering::DXShadowMaskMaterial::~DXShadowMaskMaterial()
+rendering::DXShadowMaskFilterMaterial::~DXShadowMaskFilterMaterial()
 {
 }
 
-ID3D12CommandList* rendering::DXShadowMaskMaterial::GenerateCommandList(
+ID3D12CommandList* rendering::DXShadowMaskFilterMaterial::GenerateCommandList(
     const DXBuffer& vertexBuffer,
     const DXBuffer& indexBuffer,
     const DXBuffer& instanceBuffer,
@@ -154,7 +156,8 @@ ID3D12CommandList* rendering::DXShadowMaskMaterial::GenerateCommandList(
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferPositionTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMap()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
 
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMask(0)->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMask(m_rtvTexIndex)->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMask(m_srvTexIndex)->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
         };
         commandList->ResourceBarrier(_countof(barrier), barrier);
     }
@@ -206,7 +209,8 @@ ID3D12CommandList* rendering::DXShadowMaskMaterial::GenerateCommandList(
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferPositionTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMap()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
 
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMask(0)->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMask(m_rtvTexIndex)->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMask(m_srvTexIndex)->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
         };
         commandList->ResourceBarrier(_countof(barrier), barrier);
     }
@@ -219,7 +223,7 @@ ID3D12CommandList* rendering::DXShadowMaskMaterial::GenerateCommandList(
     return commandList.Get();
 }
 
-void rendering::DXShadowMaskMaterial::CreatePipelineStateAndRootSignature()
+void rendering::DXShadowMaskFilterMaterial::CreatePipelineStateAndRootSignature()
 {
     using Microsoft::WRL::ComPtr;
 
@@ -256,7 +260,7 @@ void rendering::DXShadowMaskMaterial::CreatePipelineStateAndRootSignature()
             D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 
         CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
-        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0, 0);
+        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3, 0, 0);
         CD3DX12_ROOT_PARAMETER1 rootParameters[3];
         rootParameters[0].InitAsConstantBufferView(0, 0);
         rootParameters[1].InitAsConstantBufferView(1, 0);
@@ -307,19 +311,20 @@ void rendering::DXShadowMaskMaterial::CreatePipelineStateAndRootSignature()
     }
 }
 
-void rendering::DXShadowMaskMaterial::CreateDescriptorHeaps()
+void rendering::DXShadowMaskFilterMaterial::CreateDescriptorHeaps()
 {
     {
         std::list<DXTexture*> textures;
         textures.push_back(deferred::GetGBufferPositionTex());
         textures.push_back(m_cascadedSM->GetShadowMap());
+        textures.push_back(m_cascadedSM->GetShadowMask(m_srvTexIndex));
 
         m_srvHeap = DXDescriptorHeap::CreateSRVDescriptorHeap(DXDescriptorHeapMeta::GetInstance(), textures);
     }
 
     {
         std::list<DXTexture*> textures;
-        textures.push_back(m_cascadedSM->GetShadowMask(0));
+        textures.push_back(m_cascadedSM->GetShadowMask(m_rtvTexIndex));
 
         m_rtvHeap = DXDescriptorHeap::CreateRTVDescriptorHeap(DXDescriptorHeapMeta::GetInstance(), textures);
     }
