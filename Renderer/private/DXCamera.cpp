@@ -14,6 +14,8 @@
 
 #include "RenderUtils.h"
 
+#include "CoreUtils.h"
+
 #include <list>
 #include <corecrt_math_defines.h>
 
@@ -28,7 +30,22 @@ namespace
 		float m_farPlane;
 		float m_fov;
 		float m_aspect;
+
+		int m_resolution[2];
+		float placeholder[2];
 	};
+
+	rendering::Window* m_wnd = nullptr;
+
+	void CacheObjects()
+	{
+		using namespace rendering;
+
+		if (!m_wnd)
+		{
+			m_wnd = core::utils::GetWindow();
+		}
+	}
 }
 
 DirectX::XMMATRIX rendering::DXCamera::GetMVPMatrix(DirectX::XMVECTOR& right, DirectX::XMVECTOR& fwd, DirectX::XMVECTOR& up) const
@@ -117,6 +134,8 @@ void rendering::DXCamera::UpdateCamBuffer()
 	camSettings.m_fov = m_fov;
 	camSettings.m_aspect = m_aspect;
 
+	camSettings.m_resolution[0] = m_wnd->m_width;
+	camSettings.m_resolution[1] = m_wnd->m_height;
 
 	DXBuffer* camBuff = rendering::utils::GetCameraBuffer();
 	void* data = camBuff->Map();
@@ -131,6 +150,9 @@ rendering::DXCamera::DXCamera() :
 	ICamera(DXCameraMeta::GetInstance())
 {
 	using namespace DirectX;
+
+	CacheObjects();
+
 	m_position = XMVectorSet(0, 0, -5, 1);
 	m_target = XMVectorSet(0, 0, 0, 1);
 

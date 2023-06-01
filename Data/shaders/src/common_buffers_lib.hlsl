@@ -30,6 +30,9 @@ struct CameraBuffer
     float m_farPlane;
     float m_fov;
     float m_aspect;
+
+    int2 m_resolution;
+    float2 placeholder3;
 };
 
 struct SingleSM

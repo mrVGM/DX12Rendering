@@ -575,7 +575,7 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
             m_displayTexMaterial = new DXDisplaySMMaterial(
                 *shader_repo::GetDeferredRPVertexShader(),
                 *shader_repo::GetDisplayShadowMapPixelShader(),
-                m_cascadedSM->GetShadowMask(0)
+                m_cascadedSM->GetShadowMask(1)
             );
 
             core::utils::RunSync(m_ctx.m_done);
