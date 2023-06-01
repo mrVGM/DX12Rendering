@@ -124,10 +124,10 @@ float bilinearInterpolation(float2 anchor, int index, float2 fractOffset, float 
     float pixelSize = 1.0 / m_smBuffer.m_resolution;
 
     anchor /= pixelSize;
-    float tl = anchor;
-    float tr = anchor + float2(1, 0);
-    float bl = anchor + float2(0, 1);
-    float br = anchor + float2(1, 1);
+    float2 tl = anchor;
+    float2 tr = anchor + float2(1, 0);
+    float2 bl = anchor + float2(0, 1);
+    float2 br = anchor + float2(1, 1);
 
     tl *= pixelSize;
     tr *= pixelSize;
@@ -156,29 +156,16 @@ float softShadowTest(float3 position, int index)
     coords /= pixelSize;
     coords += 0.5;
 
-    float2 tl = floor(coords);
-    float2 fractOffset = coords - tl;
+    float2 anchor = floor(coords);
+    float2 fractOffset = coords - anchor;
 
-    tl -= 0.5;
-    float2 tr = tl + float2(1, 0);
-    float2 bl = tl + float2(0, 1);
-    float2 br = tl + float2(1, 1);
+    anchor -= 0.5;
+    anchor *= pixelSize;
 
-    tl *= pixelSize;
-    tr *= pixelSize;
-    bl *= pixelSize;
-    br *= pixelSize;
+    float density = 0;
+    density += bilinearInterpolation(anchor, index, fractOffset, pointDepth);
 
-    float tld = pointDepth > sampleShadowMap(tl, index);
-    float trd = pointDepth > sampleShadowMap(tr, index);
-    float bld = pointDepth > sampleShadowMap(bl, index);
-    float brd = pointDepth > sampleShadowMap(br, index);
-
-    float top = (1 - fractOffset.x) * tld + fractOffset.x * trd;
-    float bottom = (1 - fractOffset.x) * bld + fractOffset.x * brd;
-
-    float res = (1 - fractOffset.y) * top + fractOffset.y * bottom;
-    return res;
+    return density;
 }
 
 PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
