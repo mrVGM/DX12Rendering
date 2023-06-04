@@ -482,7 +482,7 @@ void rendering::DXDeferredRP::Execute()
             ID3D12CommandList* ppCommandLists[] = { commandList };
             m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
         }
-    
+
         {
             DXBuffer* dummy = nullptr;
             ID3D12CommandList* commandList = m_shadowMapSQGaussBlurFilterMat->GenerateCommandList(
@@ -649,8 +649,8 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
                 m_shadowMapSQIdentityFilterMat = new DXShadowMapFilterMaterial(
                     *shader_repo::GetDeferredRPVertexShader(),
                     *shader_repo::GetIdentityFilterPixelShader(),
-                    m_cascadedSM->GetShadowSQMap(),
-                    m_cascadedSM->GetShadowMapFilterTex()
+                    m_cascadedSM->GetShadowMapFilterTex(),
+                    m_cascadedSM->GetShadowSQMap()
                 );
             }
 

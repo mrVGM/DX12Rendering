@@ -190,7 +190,7 @@ float4 PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
 
     float4 shadowMaskHard = p_shadowMask.Sample(p_sampler, uv);
     float shadowMaskBlurry = GaussianBlurShadowMask(uv);
-
+    
     return shadowMaskHard;
 
     float lightIntensity = 1;
