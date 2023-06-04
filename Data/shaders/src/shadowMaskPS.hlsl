@@ -78,7 +78,7 @@ float shadowTest(float2 coords)
     float d = (pointDepth - mu);
     float prob = variance / (variance + d * d);
 
-    prob = linStep(0.2, 1.0, prob);
+    prob = linStep(0.8, 1.0, prob);
 
     return min(max(prob, p), 1);
 }

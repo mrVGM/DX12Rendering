@@ -20,7 +20,7 @@ SamplerState p_sampler  : register(s0);
 float4 PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
 {
     float4 pixelVal = p_shadowMask.Sample(p_sampler, uv);
-    return pixelVal;
+    //return pixelVal;
     
     float2x2 m = float2x2(0, 2, 3, 1);
 
