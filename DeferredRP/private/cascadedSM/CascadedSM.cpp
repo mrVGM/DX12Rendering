@@ -912,6 +912,11 @@ rendering::DXTexture* rendering::CascadedSM::GetShadowSQMap()
 	return m_smSQTex;
 }
 
+rendering::DXTexture* rendering::CascadedSM::GetShadowMapFilterTex()
+{
+	return m_smFilterTex;
+}
+
 rendering::DXTexture* rendering::CascadedSM::GetShadowMask(int index)
 {
 	return m_shadowMaskTex[index];

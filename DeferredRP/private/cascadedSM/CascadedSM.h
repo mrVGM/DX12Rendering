@@ -54,6 +54,7 @@ namespace rendering
 		void UpdateSMSettings();
 		DXTexture* GetShadowMap();
 		DXTexture* GetShadowSQMap();
+		DXTexture* GetShadowMapFilterTex();
 		DXTexture* GetShadowMask(int index);
 		DXDescriptorHeap* GetDSDescriptorHeap();
 		DXDescriptorHeap* GetSMDescriptorHeap();

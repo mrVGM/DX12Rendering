@@ -25,6 +25,7 @@
 #include "HelperMaterials/DXLightsCalculationsMaterial.h"
 #include "HelperMaterials/DXPostLightsCalculationsMaterial.h"
 #include "HelperMaterials/DXShadowMaskMaterial.h"
+#include "HelperMaterials/DXShadowMapFilterMaterial.h"
 
 #include "LightsManager.h"
 #include "LightsManagerMeta.h"
@@ -54,6 +55,12 @@ namespace
     rendering::DXMaterial* m_shadowMaskMat = nullptr;
     rendering::DXMaterial* m_shadowMaskPCFFilterMat = nullptr;
     rendering::DXMaterial* m_shadowMaskDitherFilterMat = nullptr;
+
+    rendering::DXMaterial* m_shadowMapIdentityFilterMat = nullptr;
+    rendering::DXMaterial* m_shadowMapGaussBlurFilterMat = nullptr;
+    rendering::DXMaterial* m_shadowMapSQIdentityFilterMat = nullptr;
+    rendering::DXMaterial* m_shadowMapSQGaussBlurFilterMat = nullptr;
+
 
     rendering::DXMaterial* m_displayTexMaterial = nullptr;
 
@@ -456,6 +463,46 @@ void rendering::DXDeferredRP::Execute()
         ID3D12CommandList* ppCommandLists[] = { m_afterRenderSceneList.Get() };
         m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
     }
+    
+    {
+        {
+            DXBuffer* dummy = nullptr;
+            ID3D12CommandList* commandList = m_shadowMapGaussBlurFilterMat->GenerateCommandList(
+                *deferred::GetRenderTextureVertexBuffer(),
+                *dummy, *dummy, 0, 0, 0);
+            ID3D12CommandList* ppCommandLists[] = { commandList };
+            m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+        }
+
+        {
+            DXBuffer* dummy = nullptr;
+            ID3D12CommandList* commandList = m_shadowMapIdentityFilterMat->GenerateCommandList(
+                *deferred::GetRenderTextureVertexBuffer(),
+                *dummy, *dummy, 0, 0, 0);
+            ID3D12CommandList* ppCommandLists[] = { commandList };
+            m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+        }
+    
+        {
+            DXBuffer* dummy = nullptr;
+            ID3D12CommandList* commandList = m_shadowMapSQGaussBlurFilterMat->GenerateCommandList(
+                *deferred::GetRenderTextureVertexBuffer(),
+                *dummy, *dummy, 0, 0, 0);
+            ID3D12CommandList* ppCommandLists[] = { commandList };
+            m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+        }
+
+        {
+            DXBuffer* dummy = nullptr;
+            ID3D12CommandList* commandList = m_shadowMapSQIdentityFilterMat->GenerateCommandList(
+                *deferred::GetRenderTextureVertexBuffer(),
+                *dummy, *dummy, 0, 0, 0);
+            ID3D12CommandList* ppCommandLists[] = { commandList };
+            m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+        }
+    }
+
+
 
     {
         DXBuffer* dummy = nullptr;
@@ -576,6 +623,36 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
                 *shader_repo::GetShadowMaskDitherFilterPixelShader(),
                 0
             );
+
+            {
+                m_shadowMapGaussBlurFilterMat = new DXShadowMapFilterMaterial(
+                    *shader_repo::GetDeferredRPVertexShader(),
+                    *shader_repo::GetGaussBlurFilterPixelShader(),
+                    m_cascadedSM->GetShadowMap(),
+                    m_cascadedSM->GetShadowMapFilterTex()
+                );
+
+                m_shadowMapIdentityFilterMat = new DXShadowMapFilterMaterial(
+                    *shader_repo::GetDeferredRPVertexShader(),
+                    *shader_repo::GetIdentityFilterPixelShader(),
+                    m_cascadedSM->GetShadowMapFilterTex(),
+                    m_cascadedSM->GetShadowMap()
+                );
+
+                m_shadowMapSQGaussBlurFilterMat = new DXShadowMapFilterMaterial(
+                    *shader_repo::GetDeferredRPVertexShader(),
+                    *shader_repo::GetGaussBlurFilterPixelShader(),
+                    m_cascadedSM->GetShadowSQMap(),
+                    m_cascadedSM->GetShadowMapFilterTex()
+                );
+
+                m_shadowMapSQIdentityFilterMat = new DXShadowMapFilterMaterial(
+                    *shader_repo::GetDeferredRPVertexShader(),
+                    *shader_repo::GetIdentityFilterPixelShader(),
+                    m_cascadedSM->GetShadowSQMap(),
+                    m_cascadedSM->GetShadowMapFilterTex()
+                );
+            }
 
             m_displayTexMaterial = new DXDisplaySMMaterial(
                 *shader_repo::GetDeferredRPVertexShader(),
