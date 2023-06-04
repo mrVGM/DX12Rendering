@@ -74,12 +74,17 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
             lightIntensity = p_shadowMask.Sample(p_sampler, uv);
         }
 
+        lightIntensity = clamp(lightIntensity, 0, 0.6);
+
         Light cur = m_lights[i];
         float3 dir = normalize(cur.m_direction);
 
         float3 diffuseContribution = float3(0, 0, 0);
         {
             float cosCoef = max(0, dot(-dir, normalTex.xyz));
+
+            cosCoef = smoothstep(0, 0.01, cosCoef);
+
             diffuseContribution = lightIntensity * cosCoef * diffuseTex.xyz;
             color += diffuseContribution;
             color = clamp(color, 0, 1);
@@ -94,8 +99,33 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
             midDir = normalize(midDir);
 
             float cosCoef = max(0, dot(midDir, normalTex.xyz));
-            specularColor += lightIntensity * pow(cosCoef, 128) * specularTex;
+
+            float specularIntensity = pow(cosCoef, 16);
+            specularIntensity = smoothstep(0.5, 0.51, specularIntensity);
+
+
+            float3 specularContribution = lightIntensity * specularIntensity * specularTex;
+
+            specularColor += specularContribution;
             specularColor = clamp(specularColor, 0, 1);
+        }
+
+        {
+            float3 eyeDir = normalize(m_camBuff.m_position - positionTex.xyz);
+            eyeDir = normalize(eyeDir);
+            float rimDot = 1 - dot(eyeDir, normalTex.xyz);
+
+            float rimAmount = 0.8;
+            float rimThreshold = 0.1;
+
+            float nDotL = dot(-dir, normalTex);
+            float rimIntensity = rimDot * pow(nDotL, rimThreshold);
+
+            rimIntensity = smoothstep(rimAmount - 0.01, rimAmount + 0.01, rimIntensity);
+
+            float4 rimColor = float4(0.4, 0.4, 0.4, 1);
+
+            output.m_ambientLit += lightIntensity * rimIntensity * rimColor;
         }
     }
 
@@ -108,6 +138,8 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
     {
         output.m_specularLit = float4(specularColor, 1);
     }
+
+    
 
     return output;
 }
