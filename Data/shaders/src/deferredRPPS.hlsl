@@ -65,29 +65,6 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
     float3 color = float3(0, 0, 0);
     float3 specularColor = float3(0, 0, 0);
 
-    float3 reflectedEyeDir = float3(0, 0, 0);
-    {
-        float3 eyeDir = normalize(m_camBuff.m_position - positionTex.xyz);
-        reflectedEyeDir = eyeDir;
-
-        if (dot(eyeDir, normalTex.xyz) < 1)
-        {
-            float3 y = normalTex.xyz;
-            float3 x = normalize(cross(eyeDir, y));
-            float3 z = cross(y, x);
-
-            float4x4 mat = float4x4(float4(x, 0), float4(y, 0), float4(z, 0), float4(0, 0, 0, 1));
-            float4x4 inv = transpose(mat);
-
-            float4 tmp = mul(mat, float4(eyeDir, 1));
-            tmp.x = -tmp.x;
-            tmp.z = -tmp.z;
-            tmp = mul(inv, tmp);
-
-            reflectedEyeDir = tmp.xyz;
-        }
-    }
-
     for (int i = 0; i < m_numLights; ++i)
     {
         float lightIntensity = 1;
@@ -100,15 +77,24 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
         Light cur = m_lights[i];
         float3 dir = normalize(cur.m_direction);
 
+        float3 diffuseContribution = float3(0, 0, 0);
         {
             float cosCoef = max(0, dot(-dir, normalTex.xyz));
-            color += lightIntensity * cosCoef * diffuseTex.xyz;
+            diffuseContribution = lightIntensity * cosCoef * diffuseTex.xyz;
+            color += diffuseContribution;
             color = clamp(color, 0, 1);
         }
 
+        if (dot(diffuseContribution, diffuseContribution) > 0)
         {
-            float cosCoef = max(0, dot(-dir, reflectedEyeDir));
-            specularColor += lightIntensity * pow(cosCoef, 16) * specularTex;
+            float3 eyeDir = normalize(m_camBuff.m_position - positionTex.xyz);
+            eyeDir = normalize(eyeDir);
+
+            float3 midDir = (- dir + eyeDir) / 2;
+            midDir = normalize(midDir);
+
+            float cosCoef = max(0, dot(midDir, normalTex.xyz));
+            specularColor += lightIntensity * pow(cosCoef, 128) * specularTex;
             specularColor = clamp(specularColor, 0, 1);
         }
     }
