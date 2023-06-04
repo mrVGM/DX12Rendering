@@ -13,6 +13,7 @@ cbuffer SMBuff : register(b1)
 
 Texture2D p_position     : register(t0);
 Texture2D p_shadowMap    : register(t1);
+Texture2D p_shadowSQMap    : register(t2);
 
 SamplerState p_sampler  : register(s0);
 
