@@ -16,7 +16,7 @@ Texture2D p_shadowMap    : register(t1);
 Texture2D p_shadowSQMap    : register(t2);
 
 SamplerState p_sampler  : register(s0);
-
+SamplerState p_linearSampler  : register(s1);
 
 float sampleShadowMap(float2 uv, int index)
 {

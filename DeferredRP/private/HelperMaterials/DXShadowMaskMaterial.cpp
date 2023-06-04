@@ -236,20 +236,37 @@ void rendering::DXShadowMaskMaterial::CreatePipelineStateAndRootSignature()
             featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
         }
 
-        D3D12_STATIC_SAMPLER_DESC sampler = {};
-        sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
-        sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-        sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-        sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-        sampler.MipLODBias = 0;
-        sampler.MaxAnisotropy = 0;
-        sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
-        sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
-        sampler.MinLOD = 0.0f;
-        sampler.MaxLOD = D3D12_FLOAT32_MAX;
-        sampler.ShaderRegister = 0;
-        sampler.RegisterSpace = 0;
-        sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+        D3D12_STATIC_SAMPLER_DESC unfilteredSampler = {};
+        unfilteredSampler.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+        unfilteredSampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        unfilteredSampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        unfilteredSampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        unfilteredSampler.MipLODBias = 0;
+        unfilteredSampler.MaxAnisotropy = 0;
+        unfilteredSampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+        unfilteredSampler.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+        unfilteredSampler.MinLOD = 0.0f;
+        unfilteredSampler.MaxLOD = D3D12_FLOAT32_MAX;
+        unfilteredSampler.ShaderRegister = 0;
+        unfilteredSampler.RegisterSpace = 0;
+        unfilteredSampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+        D3D12_STATIC_SAMPLER_DESC linearSampler = {};
+        linearSampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+        linearSampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        linearSampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        linearSampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        linearSampler.MipLODBias = 0;
+        linearSampler.MaxAnisotropy = 0;
+        linearSampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+        linearSampler.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+        linearSampler.MinLOD = 0.0f;
+        linearSampler.MaxLOD = D3D12_FLOAT32_MAX;
+        linearSampler.ShaderRegister = 1;
+        linearSampler.RegisterSpace = 0;
+        linearSampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+        D3D12_STATIC_SAMPLER_DESC samplers[] = { unfilteredSampler, linearSampler };
 
         D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
             D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
@@ -265,7 +282,7 @@ void rendering::DXShadowMaskMaterial::CreatePipelineStateAndRootSignature()
         rootParameters[2].InitAsDescriptorTable(1, ranges, D3D12_SHADER_VISIBILITY_PIXEL);
 
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-        rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, &sampler, rootSignatureFlags);
+        rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, _countof(samplers), samplers, rootSignatureFlags);
 
         ComPtr<ID3DBlob> signature;
         ComPtr<ID3DBlob> error;
