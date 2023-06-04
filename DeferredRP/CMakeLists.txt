@@ -80,6 +80,8 @@ add_library (DeferredRP
 	"private/HelperMaterials/DXShadowMaskFilterMaterial.cpp"
 	"private/resources/DXShadowSQMapMeta.h"
 	"private/resources/DXShadowSQMapMeta.cpp"
+	"private/resources/DXShadowMapFilterTexMeta.h"
+	"private/resources/DXShadowMapFilterTexMeta.cpp"
 )
 
 target_include_directories(DeferredRP INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

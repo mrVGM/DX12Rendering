@@ -26,6 +26,7 @@ namespace rendering
 		DXBuffer* m_smSettingsBuffer = nullptr;
 		DXTexture* m_smTex = nullptr;
 		DXTexture* m_smSQTex = nullptr;
+		DXTexture* m_smFilterTex = nullptr;
 		std::vector<DXTexture*> m_shadowMaskTex;
 
 		std::list<DXMaterial*> m_shadowMapMaterials;
@@ -38,6 +39,7 @@ namespace rendering
 		void LoadDepthTextures(jobs::Job* done);
 		void LoadSMTexture(jobs::Job* done);
 		void LoadSMSQTexture(jobs::Job* done);
+		void LoadSMFilterTexture(jobs::Job* done);
 		void LoadShadowMaskTexture(jobs::Job* done);
 		void LoadSMMaterials(jobs::Job* done);
 
