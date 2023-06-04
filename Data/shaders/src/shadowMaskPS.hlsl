@@ -18,6 +18,62 @@ Texture2D p_shadowSQMap    : register(t2);
 SamplerState p_sampler  : register(s0);
 SamplerState p_linearSampler  : register(s1);
 
+static const float m_minVarianceValue = 0.00002;
+
+float2 sampleSMMoments(float2 uv, int index)
+{
+    uv = float2(uv.x, 1 - uv.y);
+    float4 shadowMap = p_shadowMap.Sample(p_linearSampler, uv);
+    float4 shadowSQMap = p_shadowSQMap.Sample(p_linearSampler, uv);
+
+    float2 moments = float2(0, 0);
+    switch (index)
+    {
+    case 0:
+        moments = float2(shadowMap.x, shadowSQMap.x);
+        break;
+    case 1:
+        moments = float2(shadowMap.y, shadowSQMap.y);
+        break;
+    case 2:
+        moments = float2(shadowMap.z, shadowSQMap.z);
+        break;
+    case 3:
+        moments = float2(shadowMap.w, shadowSQMap.w);
+        break;
+    }
+
+    if (moments.x == 0)
+    {
+        moments = float2(1, 1);
+    }
+    return moments;
+}
+
+float shadowTest(float2 coords)
+{
+    float4 positionTex = p_position.Sample(p_sampler, coords);
+    int index = GetSMIndex(m_smBuffer, positionTex);
+    float2 uv = CalculateShadowMapNormalizedUV(m_smBuffer, index, positionTex);
+    float pointDepth = CalculateShadowMapDepth(m_smBuffer, index, positionTex);
+
+    if (uv.x < 0 || uv.x > 1 || uv.y < 0 || uv.y > 1)
+    {
+        return false;
+    }
+
+    float2 moments = sampleSMMoments(uv, index);
+    
+    float mu = moments.x;
+    float variance = max(moments.y - moments.x * moments.x, m_minVarianceValue);
+
+    bool p = pointDepth < mu;
+    float d = (pointDepth - mu);
+    float prob = variance / (variance + d * d);
+
+    return min(max(prob, p), 1);
+}
+
 float sampleShadowMap(float2 uv, int index)
 {
     uv = float2(uv.x, 1 - uv.y);
@@ -128,8 +184,8 @@ float4 pcf(float2 cameraCoords)
 
 float4 PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
 {
-    float d = hardShadowTest(uv);
-    d = 1 - d;
+    float d = shadowTest(uv);
+    //d = 1 - d;
 
     return float4(d, d, d, 1);
 
