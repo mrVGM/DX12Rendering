@@ -18,6 +18,7 @@
 #include "resources/DXShadowMapDSDescriptorHeapMeta.h"
 
 #include "resources/DXShadowMapMeta.h"
+#include "resources/DXShadowSQMapMeta.h"
 #include "resources/DXShadowMapDSMeta.h"
 #include "resources/DXShadowMaskMeta.h"
 
@@ -472,7 +473,7 @@ void rendering::CascadedSM::LoadSMSQTexture(jobs::Job* done)
 		{
 			UINT size = CascadedSM::m_resolution;
 
-			m_ctx.m_tex = DXTexture::CreateRenderTargetTexture(DXShadowMapMeta::GetInstance(), size, size);
+			m_ctx.m_tex = DXTexture::CreateRenderTargetTexture(DXShadowSQMapMeta::GetInstance(), size, size);
 
 			m_ctx.m_heap = new DXHeap();
 			m_ctx.m_heap->SetHeapSize(m_ctx.m_tex->GetTextureAllocationInfo().SizeInBytes);
