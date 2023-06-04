@@ -46,19 +46,19 @@ float sampleShadowMap(float2 uv, int index)
     return d;
 }
 
-bool hardShadowTest(float3 position)
+bool hardShadowTest(float2 coords)
 {
-    int smIndex = GetSMIndex(m_smBuffer, position);
+    float4 positionTex = p_position.Sample(p_sampler, coords);
+    int index = GetSMIndex(m_smBuffer, positionTex);
+    float2 uv = CalculateShadowMapNormalizedUV(m_smBuffer, index, positionTex);
+    float pointDepth = CalculateShadowMapDepth(m_smBuffer, index, positionTex);
 
-    float pointDepth = CalculateShadowMapDepth(m_smBuffer, smIndex, position);
-    float2 coord = CalculateShadowMapNormalizedUV(m_smBuffer, smIndex, position);
-
-    if (coord.x < 0 || coord.x > 1 || coord.y < 0 || coord.y > 1)
+    if (uv.x < 0 || uv.x > 1 || uv.y < 0 || uv.y > 1)
     {
         return false;
     }
 
-    float shadowMap = sampleShadowMap(coord, smIndex);
+    float shadowMap = sampleShadowMap(uv, index);
     if (pointDepth > shadowMap)
     {
         return true;
@@ -67,15 +67,73 @@ bool hardShadowTest(float3 position)
     return false;
 }
 
+float2 depthDuv(float2 cameraCoords)
+{
+    float4 positionTex = p_position.Sample(p_sampler, cameraCoords);
+    int index = GetSMIndex(m_smBuffer, positionTex);
+
+    float2 uv = CalculateShadowMapNormalizedUV(m_smBuffer, index, positionTex);
+    float depth = CalculateShadowMapDepth(m_smBuffer, index, positionTex);
+
+    float3 uvd = float3(uv, depth);
+
+    float3 uvd_dx = ddx(uvd);
+    float3 uvd_dy = ddy(uvd);
+
+    float det = uvd_dx.x * uvd_dy.y - uvd_dy.x * uvd_dx.y;
+
+    float2x2 jinv = float2x2(
+         uvd_dy.y, -uvd_dy.x,
+        -uvd_dx.y,  uvd_dx.x
+    );
+
+    jinv /= det;
+
+    float2 res = mul(jinv, float2(uvd_dx.z, uvd_dy.z));
+    return res;
+}
+
+float4 pcf(float2 cameraCoords)
+{
+    float pixelSize = 1.0 / m_smBuffer.m_resolution;
+
+    float4 positionTex = p_position.Sample(p_sampler, cameraCoords);
+    int index = GetSMIndex(m_smBuffer, positionTex);
+    float refDepth = CalculateShadowMapDepth(m_smBuffer, index, positionTex);
+    float2 uv = CalculateShadowMapNormalizedUV(m_smBuffer, index, positionTex);
+    float2 depth_duv = depthDuv(cameraCoords);
+
+    float density = 0.0;
+    int cnt = 0;
+    for (int i = -1; i <= 1; ++i)
+    {
+        for (int j = -1; j <= 1; ++j)
+        {
+            float2 offset = pixelSize * float2(i, j);
+            float2 curUV = uv + offset;
+
+            float curSample = sampleShadowMap(curUV, index);
+            float adjustedDepth = refDepth + dot(depth_duv, offset);
+
+            density += adjustedDepth > curSample;
+            ++cnt;
+        }
+    }
+    density /= cnt;
+    float d = 1 - density;
+
+    return float4(d, d, d, 1);
+}
+
 float4 PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
 {
-    float4 positionTex = p_position.Sample(p_sampler, uv);
-    bool test = hardShadowTest(positionTex);
+    float d = hardShadowTest(uv);
+    d = 1 - d;
 
-    if (test)
-    {
-        return float4(0, 0, 0, 1);
-    }
+    return float4(d, d, d, 1);
 
-    return float4(1, 1, 1, 1);
+    float4 test = pcf(uv);
+    return test;
+    
+    return float4(d, d, d, 1);
 }

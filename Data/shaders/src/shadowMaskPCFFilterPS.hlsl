@@ -188,12 +188,14 @@ float4 PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
 {
     float4 positionTex = p_position.Sample(p_sampler, uv);
 
-    float shadowMaskHard = p_shadowMask.Sample(p_sampler, uv);
+    float4 shadowMaskHard = p_shadowMask.Sample(p_sampler, uv);
     float shadowMaskBlurry = GaussianBlurShadowMask(uv);
+
+    return shadowMaskHard;
 
     float lightIntensity = 1;
 
-    if (shadowMaskHard < 1 || shadowMaskBlurry < 1) {
+    if (shadowMaskHard.x < 1 || shadowMaskBlurry < 1) {
         //if (shadowMaskHard < 1) {
         int index = GetSMIndex(m_smBuffer, positionTex);
         float softShadow = softShadowTest(positionTex, index);

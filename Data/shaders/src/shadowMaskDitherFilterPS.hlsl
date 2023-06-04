@@ -19,6 +19,9 @@ SamplerState p_sampler  : register(s0);
 
 float4 PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
 {
+    float4 pixelVal = p_shadowMask.Sample(p_sampler, uv);
+    return pixelVal;
+    
     float2x2 m = float2x2(0, 2, 3, 1);
 
     float2 pixelSize = 1.0 / m_camBuff.m_resolution;
@@ -26,12 +29,11 @@ float4 PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
     int2 coord = floor(uv / pixelSize);
     coord %= 2;
 
-    float pixelVal = p_shadowMask.Sample(p_sampler, uv);
     pixelVal *= 4;
     pixelVal = round(pixelVal);
 
     float threshold = m[coord.x][coord.y];
-    if (pixelVal > threshold)
+    if (pixelVal.x > threshold)
     {
         return float4(1, 1, 1, 1);
     }

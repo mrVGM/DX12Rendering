@@ -23,6 +23,8 @@ struct PSInput
     float depth       : DEPTH;
 };
 
+static const float m_staticBias = 0.01;
+
 PSInput VSMain(
     float3 position : POSITION,
     float3 normal : NORMAL,
@@ -47,7 +49,7 @@ PSInput VSMain(
 
     result.position = CalculateShadowMap(m_smBuff, m_slot, worldPos);
 
-    float depth = CalculateShadowMapBiasedDepth(m_smBuff, m_slot, worldPos, worldNormal);
+    float depth = CalculateShadowMapBiasedDepth(m_smBuff, m_slot, worldPos, worldNormal) + m_staticBias;
     result.depth = depth;
     
     return result;
