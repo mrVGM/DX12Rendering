@@ -50,6 +50,13 @@ float2 sampleSMMoments(float2 uv, int index)
     return moments;
 }
 
+float linStep(float low, float high, float value)
+{
+    float res = (value - low) / (high - low);
+
+    return clamp(res, 0, 1);
+}
+
 float shadowTest(float2 coords)
 {
     float4 positionTex = p_position.Sample(p_sampler, coords);
@@ -70,6 +77,8 @@ float shadowTest(float2 coords)
     bool p = pointDepth < mu;
     float d = (pointDepth - mu);
     float prob = variance / (variance + d * d);
+
+    prob = linStep(0.5, 1.0, prob);
 
     return min(max(prob, p), 1);
 }

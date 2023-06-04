@@ -11,26 +11,37 @@ struct PS_OUTPUT
 
 PS_OUTPUT PSMain(float4 position : SV_POSITION, float depth : DEPTH) : SV_Target
 {
-    float4 res = float4(0, 0, 0, 0);
+    float dx = ddx(depth);
+    float dy = ddy(depth);
+
+    float biasedVar = depth * depth + 0.25 * (dx * dx + dy * dy);
+
+    float4 sm = float4(0, 0, 0, 0);
+    float4 smSq = float4(0, 0, 0, 0);
+
     switch (m_slot)
     {
     case 0:
-        res.x = depth;
+        sm.x = depth;
+        smSq.x = biasedVar;
         break;
     case 1:
-        res.y = depth;
+        sm.y = depth;
+        smSq.y = biasedVar;
         break;
     case 2:
-        res.z = depth;
+        sm.z = depth;
+        smSq.z = biasedVar;
         break;
     case 3:
-        res.w = depth;
+        sm.w = depth;
+        smSq.w = biasedVar;
         break;
     }
 
     PS_OUTPUT output;
-    output.m_sm = res;
-    output.m_sqSM = res * res;
+    output.m_sm = sm;
+    output.m_sqSM = smSq;
 
     return output;
 }
