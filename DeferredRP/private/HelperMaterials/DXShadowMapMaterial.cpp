@@ -163,8 +163,9 @@ rendering::DXShadowMapMaterial::DXShadowMapMaterial(const rendering::DXShader& v
         psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
         psoDesc.SampleMask = UINT_MAX;
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-        psoDesc.NumRenderTargets = 1;
+        psoDesc.NumRenderTargets = 2;
         psoDesc.RTVFormats[0] = DXGI_FORMAT_R32G32B32A32_FLOAT;
+        psoDesc.RTVFormats[1] = DXGI_FORMAT_R32G32B32A32_FLOAT;
         psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
         psoDesc.SampleDesc.Count = 1;
         THROW_ERROR(
@@ -214,7 +215,8 @@ ID3D12CommandList* rendering::DXShadowMapMaterial::GenerateCommandList(
     D3D12_CPU_DESCRIPTOR_HANDLE dsHandle = m_cascadedSM->GetDSDescriptorHeap()->GetDescriptorHandle(m_smSlot);
     D3D12_CPU_DESCRIPTOR_HANDLE handles[] =
     {
-        m_cascadedSM->GetSMDescriptorHeap()->GetDescriptorHandle(0)
+        m_cascadedSM->GetSMDescriptorHeap()->GetDescriptorHandle(0),
+        m_cascadedSM->GetSMDescriptorHeap()->GetDescriptorHandle(1),
     };
     commandList->OMSetRenderTargets(_countof(handles), handles, FALSE, &dsHandle);
 
