@@ -4,6 +4,7 @@
 #include "cascadedSM/CascadedSM.h"
 #include "ICamera.h"
 #include "DXScene.h"
+#include "DXCameraBufferMeta.h"
 
 namespace rendering::deferred
 {
@@ -11,4 +12,5 @@ namespace rendering::deferred
 	CascadedSM* GetCascadedSM();
 	ICamera* GetCamera();
 	DXScene* GetScene();
+	DXBuffer* GetCameraBuffer();
 }

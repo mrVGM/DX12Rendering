@@ -4,6 +4,9 @@
 #include "cascadedSM/CascadedSMMeta.h"
 #include "ICameraMeta.h"
 #include "DXSceneMeta.h"
+#include "DXCameraBufferMeta.h"
+
+#include "DXBuffer.h"
 
 #include "BaseObjectContainer.h"
 
@@ -66,4 +69,19 @@ rendering::DXScene* rendering::deferred::GetScene()
 
 	DXScene* scene = static_cast<DXScene*>(obj);
 	return scene;
+}
+
+rendering::DXBuffer* rendering::deferred::GetCameraBuffer()
+{
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+
+	BaseObject* obj = container.GetObjectOfClass(DXCameraBufferMeta::GetInstance());
+
+	if (!obj)
+	{
+		throw "Can't find Camera Buffer!";
+	}
+
+	DXBuffer* buffer = static_cast<DXBuffer*>(obj);
+	return buffer;
 }

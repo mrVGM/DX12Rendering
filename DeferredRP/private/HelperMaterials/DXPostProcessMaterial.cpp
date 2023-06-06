@@ -34,6 +34,7 @@ namespace
     rendering::Window* m_wnd = nullptr;
     rendering::DXDevice* m_device = nullptr;
     rendering::DXSwapChain* m_swapChain = nullptr;
+    rendering::DXBuffer* m_camBuffer = nullptr;
 
     void CacheObjects()
     {
@@ -53,6 +54,11 @@ namespace
         if (!m_swapChain)
         {
             m_swapChain = core::utils::GetSwapChain();
+        }
+
+        if (!m_camBuffer)
+        {
+            m_camBuffer = deferred::GetCameraBuffer();
         }
     }
 }
@@ -106,8 +112,8 @@ ID3D12CommandList* rendering::DXPostProcessMaterial::GenerateCommandList(
     ID3D12DescriptorHeap* descriptorHeaps[] = { m_srvHeap->GetDescriptorHeap() };
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-    commandList->SetGraphicsRootDescriptorTable(0, descriptorHeaps[0]->GetGPUDescriptorHandleForHeapStart());
-
+    commandList->SetGraphicsRootConstantBufferView(0, m_camBuffer->GetBuffer()->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootDescriptorTable(1, descriptorHeaps[0]->GetGPUDescriptorHandleForHeapStart());
 
     UINT64 width = m_wnd->m_width;
     UINT64 height = m_wnd->m_height;
@@ -194,8 +200,9 @@ void rendering::DXPostProcessMaterial::CreatePipelineStateAndRootSignature()
 
         CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
         ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
-        CD3DX12_ROOT_PARAMETER1 rootParameters[1];
-        rootParameters[0].InitAsDescriptorTable(1, ranges, D3D12_SHADER_VISIBILITY_PIXEL);
+        CD3DX12_ROOT_PARAMETER1 rootParameters[2];
+        rootParameters[0].InitAsConstantBufferView(0, 0);
+        rootParameters[1].InitAsDescriptorTable(1, ranges, D3D12_SHADER_VISIBILITY_PIXEL);
         
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
         rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, _countof(samplers), samplers, rootSignatureFlags);
