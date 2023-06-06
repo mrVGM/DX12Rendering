@@ -34,6 +34,7 @@ namespace rendering
 		std::list<DXTexture*> m_depthTextures;
 		DXDescriptorHeap* m_dsDescriptorHeap = nullptr;
 		DXDescriptorHeap* m_smDescriptorHeap = nullptr;
+		DXDescriptorHeap* m_smSQDescriptorHeap = nullptr;
 
 		void LoadSettingsBuffer(jobs::Job* done);
 		void LoadDepthTextures(jobs::Job* done);
@@ -58,6 +59,7 @@ namespace rendering
 		DXTexture* GetShadowMask(int index);
 		DXDescriptorHeap* GetDSDescriptorHeap();
 		DXDescriptorHeap* GetSMDescriptorHeap();
+		DXDescriptorHeap* GetSMSQDescriptorHeap();
 		DXBuffer* GetSettingsBuffer();
 
 		const std::list<DXMaterial*>& GetShadowMapMaterials();

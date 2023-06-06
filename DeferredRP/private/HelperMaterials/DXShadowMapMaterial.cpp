@@ -216,7 +216,7 @@ ID3D12CommandList* rendering::DXShadowMapMaterial::GenerateCommandList(
     D3D12_CPU_DESCRIPTOR_HANDLE handles[] =
     {
         m_cascadedSM->GetSMDescriptorHeap()->GetDescriptorHandle(0),
-        m_cascadedSM->GetSMDescriptorHeap()->GetDescriptorHandle(1),
+        m_cascadedSM->GetSMSQDescriptorHeap()->GetDescriptorHandle(0),
     };
     commandList->OMSetRenderTargets(_countof(handles), handles, FALSE, &dsHandle);
 

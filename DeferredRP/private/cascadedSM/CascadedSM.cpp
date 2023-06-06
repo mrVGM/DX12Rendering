@@ -742,8 +742,13 @@ void rendering::CascadedSM::CreateDescriptorHeaps()
 
 	std::list<DXTexture*> textures;
 	textures.push_back(m_smTex);
-	textures.push_back(m_smSQTex);
 	m_smDescriptorHeap = DXDescriptorHeap::CreateRTVDescriptorHeap(
+		DXDescriptorHeapMeta::GetInstance(), textures);
+
+	textures.clear();
+	textures.push_back(m_smSQTex);
+
+	m_smSQDescriptorHeap = DXDescriptorHeap::CreateRTVDescriptorHeap(
 		DXDescriptorHeapMeta::GetInstance(), textures);
 }
 
@@ -930,6 +935,11 @@ rendering::DXDescriptorHeap* rendering::CascadedSM::GetDSDescriptorHeap()
 rendering::DXDescriptorHeap* rendering::CascadedSM::GetSMDescriptorHeap()
 {
 	return m_smDescriptorHeap;
+}
+
+rendering::DXDescriptorHeap* rendering::CascadedSM::GetSMSQDescriptorHeap()
+{
+	return m_smSQDescriptorHeap;
 }
 
 rendering::DXBuffer* rendering::CascadedSM::GetSettingsBuffer()
