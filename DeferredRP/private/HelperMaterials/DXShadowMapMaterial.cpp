@@ -139,33 +139,12 @@ rendering::DXShadowMapMaterial::DXShadowMapMaterial(const rendering::DXShader& v
         psoDesc.VS = CD3DX12_SHADER_BYTECODE(m_vertexShader.GetCompiledShader());
         psoDesc.PS = CD3DX12_SHADER_BYTECODE(m_pixelShader.GetCompiledShader());
         psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-
-        {
-            psoDesc.BlendState.AlphaToCoverageEnable = FALSE;
-            psoDesc.BlendState.IndependentBlendEnable = FALSE;
-
-            D3D12_RENDER_TARGET_BLEND_DESC desc = {};
-            desc.BlendEnable = TRUE;
-            desc.LogicOpEnable = FALSE;
-            desc.SrcBlend = D3D12_BLEND_ONE;
-            desc.DestBlend = D3D12_BLEND_ONE;
-            desc.BlendOp = D3D12_BLEND_OP_ADD;
-            desc.SrcBlendAlpha = D3D12_BLEND_ONE;
-            desc.DestBlendAlpha = D3D12_BLEND_ONE;
-            desc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
-            desc.LogicOp = D3D12_LOGIC_OP_NOOP;
-            desc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE::D3D12_COLOR_WRITE_ENABLE_ALL;
-
-            psoDesc.BlendState.RenderTarget[0] = desc;
-        }
-
-
+        psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
         psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
         psoDesc.SampleMask = UINT_MAX;
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-        psoDesc.NumRenderTargets = 2;
+        psoDesc.NumRenderTargets = 1;
         psoDesc.RTVFormats[0] = DXGI_FORMAT_R32G32B32A32_FLOAT;
-        psoDesc.RTVFormats[1] = DXGI_FORMAT_R32G32B32A32_FLOAT;
         psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
         psoDesc.SampleDesc.Count = 1;
         THROW_ERROR(
@@ -215,8 +194,7 @@ ID3D12CommandList* rendering::DXShadowMapMaterial::GenerateCommandList(
     D3D12_CPU_DESCRIPTOR_HANDLE dsHandle = m_cascadedSM->GetDSDescriptorHeap()->GetDescriptorHandle(m_smSlot);
     D3D12_CPU_DESCRIPTOR_HANDLE handles[] =
     {
-        m_cascadedSM->GetSMDescriptorHeap()->GetDescriptorHandle(0),
-        m_cascadedSM->GetSMSQDescriptorHeap()->GetDescriptorHandle(0),
+        m_cascadedSM->GetSMDescriptorHeap()->GetDescriptorHandle(m_smSlot),
     };
     commandList->OMSetRenderTargets(_countof(handles), handles, FALSE, &dsHandle);
 
