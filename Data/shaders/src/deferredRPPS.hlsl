@@ -115,7 +115,7 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
             eyeDir = normalize(eyeDir);
             float rimDot = 1 - dot(eyeDir, normalTex.xyz);
 
-            float rimAmount = 0.8;
+            float rimAmount = 0.7;
             float rimThreshold = 0.1;
 
             float nDotL = dot(-dir, normalTex);
