@@ -40,6 +40,7 @@ namespace rendering
 		void LoadSettingsBuffer(jobs::Job* done);
 		void LoadDepthTextures(jobs::Job* done);
 		void LoadSMTexture(jobs::Job* done);
+		void LoadSMTextures(jobs::Job* done);
 		void LoadSMSQTexture(jobs::Job* done);
 		void LoadSMFilterTexture(jobs::Job* done);
 		void LoadShadowMaskTexture(jobs::Job* done);

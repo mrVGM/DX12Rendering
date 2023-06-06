@@ -426,6 +426,50 @@ void rendering::CascadedSM::LoadSMTexture(jobs::Job* done)
 	core::utils::RunSync(new CreateTex(ctx));
 }
 
+void rendering::CascadedSM::LoadSMTextures(jobs::Job* done)
+{
+	struct Context
+	{
+		CascadedSM* m_cascadedSM = nullptr;
+		int m_texturesLeft = 4;
+
+		jobs::Job* m_done = nullptr;
+	};
+
+	Context* ctx = new Context();
+	ctx->m_cascadedSM = this;
+	ctx->m_done = done;
+
+	class TextureDone : public jobs::Job
+	{
+	private:
+		Context& m_ctx;
+	public:
+		TextureDone(Context& ctx) :
+			m_ctx(ctx)
+		{
+		}
+
+		void Do() override
+		{
+			--m_ctx.m_texturesLeft;
+			if (m_ctx.m_texturesLeft > 0)
+			{
+				return;
+			}
+
+			core::utils::RunSync(m_ctx.m_done);
+
+			delete &m_ctx;
+		}
+	};
+
+	LoadSMTexture(new TextureDone(*ctx));
+	LoadSMTexture(new TextureDone(*ctx));
+	LoadSMTexture(new TextureDone(*ctx));
+	LoadSMTexture(new TextureDone(*ctx));
+}
+
 void rendering::CascadedSM::LoadSMSQTexture(jobs::Job* done)
 {
 	struct Context
@@ -902,7 +946,7 @@ void rendering::CascadedSM::LoadResources(jobs::Job* done)
 
 	LoadSettingsBuffer(new ItemReady(*ctx));
 	LoadDepthTextures(new ItemReady(*ctx));
-	LoadSMTexture(new ItemReady(*ctx));
+	LoadSMTextures(new ItemReady(*ctx));
 	LoadSMSQTexture(new ItemReady(*ctx));
 	LoadSMFilterTexture(new ItemReady(*ctx));
 	LoadShadowMaskTexture(new ItemReady(*ctx));
