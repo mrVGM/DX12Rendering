@@ -26,6 +26,7 @@
 #include "HelperMaterials/DXPostLightsCalculationsMaterial.h"
 #include "HelperMaterials/DXShadowMaskMaterial.h"
 #include "HelperMaterials/DXShadowMapFilterMaterial.h"
+#include "HelperMaterials/DXPostProcessMaterial.h"
 
 #include "LightsManager.h"
 #include "LightsManagerMeta.h"
@@ -56,10 +57,10 @@ namespace
     rendering::DXMaterial* m_shadowMaskMat = nullptr;
     rendering::DXMaterial* m_shadowMaskPCFFilterMat = nullptr;
     rendering::DXMaterial* m_shadowMaskDitherFilterMat = nullptr;
+    rendering::DXMaterial* m_edgeOutlineFilterMat = nullptr;
 
     std::vector<rendering::DXMaterial*> m_shadowMapIdentityFilterMat;
     std::vector<rendering::DXMaterial*> m_shadowMapGaussBlurFilterMat;
-
 
     rendering::DXMaterial* m_displayTexMaterial = nullptr;
 
@@ -529,6 +530,16 @@ void rendering::DXDeferredRP::Execute()
         m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
     }
 
+    {
+        m_edgeOutlineFilterMat->ResetCommandLists();
+        DXBuffer* dummy = nullptr;
+        ID3D12CommandList* commandList = m_edgeOutlineFilterMat->GenerateCommandList(
+            *deferred::GetRenderTextureVertexBuffer(),
+            *dummy, *dummy, 0, 0, 0);
+        ID3D12CommandList* ppCommandLists[] = { commandList };
+        m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+    }
+
     if (false)
     {
         m_displayTexMaterial->ResetCommandLists();
@@ -618,6 +629,11 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
                     m_cascadedSM->GetShadowMap(i)
                 ));
             }
+
+            m_edgeOutlineFilterMat = new DXPostProcessMaterial(
+                *shader_repo::GetDeferredRPVertexShader(),
+                *shader_repo::GetEdgeOutlinePixelShader()
+            );
 
             m_displayTexMaterial = new DXDisplaySMMaterial(
                 *shader_repo::GetDeferredRPVertexShader(),

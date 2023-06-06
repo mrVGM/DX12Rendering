@@ -34,6 +34,8 @@ namespace rendering
 		DXShader* GetIdentityFilterPixelShader();
 		DXShader* GetGaussBlurFilterPixelShader();
 
+		DXShader* GetEdgeOutlinePixelShader();
+
 		void LoadShaderPrograms();
 	}
 }

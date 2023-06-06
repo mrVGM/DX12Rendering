@@ -27,6 +27,8 @@ namespace
 
 	rendering::DXShader* m_identityFilterPixelShader = nullptr;
 	rendering::DXShader* m_gaussBlurFilterPixelShader = nullptr;
+
+	rendering::DXShader* m_edgeOutlinePixelShader = nullptr;
 }
 
 rendering::DXShader* rendering::shader_repo::GetMainVertexShader()
@@ -104,6 +106,11 @@ rendering::DXShader* rendering::shader_repo::GetGaussBlurFilterPixelShader()
 	return m_gaussBlurFilterPixelShader;
 }
 
+rendering::DXShader* rendering::shader_repo::GetEdgeOutlinePixelShader()
+{
+	return m_edgeOutlinePixelShader;
+}
+
 void rendering::shader_repo::LoadShaderPrograms()
 {
 	m_mainVertexShader = new DXShader(DXVertexShaderMeta::GetInstance(), "shaders/bin/vs_mainVS.fxc");
@@ -126,4 +133,6 @@ void rendering::shader_repo::LoadShaderPrograms()
 
 	m_identityFilterPixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_identityFilterPS.fxc");
 	m_gaussBlurFilterPixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_gaussianBlurFilterPS.fxc");
+
+	m_edgeOutlinePixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_edgeOutlinePS.fxc");
 }
