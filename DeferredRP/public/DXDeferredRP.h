@@ -28,13 +28,11 @@ namespace rendering
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_afterRenderSceneList;
 
 		DXDescriptorHeap* m_rtvHeap = nullptr;
-		DXDescriptorHeap* m_srvHeap = nullptr;
 
 		bool m_startListPrepared = false;
 		bool m_afterRenderSceneListPrepared = false;
 		
 		void CreateRTVHeap();
-		void CreateSRVHeap();
 
 		void PrepareStartList();
 		void PrepareAfterRenderSceneList();

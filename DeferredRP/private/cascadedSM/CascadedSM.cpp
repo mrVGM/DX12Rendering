@@ -391,7 +391,7 @@ void rendering::CascadedSM::LoadSMTexture(jobs::Job* done)
 		void Do() override
 		{
 			m_ctx.m_tex->Place(*m_ctx.m_heap, 0);
-			m_ctx.m_cascadedSM->m_smTex = m_ctx.m_tex;
+			m_ctx.m_cascadedSM->m_smTex.push_back(m_ctx.m_tex);
 
 			core::utils::RunSync(m_ctx.m_done);
 		}
@@ -426,67 +426,48 @@ void rendering::CascadedSM::LoadSMTexture(jobs::Job* done)
 	core::utils::RunSync(new CreateTex(ctx));
 }
 
-void rendering::CascadedSM::LoadSMSQTexture(jobs::Job* done)
+void rendering::CascadedSM::LoadSMTextures(jobs::Job* done)
 {
 	struct Context
 	{
 		CascadedSM* m_cascadedSM = nullptr;
-		DXTexture* m_tex = nullptr;
-		DXHeap* m_heap = nullptr;
+		int m_texturesLeft = 4;
 
 		jobs::Job* m_done = nullptr;
 	};
 
-	Context ctx;
-	ctx.m_cascadedSM = this;
-	ctx.m_done = done;
+	Context* ctx = new Context();
+	ctx->m_cascadedSM = this;
+	ctx->m_done = done;
 
-	class PlaceTex : public jobs::Job
+	class TextureDone : public jobs::Job
 	{
 	private:
-		Context m_ctx;
+		Context& m_ctx;
 	public:
-		PlaceTex(const Context& ctx) :
+		TextureDone(Context& ctx) :
 			m_ctx(ctx)
 		{
 		}
 
 		void Do() override
 		{
-			m_ctx.m_tex->Place(*m_ctx.m_heap, 0);
-			m_ctx.m_cascadedSM->m_smSQTex = m_ctx.m_tex;
+			--m_ctx.m_texturesLeft;
+			if (m_ctx.m_texturesLeft > 0)
+			{
+				return;
+			}
 
 			core::utils::RunSync(m_ctx.m_done);
+
+			delete &m_ctx;
 		}
 	};
 
-	class CreateTex : public jobs::Job
-	{
-	private:
-		Context m_ctx;
-	public:
-		CreateTex(const Context& ctx) :
-			m_ctx(ctx)
-		{
-		}
-
-		void Do() override
-		{
-			UINT size = CascadedSM::m_resolution;
-
-			m_ctx.m_tex = DXTexture::CreateRenderTargetTexture(DXShadowSQMapMeta::GetInstance(), size, size);
-
-			m_ctx.m_heap = new DXHeap();
-			m_ctx.m_heap->SetHeapSize(m_ctx.m_tex->GetTextureAllocationInfo().SizeInBytes);
-			m_ctx.m_heap->SetHeapType(D3D12_HEAP_TYPE_DEFAULT);
-			m_ctx.m_heap->SetHeapFlags(D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES);
-			m_ctx.m_heap->Create();
-
-			m_ctx.m_heap->MakeResident(new PlaceTex(m_ctx));
-		}
-	};
-
-	core::utils::RunSync(new CreateTex(ctx));
+	LoadSMTexture(new TextureDone(*ctx));
+	LoadSMTexture(new TextureDone(*ctx));
+	LoadSMTexture(new TextureDone(*ctx));
+	LoadSMTexture(new TextureDone(*ctx));
 }
 
 void rendering::CascadedSM::LoadSMFilterTexture(jobs::Job* done)
@@ -741,8 +722,10 @@ void rendering::CascadedSM::CreateDescriptorHeaps()
 		m_depthTextures);
 
 	std::list<DXTexture*> textures;
-	textures.push_back(m_smTex);
-	textures.push_back(m_smSQTex);
+	for (auto it = m_smTex.begin(); it != m_smTex.end(); ++it)
+	{
+		textures.push_back(*it);
+	}
 	m_smDescriptorHeap = DXDescriptorHeap::CreateRTVDescriptorHeap(
 		DXDescriptorHeapMeta::GetInstance(), textures);
 }
@@ -840,7 +823,7 @@ void rendering::CascadedSM::LoadResources(jobs::Job* done)
 	struct Context
 	{
 		CascadedSM* m_cascadedSM = nullptr;
-		int m_itemsToWaitFor = 8;
+		int m_itemsToWaitFor = 7;
 
 		jobs::Job* m_done = nullptr;
 	};
@@ -894,22 +877,16 @@ void rendering::CascadedSM::LoadResources(jobs::Job* done)
 
 	LoadSettingsBuffer(new ItemReady(*ctx));
 	LoadDepthTextures(new ItemReady(*ctx));
-	LoadSMTexture(new ItemReady(*ctx));
-	LoadSMSQTexture(new ItemReady(*ctx));
+	LoadSMTextures(new ItemReady(*ctx));
 	LoadSMFilterTexture(new ItemReady(*ctx));
 	LoadShadowMaskTexture(new ItemReady(*ctx));
 	LoadShadowMaskTexture(new ItemReady(*ctx));
 	LoadSMMaterials(new ItemReady(*ctx));
 }
 
-rendering::DXTexture* rendering::CascadedSM::GetShadowMap()
+rendering::DXTexture* rendering::CascadedSM::GetShadowMap(int index)
 {
-	return m_smTex;
-}
-
-rendering::DXTexture* rendering::CascadedSM::GetShadowSQMap()
-{
-	return m_smSQTex;
+	return m_smTex[index];
 }
 
 rendering::DXTexture* rendering::CascadedSM::GetShadowMapFilterTex()

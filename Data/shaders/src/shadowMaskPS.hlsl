@@ -11,9 +11,11 @@ cbuffer SMBuff : register(b1)
     SMBuffer m_smBuffer;
 };
 
-Texture2D p_position     : register(t0);
-Texture2D p_shadowMap    : register(t1);
-Texture2D p_shadowSQMap    : register(t2);
+Texture2D p_position      : register(t0);
+Texture2D p_shadowMap0    : register(t1);
+Texture2D p_shadowMap1    : register(t2);
+Texture2D p_shadowMap2    : register(t3);
+Texture2D p_shadowMap3    : register(t4);
 
 SamplerState p_sampler  : register(s0);
 SamplerState p_linearSampler  : register(s1);
@@ -23,23 +25,21 @@ static const float m_minVarianceValue = 0.00002;
 float2 sampleSMMoments(float2 uv, int index)
 {
     uv = float2(uv.x, 1 - uv.y);
-    float4 shadowMap = p_shadowMap.Sample(p_linearSampler, uv);
-    float4 shadowSQMap = p_shadowSQMap.Sample(p_linearSampler, uv);
 
     float2 moments = float2(0, 0);
     switch (index)
     {
     case 0:
-        moments = float2(shadowMap.x, shadowSQMap.x);
+        moments = p_shadowMap0.Sample(p_linearSampler, uv);
         break;
     case 1:
-        moments = float2(shadowMap.y, shadowSQMap.y);
+        moments = p_shadowMap1.Sample(p_linearSampler, uv);
         break;
     case 2:
-        moments = float2(shadowMap.z, shadowSQMap.z);
+        moments = p_shadowMap2.Sample(p_linearSampler, uv);
         break;
     case 3:
-        moments = float2(shadowMap.w, shadowSQMap.w);
+        moments = p_shadowMap3.Sample(p_linearSampler, uv);
         break;
     }
 
@@ -86,22 +86,21 @@ float shadowTest(float2 coords)
 float sampleShadowMap(float2 uv, int index)
 {
     uv = float2(uv.x, 1 - uv.y);
-    float4 shadowMap = p_shadowMap.Sample(p_sampler, uv);
 
     float d = 0;
     switch (index)
     {
     case 0:
-        d = shadowMap.x;
+        d = p_shadowMap0.Sample(p_sampler, uv);
         break;
     case 1:
-        d = shadowMap.y;
+        d = p_shadowMap1.Sample(p_sampler, uv);
         break;
     case 2:
-        d = shadowMap.z;
+        d = p_shadowMap2.Sample(p_sampler, uv);
         break;
     case 3:
-        d = shadowMap.w;
+        d = p_shadowMap3.Sample(p_sampler, uv);
         break;
     }
 
