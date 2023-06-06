@@ -24,9 +24,10 @@ namespace rendering
 		const float m_cascadeSeparators[3] = { 20, 50, 200 };
 
 		DXBuffer* m_smSettingsBuffer = nullptr;
-		DXTexture* m_smTex = nullptr;
 		DXTexture* m_smSQTex = nullptr;
 		DXTexture* m_smFilterTex = nullptr;
+
+		std::vector<DXTexture*> m_smTex;
 		std::vector<DXTexture*> m_shadowMaskTex;
 
 		std::list<DXMaterial*> m_shadowMapMaterials;
@@ -53,7 +54,7 @@ namespace rendering
 		void LoadResources(jobs::Job* done);
 
 		void UpdateSMSettings();
-		DXTexture* GetShadowMap();
+		DXTexture* GetShadowMap(int index);
 		DXTexture* GetShadowSQMap();
 		DXTexture* GetShadowMapFilterTex();
 		DXTexture* GetShadowMask(int index);

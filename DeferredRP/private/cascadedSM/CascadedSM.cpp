@@ -391,7 +391,7 @@ void rendering::CascadedSM::LoadSMTexture(jobs::Job* done)
 		void Do() override
 		{
 			m_ctx.m_tex->Place(*m_ctx.m_heap, 0);
-			m_ctx.m_cascadedSM->m_smTex = m_ctx.m_tex;
+			m_ctx.m_cascadedSM->m_smTex.push_back(m_ctx.m_tex);
 
 			core::utils::RunSync(m_ctx.m_done);
 		}
@@ -741,7 +741,10 @@ void rendering::CascadedSM::CreateDescriptorHeaps()
 		m_depthTextures);
 
 	std::list<DXTexture*> textures;
-	textures.push_back(m_smTex);
+	for (auto it = m_smTex.begin(); it != m_smTex.end(); ++it)
+	{
+		textures.push_back(*it);
+	}
 	m_smDescriptorHeap = DXDescriptorHeap::CreateRTVDescriptorHeap(
 		DXDescriptorHeapMeta::GetInstance(), textures);
 
@@ -907,9 +910,9 @@ void rendering::CascadedSM::LoadResources(jobs::Job* done)
 	LoadSMMaterials(new ItemReady(*ctx));
 }
 
-rendering::DXTexture* rendering::CascadedSM::GetShadowMap()
+rendering::DXTexture* rendering::CascadedSM::GetShadowMap(int index)
 {
-	return m_smTex;
+	return m_smTex[index];
 }
 
 rendering::DXTexture* rendering::CascadedSM::GetShadowSQMap()

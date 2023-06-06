@@ -183,7 +183,7 @@ void rendering::DXDeferredRP::CreateSRVHeap()
     textures.push_back(rendering::deferred::GetGBufferSpecularTex());
     textures.push_back(rendering::deferred::GetGBufferNormalTex());
     textures.push_back(rendering::deferred::GetGBufferPositionTex());
-    textures.push_back(m_cascadedSM->GetShadowMap());
+    textures.push_back(m_cascadedSM->GetShadowMap(0));
 
     m_srvHeap = DXDescriptorHeap::CreateSRVDescriptorHeap(DXDescriptorHeapMeta::GetInstance(), textures);
 }
@@ -202,7 +202,7 @@ void rendering::DXDeferredRP::PrepareStartList()
     {
         CD3DX12_RESOURCE_BARRIER barrier[] =
         {
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMap()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMap(0)->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowSQMap()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
 
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferDiffuseTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
@@ -253,7 +253,7 @@ void rendering::DXDeferredRP::PrepareAfterRenderSceneList()
     {
         CD3DX12_RESOURCE_BARRIER barrier[] =
         {
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMap()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMap(0)->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowSQMap()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
 
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferDiffuseTex()->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
@@ -628,7 +628,7 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
                 m_shadowMapGaussBlurFilterMat = new DXShadowMapFilterMaterial(
                     *shader_repo::GetDeferredRPVertexShader(),
                     *shader_repo::GetGaussBlurFilterPixelShader(),
-                    m_cascadedSM->GetShadowMap(),
+                    m_cascadedSM->GetShadowMap(0),
                     m_cascadedSM->GetShadowMapFilterTex()
                 );
 
@@ -636,7 +636,7 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
                     *shader_repo::GetDeferredRPVertexShader(),
                     *shader_repo::GetIdentityFilterPixelShader(),
                     m_cascadedSM->GetShadowMapFilterTex(),
-                    m_cascadedSM->GetShadowMap()
+                    m_cascadedSM->GetShadowMap(0)
                 );
 
                 m_shadowMapSQGaussBlurFilterMat = new DXShadowMapFilterMaterial(

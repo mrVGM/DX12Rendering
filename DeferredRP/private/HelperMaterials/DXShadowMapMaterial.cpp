@@ -187,7 +187,7 @@ ID3D12CommandList* rendering::DXShadowMapMaterial::GenerateCommandList(
     UINT indexCount,
     UINT instanceIndex)
 {
-    DXTexture* shadowMapTexture = m_cascadedSM->GetShadowMap();
+    DXTexture* shadowMapTexture = m_cascadedSM->GetShadowMap(0);
 
     m_commandLists.push_back(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>());
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList = m_commandLists.back();
