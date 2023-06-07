@@ -14,6 +14,8 @@
 #include "DXMaterialRepo.h"
 #include "DXMaterialRepoMeta.h"
 
+#include "DXMutableBuffer.h"
+
 #include <set>
 
 #define THROW_ERROR(hRes, error) \
@@ -232,7 +234,7 @@ void rendering::DXUnlitRP::RenderUnlit()
                 const DXScene::GeometryResources& geometryResources = curSceneResources.m_geometryResources.find(obj.m_geometry)->second;
                 DXBuffer* vertBuf = geometryResources.m_vertexBuffer;
                 DXBuffer* indexBuf = geometryResources.m_indexBuffer;
-                DXBuffer* instanceBuf = geometryResources.m_instanceBuffer;
+                DXBuffer* instanceBuf = geometryResources.m_instanceBuffer->GetBuffer();
 
                 if (!mat)
                 {

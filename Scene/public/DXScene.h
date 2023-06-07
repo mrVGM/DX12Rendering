@@ -17,6 +17,8 @@ class BaseObjectMeta;
 namespace rendering
 {
 	class DXBuffer;
+	class DXMutableBuffer;
+
 	class DXScene : public BaseObject
 	{
 	public:
@@ -25,7 +27,7 @@ namespace rendering
 		{
 			DXBuffer* m_vertexBuffer = nullptr;
 			DXBuffer* m_indexBuffer = nullptr;
-			DXBuffer* m_instanceBuffer = nullptr;
+			DXMutableBuffer* m_instanceBuffer = nullptr;
 		};
 		struct SceneResources
 		{

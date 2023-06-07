@@ -41,6 +41,8 @@
 
 #include "utils.h"
 
+#include "DXMutableBuffer.h"
+
 #include <set>
 #include <list>
 #include <vector>
@@ -301,7 +303,7 @@ void rendering::DXDeferredRP::RenderShadowMap()
                 const DXScene::GeometryResources& geometryResources = curSceneResources.m_geometryResources.find(obj.m_geometry)->second;
                 DXBuffer* vertBuf = geometryResources.m_vertexBuffer;
                 DXBuffer* indexBuf = geometryResources.m_indexBuffer;
-                DXBuffer* instanceBuf = geometryResources.m_instanceBuffer;
+                DXBuffer* instanceBuf = geometryResources.m_instanceBuffer->GetBuffer();
 
                 if (!mat)
                 {
@@ -397,7 +399,7 @@ void rendering::DXDeferredRP::RenderDeferred()
                 const DXScene::GeometryResources& geometryResources = curSceneResources.m_geometryResources.find(obj.m_geometry)->second;
                 DXBuffer* vertBuf = geometryResources.m_vertexBuffer;
                 DXBuffer* indexBuf = geometryResources.m_indexBuffer;
-                DXBuffer* instanceBuf = geometryResources.m_instanceBuffer;
+                DXBuffer* instanceBuf = geometryResources.m_instanceBuffer->GetBuffer();
 
                 if (!mat)
                 {

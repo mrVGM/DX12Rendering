@@ -72,6 +72,10 @@ add_library (RenderingCore
 	"public/DXDescriptorHeapMeta.h"
 	"private/DXDescriptorHeap.cpp"
 	"private/DXDescriptorHeapMeta.cpp"
+	"public/DXMutableBufferMeta.h"
+	"private/DXMutableBufferMeta.cpp"
+	"public/DXMutableBuffer.h"
+	"private/DXMutableBuffer.cpp"
 )
 
 target_include_directories(RenderingCore INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
