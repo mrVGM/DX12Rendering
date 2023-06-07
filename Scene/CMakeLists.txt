@@ -10,7 +10,6 @@ add_library (Scene
 target_include_directories(Scene INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Scene PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(Scene PRIVATE Profiling)
 target_link_libraries(Scene INTERFACE PUBLIC Collada RenderingCore)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
