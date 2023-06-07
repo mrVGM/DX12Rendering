@@ -137,13 +137,14 @@ void rendering::DXCamera::UpdateCamBuffer()
 	camSettings.m_resolution[0] = m_wnd->m_width;
 	camSettings.m_resolution[1] = m_wnd->m_height;
 
-	DXBuffer* camBuff = rendering::utils::GetCameraBuffer();
-	void* data = camBuff->Map();
+	DXMutableBuffer* camBuff = rendering::utils::GetCameraBuffer();
+
+	void* data = camBuff->GetUploadBuffer()->Map();
 	CameraSettings* camSettingsData = static_cast<CameraSettings*>(data);
 
 	*camSettingsData = camSettings;
 
-	camBuff->Unmap();
+	camBuff->GetUploadBuffer()->Unmap();
 }
 
 rendering::DXCamera::DXCamera() :
@@ -176,59 +177,32 @@ rendering::DXCamera::~DXCamera()
 }
 
 void rendering::DXCamera::InitBuffer(jobs::Job* done)
-{
-	DXHeap* heap = new DXHeap();
-
-	heap->SetHeapSize(256);
-	heap->SetHeapType(D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD);
-	heap->SetHeapFlags(D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS);
-	heap->Create();
-	
+{	
 	struct JobContext
 	{
-		DXCamera* m_cam = nullptr;
 		jobs::Job* m_done = nullptr;
-		DXHeap* m_heap = nullptr;
 	};
 
 	class CreateRDU : public jobs::Job
 	{
+	private:
+		JobContext m_ctx;
 	public:
-		CreateRDU()
+		CreateRDU(const JobContext& ctx) :
+			m_ctx(ctx)
 		{
 		}
 
 		void Do()
 		{
 			new DXCameraRDU();
+			utils::RunSync(m_ctx.m_done);
 		}
 	};
 
-	class InitBufferJob : public jobs::Job
-	{
-	private:
-		JobContext m_jobContext;
-	public:
-		InitBufferJob(const JobContext& jobContext) :
-			m_jobContext(jobContext)
-		{
-		}
-		void Do() override
-		{
-			DXBuffer* camBuffer = rendering::utils::GetCameraBuffer();
-			camBuffer->SetBufferSizeAndFlags(256, D3D12_RESOURCE_FLAG_NONE);
-			camBuffer->SetBufferStride(256);
-
-			camBuffer->Place(m_jobContext.m_heap, 0);
-
-			utils::RunSync(m_jobContext.m_done);
-			utils::RunSync(new CreateRDU());
-		}
-	};
-
-	JobContext jobContext{ this, done, heap };
-
-	heap->MakeResident(new InitBufferJob(jobContext));
+	JobContext jobContext{ done };
+	DXMutableBuffer* buffer = utils::GetCameraBuffer();
+	buffer->Load(new CreateRDU(jobContext));
 }
 
 void rendering::DXCamera::GetFrustrumCorners(std::list<DirectX::XMVECTOR>& corners, float& maxDist, float nearPlane, float farPlane)

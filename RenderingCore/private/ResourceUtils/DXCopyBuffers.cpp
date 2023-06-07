@@ -19,6 +19,18 @@ if (FAILED(hRes)) {\
 
 namespace
 {
+    rendering::DXDevice* m_device = nullptr;
+
+    void CacheObjects()
+    {
+        using namespace rendering;
+
+        if (!m_device)
+        {
+            m_device = core::utils::GetDevice();
+        }
+    }
+
     struct CopyCommandList 
     {
         Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocator;
@@ -29,18 +41,12 @@ namespace
             using Microsoft::WRL::ComPtr;
             using namespace rendering;
 
-            DXDevice* device = core::utils::GetDevice();
-            if (!device)
-            {
-                throw "No device found!";
-            }
-
             THROW_ERROR(
-                device->GetDevice().CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COPY, IID_PPV_ARGS(&m_commandAllocator)),
+                m_device->GetDevice().CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COPY, IID_PPV_ARGS(&m_commandAllocator)),
                 "Can't create Command Allocator!")
 
             THROW_ERROR(
-                device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_COPY, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&m_commandList)),
+                m_device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_COPY, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&m_commandList)),
                 "Can't create Command List!")
 
             THROW_ERROR(
@@ -84,6 +90,8 @@ namespace
 rendering::DXCopyBuffers::DXCopyBuffers() :
     BaseObject(DXCopyBuffersMeta::GetInstance())
 {
+    CacheObjects();
+
     m_copyCommandQueue = core::utils::GetCopyCommandQueue();
 
     m_copyJobSytem = new jobs::JobSystem(CopyJobSystemMeta::GetInstance(), 1);

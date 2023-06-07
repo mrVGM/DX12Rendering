@@ -9,6 +9,7 @@
 namespace 
 {
 	rendering::DXCamera* m_camera = nullptr;
+	rendering::DXMutableBuffer* m_cameraBuffer = nullptr;
 
 	void CacheObjects()
 	{
@@ -16,6 +17,11 @@ namespace
 		if (!m_camera)
 		{
 			m_camera = utils::GetCamera();
+		}
+
+		if (!m_cameraBuffer)
+		{
+			m_cameraBuffer = utils::GetCameraBuffer();
 		}
 	}
 }
@@ -33,5 +39,5 @@ rendering::DXCameraRDU::~DXCameraRDU()
 void rendering::DXCameraRDU::Update(jobs::Job* done)
 {
 	m_camera->UpdateCamBuffer();
-	utils::RunSync(done);
+	m_cameraBuffer->Copy(done);
 }

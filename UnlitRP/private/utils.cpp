@@ -4,7 +4,7 @@
 
 #include "BaseObjectContainer.h"
 
-rendering::DXBuffer* rendering::unlit::GetCameraBuffer()
+rendering::DXMutableBuffer* rendering::unlit::GetCameraBuffer()
 {
 	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
 
@@ -15,6 +15,6 @@ rendering::DXBuffer* rendering::unlit::GetCameraBuffer()
 		throw "Can't find Camera Buffer!";
 	}
 
-	DXBuffer* buffer = static_cast<DXBuffer*>(obj);
+	DXMutableBuffer* buffer = static_cast<DXMutableBuffer*>(obj);
 	return buffer;
 }

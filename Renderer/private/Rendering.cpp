@@ -37,6 +37,8 @@
 #include "DXDepthStencilTextureMeta.h"
 #include "DXDepthStencilDescriptorHeapMeta.h"
 
+#include "DXMutableBuffer.h"
+
 #include "MaterialUtils.h"
 
 #include <iostream>
@@ -69,7 +71,7 @@ namespace
 			void Do() override
 			{
 				new DXCamera();
-				new DXBuffer(DXCameraBufferMeta::GetInstance());
+				new DXMutableBuffer(DXCameraBufferMeta::GetInstance(), 256, 256, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE);
 
 				DXCamera* cam = utils::GetCamera();
 				utils::GetCameraBuffer();

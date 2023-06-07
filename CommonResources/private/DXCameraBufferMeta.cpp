@@ -1,6 +1,6 @@
 #include "DXCameraBufferMeta.h"
 
-#include "DXBufferMeta.h"
+#include "DXMutableBufferMeta.h"
 
 namespace
 {
@@ -8,7 +8,7 @@ namespace
 }
 
 rendering::DXCameraBufferMeta::DXCameraBufferMeta() :
-	BaseObjectMeta(&DXBufferMeta::GetInstance())
+	BaseObjectMeta(&DXMutableBufferMeta::GetInstance())
 {
 }
 

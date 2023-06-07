@@ -39,7 +39,7 @@ namespace
 
     rendering::DXDevice* m_device = nullptr;
     rendering::DXSwapChain* m_swapChain = nullptr;
-    rendering::DXBuffer* m_cameraBuffer = nullptr;
+    rendering::DXMutableBuffer* m_cameraBuffer = nullptr;
 
     void CacheObjects()
     {
@@ -187,7 +187,7 @@ ID3D12CommandList* rendering::DXDeferredMaterial::GenerateCommandList(
         "Can't reset Command List!")
 
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
-    commandList->SetGraphicsRootConstantBufferView(0, m_cameraBuffer->GetBuffer()->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootConstantBufferView(0, m_cameraBuffer->GetBuffer()->GetBuffer()->GetGPUVirtualAddress());
     commandList->SetGraphicsRootConstantBufferView(1, m_settingsBuffer->GetBuffer()->GetBuffer()->GetGPUVirtualAddress());
 
     commandList->RSSetViewports(1, &m_swapChain->GetViewport());

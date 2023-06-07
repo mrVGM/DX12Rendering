@@ -7,6 +7,7 @@
 #include "Window.h"
 #include "DXCamera.h"
 #include "DXBuffer.h"
+#include "DXMutableBuffer.h"
 #include "DXScene.h"
 #include "DXShader.h"
 #include "Updater.h"
@@ -34,7 +35,7 @@ namespace rendering
 		rendering::DXCommandQueue* GetCommandQueue();
 		rendering::DXCopyCommandQueue* GetCopyCommandQueue();
 		rendering::DXCamera* GetCamera();
-		rendering::DXBuffer* GetCameraBuffer();
+		rendering::DXMutableBuffer* GetCameraBuffer();
 		rendering::DXScene* GetScene();
 
 		rendering::DXMaterialRepo* GetMaterialRepo();

@@ -31,7 +31,7 @@ if (FAILED(hRes)) {\
 
 namespace
 {
-    rendering::DXBuffer* m_cameraBuffer = nullptr;
+    rendering::DXMutableBuffer* m_cameraBuffer = nullptr;
     rendering::DXBuffer* m_lightsBuffer = nullptr;
     rendering::CascadedSM* m_cascadedSM = nullptr;
 
@@ -143,7 +143,7 @@ ID3D12CommandList* rendering::DXLightsCalculationsMaterial::GenerateCommandList(
     ID3D12DescriptorHeap* descriptorHeaps[] = { m_srvHeap->GetDescriptorHeap() };
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-    commandList->SetGraphicsRootConstantBufferView(0, m_cameraBuffer->GetBuffer()->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootConstantBufferView(0, m_cameraBuffer->GetBuffer()->GetBuffer()->GetGPUVirtualAddress());
     commandList->SetGraphicsRootConstantBufferView(1, m_lightsBuffer->GetBuffer()->GetGPUVirtualAddress());
     commandList->SetGraphicsRootConstantBufferView(2, m_cascadedSM->GetSettingsBuffer()->GetBuffer()->GetGPUVirtualAddress());
     commandList->SetGraphicsRootDescriptorTable(3, descriptorHeaps[0]->GetGPUDescriptorHandleForHeapStart());
