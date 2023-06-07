@@ -4,6 +4,7 @@
 #include "ProfilerJobSystemMeta.h"
 
 #include <iostream>
+#include <vector>
 
 profiling::Profiler::Profiler() :
 	BaseObject(profiling::ProfilerMeta::GetInstance())
@@ -35,7 +36,7 @@ void profiling::Profiler::RecordTime(const std::string& profileName, const std::
 	auto stopwatchIt = profile.m_stopwatchData.find(stopwatchName);
 	if (stopwatchIt == profile.m_stopwatchData.end())
 	{
-		profile.m_stopwatchData[stopwatchName] = StopwatchInfo();
+		profile.m_stopwatchData[stopwatchName] = StopwatchInfo{ stopwatchName };
 		stopwatchIt = profile.m_stopwatchData.find(stopwatchName);
 	}
 
@@ -63,8 +64,28 @@ void profiling::Profiler::PrintProfile(const std::string& profileName)
 	Profile& profile = profileIt->second;
 	cout << profileName << ":" << endl;
 
+	std::vector<StopwatchInfo*> stopwatchInfoArray;
 	for (auto it = profile.m_stopwatchData.begin(); it != profile.m_stopwatchData.end(); ++it)
 	{
-		cout << it->first << '\t' << it->second.m_numberOfCalls << '\t' << it->second.m_accumulatedTime << endl;
+		stopwatchInfoArray.push_back(&it->second);
+	}
+
+	for (int i = 0; i < stopwatchInfoArray.size() - 1; ++i)
+	{
+		for (int j = i + 1; j < stopwatchInfoArray.size(); ++j)
+		{
+			if (stopwatchInfoArray[i]->m_accumulatedTime < stopwatchInfoArray[j]->m_accumulatedTime)
+			{
+				StopwatchInfo* tmp = stopwatchInfoArray[i];
+				stopwatchInfoArray[i] = stopwatchInfoArray[j];
+				stopwatchInfoArray[j] = tmp;
+			}
+		}
+	}
+
+	for (int i = 0; i < stopwatchInfoArray.size() - 1; ++i)
+	{
+		StopwatchInfo* cur = stopwatchInfoArray[i];
+		cout << cur->m_name << '\t' << cur->m_numberOfCalls << '\t' << cur->m_accumulatedTime << endl;
 	}
 }

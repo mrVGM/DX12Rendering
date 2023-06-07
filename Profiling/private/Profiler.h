@@ -11,6 +11,7 @@ namespace profiling
 {
 	struct StopwatchInfo
 	{
+		std::string m_name;
 		unsigned long long m_numberOfCalls = 0;
 		double m_accumulatedTime = 0.0;
 	};
