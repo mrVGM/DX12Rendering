@@ -14,6 +14,8 @@
 
 #include "ColladaEntities.h"
 
+#include "Profiling.h"
+
 namespace
 {
 	void LoadVertexBuffer(const collada::Geometry& geo, rendering::DXBuffer*& buffer, jobs::Job* done)
@@ -474,6 +476,7 @@ namespace
 rendering::DXScene::DXScene() :
 	BaseObject(DXSceneMeta::GetInstance())
 {
+	profiling::Boot();
 }
 
 rendering::DXScene::~DXScene()
@@ -503,6 +506,8 @@ void rendering::DXScene::LoadColladaScene(const std::string& filePath, jobs::Job
 
 		void Do() override
 		{
+			profiling::PrintProfile("Loading Scene");
+
 			int index = m_context.m_dxScene->m_colladaScenes.size();
 
 			m_context.m_dxScene->m_colladaScenes.push_back(m_context.m_scene);
@@ -524,6 +529,7 @@ void rendering::DXScene::LoadColladaScene(const std::string& filePath, jobs::Job
 
 		void Do() override
 		{
+			profiling::StopWatch loadSceneSW("Loading Scene", "entire_loading");
 			m_context.m_scene->Load(m_context.m_filePath);
 			core::utils::RunSync(new PostLoadColladaSceneJob(m_context));
 		}
