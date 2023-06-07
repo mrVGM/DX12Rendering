@@ -13,6 +13,8 @@ add_library (UnlitRP
 	"public/DXUnlitErrorMaterialMeta.h"
 	"private/DXUnlitErrorMaterial.cpp"
 	"public/DXUnlitErrorMaterial.h"
+	"private/utils.h"
+	"private/utils.cpp"
 )
 
 target_include_directories(UnlitRP INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

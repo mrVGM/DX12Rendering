@@ -17,6 +17,8 @@
 #include "DXCameraBufferMeta.h"
 #include "DXBuffer.h"
 
+#include "utils.h"
+
 #include "BaseObjectContainer.h"
 
 #define THROW_ERROR(hRes, error) \
@@ -60,15 +62,7 @@ namespace
 
         if (!m_camBuffer)
         {
-            BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-
-            BaseObject* obj = container.GetObjectOfClass(DXCameraBufferMeta::GetInstance());
-            if (!obj)
-            {
-                throw "Can't find Camera Buffer!";
-            }
-
-            m_camBuffer = static_cast<DXBuffer*>(obj);
+            m_camBuffer = unlit::GetCameraBuffer();
         }
     }
 }
