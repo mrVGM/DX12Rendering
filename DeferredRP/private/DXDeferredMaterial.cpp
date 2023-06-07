@@ -29,6 +29,8 @@
 #include "DXMutableBuffer.h"
 #include "DXMutableBufferMeta.h"
 
+#include "utils.h"
+
 #include "BaseObjectContainer.h"
 
 namespace
@@ -67,15 +69,7 @@ namespace
 
         if (!m_cameraBuffer)
         {
-            BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-
-            BaseObject* obj = container.GetObjectOfClass(DXCameraBufferMeta::GetInstance());
-            if (!obj)
-            {
-                throw "Can't find Camera Buffer!";
-            }
-
-            m_cameraBuffer = static_cast<DXBuffer*>(obj);
+            m_cameraBuffer = deferred::GetCameraBuffer();
         }
     }
 }
