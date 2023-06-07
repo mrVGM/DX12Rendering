@@ -679,12 +679,18 @@ namespace
 
 	void ReadMaterialsBindings(const collada::ColladaNode& objectNode, std::list<std::pair<std::string, std::string>>& bindings)
 	{
+		const ColladaNode* materialBind = FindChildTagByName("bind_material", &objectNode);
+		if (!materialBind)
+		{
+			return;
+		}
+
 		std::list<const ColladaNode*> found;
-		FindChildTagsByName("bind_material", &objectNode, found);
+		FindChildTagsByName("instance_material", materialBind, found);
 
 		for (auto it = found.begin(); it != found.end(); ++it)
 		{
-			const ColladaNode* instanceMaterial = FindChildTagByName("instance_material", *it);
+			const ColladaNode* instanceMaterial = *it;
 			bindings.push_back(std::pair<std::string, std::string>(instanceMaterial->m_tagProps.find("symbol")->second, instanceMaterial->m_tagProps.find("target")->second));
 		}
 	}
