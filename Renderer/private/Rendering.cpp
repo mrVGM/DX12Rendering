@@ -166,7 +166,7 @@ namespace
 				new DXScene();
 				DXScene* scene = utils::GetScene();
 
-				std::string cubePath = data::GetLibrary().GetRootDir() + "geo/test_scene.dae";
+				std::string cubePath = data::GetLibrary().GetRootDir() + "geo/house_scene.dae";
 				scene->LoadColladaScene(cubePath, new SceneLoaded());
 			}
 		};
