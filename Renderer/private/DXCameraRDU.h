@@ -10,6 +10,6 @@ namespace rendering
 		DXCameraRDU();
 		virtual ~DXCameraRDU();
 
-		void Update() override;
+		void Update(jobs::Job* done) override;
 	};
 }

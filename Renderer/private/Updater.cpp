@@ -217,8 +217,7 @@ void rendering::Updater::RunRDUs()
 
 		void Do() override
 		{
-			m_rdu.Update();
-			utils::RunSync(new RDUDone(m_ctx));
+			m_rdu.Update(new RDUDone(m_ctx));
 		}
 	};
 

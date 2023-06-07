@@ -10,6 +10,6 @@ namespace rendering
 		DXShadowMapRDU();
 		virtual ~DXShadowMapRDU();
 
-		void Update() override;
+		void Update(jobs::Job* done) override;
 	};
 }

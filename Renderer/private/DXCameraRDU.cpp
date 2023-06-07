@@ -30,7 +30,8 @@ rendering::DXCameraRDU::~DXCameraRDU()
 {
 }
 
-void rendering::DXCameraRDU::Update()
+void rendering::DXCameraRDU::Update(jobs::Job* done)
 {
 	m_camera->UpdateCamBuffer();
+	utils::RunSync(done);
 }

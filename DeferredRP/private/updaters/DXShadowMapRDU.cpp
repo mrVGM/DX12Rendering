@@ -7,6 +7,8 @@
 
 #include "utils.h"
 
+#include "CoreUtils.h"
+
 #include "BaseObjectContainer.h"
 
 namespace 
@@ -34,7 +36,8 @@ rendering::DXShadowMapRDU::~DXShadowMapRDU()
 {
 }
 
-void rendering::DXShadowMapRDU::Update()
+void rendering::DXShadowMapRDU::Update(jobs::Job* done)
 {
 	m_cascadedSM->UpdateSMSettings();
+	core::utils::RunSync(done);
 }

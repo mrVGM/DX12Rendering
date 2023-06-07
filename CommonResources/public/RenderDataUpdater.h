@@ -3,6 +3,8 @@
 #include "BaseObject.h"
 #include "BaseObjectMeta.h"
 
+#include "Job.h"
+
 #include <DirectXMath.h>
 #include <list>
 
@@ -14,6 +16,6 @@ namespace rendering
 		RenderDataUpdater(const BaseObjectMeta& meta);
 		virtual ~RenderDataUpdater();
 
-		virtual void Update() = 0;
+		virtual void Update(jobs::Job* done) = 0;
 	};
 }
