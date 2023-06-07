@@ -106,8 +106,9 @@ collada::IColladaBuilder(colladaBuilder)\
 
 		std::list<scripting::ISymbol*> m_symbols;
 
-		AnyTokenBuilder* m_anyTokenBuilder = nullptr;
-		AnyDataBuilder* m_childBuilder = nullptr;
+		std::vector<AnyTokenBuilder*> m_anyTokenBuilders;
+
+		void PushAnyTokenBuilders(collada::ColladaTreeBuilder& builder);
 
 		void DoBuildStep(collada::ColladaTreeBuilder& builder) override;
 		void Dispose() override;
@@ -488,85 +489,65 @@ collada::IColladaBuilder(colladaBuilder)\
 
 	void AnyDataBuilder::DoBuildStep(collada::ColladaTreeBuilder& builder)
 	{
+		if (m_anyTokenBuilders.empty())
 		{
-			const char* childNames[] = { "AnyToken" };
-			scripting::ISymbol* childSymbols[_countof(childNames)];
-
-			if (MatchSymbol(m_rootSymbol, _countof(childNames), childNames, childSymbols)) {
-				if (!m_anyTokenBuilder) {
-					builder.m_builders.push(collada::ColladaBuilder());
-					collada::ColladaBuilder& cb = builder.m_builders.top();
-					m_anyTokenBuilder = new AnyTokenBuilder(cb);
-					m_anyTokenBuilder->m_rootSymbol = childSymbols[0];
-					return;
-				}
-
-				if (m_anyTokenBuilder->m_state == BuilderState::Failed) {
-					m_state = BuilderState::Failed;
-					return;
-				}
-
-				m_symbols.push_back(m_anyTokenBuilder->m_symbol);
-
-				m_state = BuilderState::Done;
-				return;
-			}
+			this->PushAnyTokenBuilders(builder);
+			return;
 		}
 
+		for (int i = m_anyTokenBuilders.size() - 1; i >= 0; --i)
 		{
-			const char* childNames[] = { "AnyData", "AnyToken" };
-			scripting::ISymbol* childSymbols[_countof(childNames)];
+			m_symbols.push_back(m_anyTokenBuilders[i]->m_symbol);
+		}
+		m_state = BuilderState::Done;
+	}
 
-			if (MatchSymbol(m_rootSymbol, _countof(childNames), childNames, childSymbols)) {
-				if (!m_anyTokenBuilder) {
+	void AnyDataBuilder::PushAnyTokenBuilders(collada::ColladaTreeBuilder& builder)
+	{
+		std::vector<scripting::ISymbol> anyTokenSymbols;
+		scripting::ISymbol* cur = m_rootSymbol;
+
+		while (true)
+		{
+			{
+				const char* childNames[] = { "AnyToken" };
+				scripting::ISymbol* childSymbols[_countof(childNames)];
+
+				if (MatchSymbol(cur, _countof(childNames), childNames, childSymbols))
+				{
 					builder.m_builders.push(collada::ColladaBuilder());
 					collada::ColladaBuilder& cb = builder.m_builders.top();
-					m_anyTokenBuilder = new AnyTokenBuilder(cb);
-					m_anyTokenBuilder->m_rootSymbol = childSymbols[1];
-					return;
+					AnyTokenBuilder* tmp = new AnyTokenBuilder(cb);
+					tmp->m_rootSymbol = childSymbols[0];
+					m_anyTokenBuilders.push_back(tmp);
+					break;
 				}
+			}
 
-				if (m_anyTokenBuilder->m_state == BuilderState::Failed) {
-					m_state = BuilderState::Failed;
-					return;
-				}
+			{
+				const char* childNames[] = { "AnyData", "AnyToken" };
+				scripting::ISymbol* childSymbols[_countof(childNames)];
 
-				if (!m_childBuilder) {
+				if (MatchSymbol(cur, _countof(childNames), childNames, childSymbols))
+				{	
 					builder.m_builders.push(collada::ColladaBuilder());
 					collada::ColladaBuilder& cb = builder.m_builders.top();
-					m_childBuilder = new AnyDataBuilder(cb);
-					m_childBuilder->m_rootSymbol = childSymbols[0];
-					return;
+					AnyTokenBuilder* tmp = new AnyTokenBuilder(cb);
+					tmp->m_rootSymbol = childSymbols[1];
+					m_anyTokenBuilders.push_back(tmp);
+					cur = childSymbols[0];
 				}
-
-				if (m_childBuilder->m_state == BuilderState::Failed) {
-					m_state = BuilderState::Failed;
-					return;
-				}
-
-				m_symbols = m_childBuilder->m_symbols;
-				m_symbols.push_back(m_anyTokenBuilder->m_symbol);
-
-				m_state = BuilderState::Done;
-				return;
 			}
 		}
-
-		m_state = BuilderState::Failed;
 	}
 	
 	void AnyDataBuilder::Dispose()
 	{
-		if (m_anyTokenBuilder) {
-			delete m_anyTokenBuilder;
+		for (auto it = m_anyTokenBuilders.begin(); it != m_anyTokenBuilders.end(); ++it) {
+			delete *it;
 		}
 
-		if (m_childBuilder) {
-			delete m_childBuilder;
-		}
-
-		m_anyTokenBuilder = nullptr;
-		m_childBuilder = nullptr;
+		m_anyTokenBuilders.clear();
 	}
 
 	void ClosedTagBuilder::DoBuildStep(collada::ColladaTreeBuilder& builder)

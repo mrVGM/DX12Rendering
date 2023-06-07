@@ -40,7 +40,7 @@ namespace
 			return false;
 		}
 
-		res = ConvertToScene(rootNodes, scene);
+			res = ConvertToScene(rootNodes, scene);
 
 		return res;
 	}
