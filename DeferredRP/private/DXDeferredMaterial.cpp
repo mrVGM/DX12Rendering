@@ -26,6 +26,9 @@
 
 #include "DeferredRendering.h"
 
+#include "DXMutableBuffer.h"
+#include "DXMutableBufferMeta.h"
+
 #include "BaseObjectContainer.h"
 
 namespace
@@ -191,7 +194,7 @@ ID3D12CommandList* rendering::DXDeferredMaterial::GenerateCommandList(
 
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
     commandList->SetGraphicsRootConstantBufferView(0, m_cameraBuffer->GetBuffer()->GetGPUVirtualAddress());
-    commandList->SetGraphicsRootConstantBufferView(1, m_settingsBuffer->GetBuffer()->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootConstantBufferView(1, m_settingsBuffer->GetBuffer()->GetBuffer()->GetGPUVirtualAddress());
 
     commandList->RSSetViewports(1, &m_swapChain->GetViewport());
     commandList->RSSetScissorRects(1, &m_swapChain->GetScissorRect());
@@ -249,63 +252,50 @@ void rendering::DXDeferredMaterial::CreateSettingsBuffer(jobs::Job* done)
     {
         DXDeferredMaterial* m_deferredMaterial = nullptr;
 
-        DXBuffer* m_buffer = nullptr;
-        DXHeap* m_heap = nullptr;
+        DXMutableBuffer* m_buffer = nullptr;
 
         jobs::Job* m_done = nullptr;
     };
 
-    class PlaceBuffer : public jobs::Job
+    class Finish : public jobs::Job
     {
     private:
         Context m_ctx;
     public:
-        PlaceBuffer(const Context& ctx) :
+        Finish(const Context& ctx) :
             m_ctx(ctx)
         {
         }
 
         void Do() override
         {
-            m_ctx.m_buffer->Place(m_ctx.m_heap, 0);
             m_ctx.m_deferredMaterial->m_settingsBuffer = m_ctx.m_buffer;
-
             core::utils::RunSync(m_ctx.m_done);
         }
     };
 
-    class CreateBufferAndHeap : public jobs::Job
+    class CreateBuffer : public jobs::Job
     {
     private:
         Context m_ctx;
     public:
-        CreateBufferAndHeap(const Context& ctx) :
+        CreateBuffer(const Context& ctx) :
             m_ctx(ctx)
         {
         }
 
         void Do()
         {
-            m_ctx.m_buffer = new DXBuffer(DXBufferMeta::GetInstance());
-            m_ctx.m_heap = new DXHeap();
-
-            m_ctx.m_buffer->SetBufferSizeAndFlags(256, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE);
-            m_ctx.m_buffer->SetBufferStride(256);
-
-            m_ctx.m_heap->SetHeapSize(256);
-            m_ctx.m_heap->SetHeapType(D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD);
-            m_ctx.m_heap->SetHeapFlags(D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS);
-
-            m_ctx.m_heap->Create();
-            m_ctx.m_heap->MakeResident(new PlaceBuffer(m_ctx));
+            m_ctx.m_buffer = new DXMutableBuffer(DXMutableBufferMeta::GetInstance(), 256, 256, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE);
+            m_ctx.m_buffer->Load(new Finish(m_ctx));
         }
     };
 
-    Context ctx{ this, nullptr, nullptr, done };
-    core::utils::RunSync(new CreateBufferAndHeap(ctx));
+    Context ctx{ this, nullptr, done };
+    core::utils::RunSync(new CreateBuffer(ctx));
 }
 
-rendering::DXBuffer* rendering::DXDeferredMaterial::GetSettingsBuffer()
+rendering::DXMutableBuffer* rendering::DXDeferredMaterial::GetSettingsBuffer()
 {
     return m_settingsBuffer;
 }

@@ -7,6 +7,7 @@
 namespace rendering
 {
 	class DXDescriptorHeap;
+	class DXMutableBuffer;
 
 	class DXDeferredMaterial : public rendering::DXMaterial
 	{
@@ -15,7 +16,7 @@ namespace rendering
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature;
 
 		DXDescriptorHeap* m_rtvHeap = nullptr;
-		DXBuffer* m_settingsBuffer = nullptr;
+		DXMutableBuffer* m_settingsBuffer = nullptr;
 
 		void CreateRTVHeap();
 	public:
@@ -32,6 +33,6 @@ namespace rendering
 			UINT indexCount,
 			UINT instanceIndex) override;
 
-		DXBuffer* GetSettingsBuffer();
+		DXMutableBuffer* GetSettingsBuffer();
 	};
 }

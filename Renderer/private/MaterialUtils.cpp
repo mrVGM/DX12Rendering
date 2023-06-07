@@ -10,6 +10,8 @@
 
 #include "ShaderRepo.h"
 
+#include "DXMutableBuffer.h"
+
 
 #include <list>
 
@@ -48,6 +50,26 @@ void rendering::material_utils::LoadMaterial(const collada::ColladaMaterial& mat
 		const collada::ColladaMaterial* m_colladaMaterial = nullptr;
 	};
 
+	Context ctx;
+	ctx.m_colladaMaterial = &material;
+
+	class Register : public jobs::Job
+	{
+	private:
+		Context m_ctx;
+	public:
+		Register(const Context& ctx) :
+			m_ctx(ctx)
+		{
+		}
+
+		void Do() override
+		{
+			DXMaterialRepo* repo = utils::GetMaterialRepo();
+			repo->Register(m_ctx.m_colladaMaterial->m_name, *m_ctx.m_material);
+		}
+	};
+
 	class SettingsBufferReady : public jobs::Job
 	{
 	private:
@@ -60,23 +82,22 @@ void rendering::material_utils::LoadMaterial(const collada::ColladaMaterial& mat
 
 		void Do() override
 		{
-			DXBuffer* buffer = m_ctx.m_material->GetSettingsBuffer();
-			float color[] =
+			DXBuffer* buffer = m_ctx.m_material->GetSettingsBuffer()->GetUploadBuffer();
+			void* tmp = buffer->Map();
+			float* color = static_cast<float*>(tmp);
 			{
-				m_ctx.m_colladaMaterial->m_diffuseColor[0],
-				m_ctx.m_colladaMaterial->m_diffuseColor[1],
-				m_ctx.m_colladaMaterial->m_diffuseColor[2],
-				m_ctx.m_colladaMaterial->m_diffuseColor[3],
+				color[0] = m_ctx.m_colladaMaterial->m_diffuseColor[0];
+				color[1] = m_ctx.m_colladaMaterial->m_diffuseColor[1];
+				color[2] = m_ctx.m_colladaMaterial->m_diffuseColor[2];
+				color[3] = m_ctx.m_colladaMaterial->m_diffuseColor[3];
 
-				0.3,
-				0.3,
-				0.3,
-				64
+				color[4] = 0.3;
+				color[5] = 0.3;
+				color[6] = 0.3;
+				color[7] = 64;
 			};
-			buffer->CopyData(color, _countof(color) * sizeof(float));
-
-			DXMaterialRepo* repo = utils::GetMaterialRepo();
-			repo->Register(m_ctx.m_colladaMaterial->m_name, *m_ctx.m_material);
+			buffer->Unmap();
+			m_ctx.m_material->GetSettingsBuffer()->Copy(new Register(m_ctx));
 		}
 	};
 
@@ -96,8 +117,7 @@ void rendering::material_utils::LoadMaterial(const collada::ColladaMaterial& mat
 		}
 	};
 
-	Context ctx;
-	ctx.m_colladaMaterial = &material;
+	
 	utils::RunSync(new CreateDeferredMaterial(ctx));
 	
 }
