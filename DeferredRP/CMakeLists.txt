@@ -90,6 +90,8 @@ add_library (DeferredRP
 	"private/HelperMaterials/DXPostProcessMaterialMeta.cpp"
 	"private/HelperMaterials/DXPostProcessMaterial.h"
 	"private/HelperMaterials/DXPostProcessMaterial.cpp"
+	"public/CommandListCache.h"
+	"private/CommandListCache.cpp"
 )
 
 target_include_directories(DeferredRP INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
