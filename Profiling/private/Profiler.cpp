@@ -59,6 +59,7 @@ void profiling::Profiler::PrintProfile(const std::string& profileName)
 	if (profileIt == m_profiles.end())
 	{
 		cout << "No profile found!";
+		return;
 	}
 
 	Profile& profile = profileIt->second;
@@ -70,7 +71,7 @@ void profiling::Profiler::PrintProfile(const std::string& profileName)
 		stopwatchInfoArray.push_back(&it->second);
 	}
 
-	for (int i = 0; i < stopwatchInfoArray.size() - 1; ++i)
+	for (int i = 0; i < stopwatchInfoArray.size(); ++i)
 	{
 		for (int j = i + 1; j < stopwatchInfoArray.size(); ++j)
 		{
