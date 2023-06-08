@@ -84,7 +84,7 @@ void profiling::Profiler::PrintProfile(const std::string& profileName)
 		}
 	}
 
-	for (int i = 0; i < stopwatchInfoArray.size() - 1; ++i)
+	for (int i = 0; i < stopwatchInfoArray.size(); ++i)
 	{
 		StopwatchInfo* cur = stopwatchInfoArray[i];
 		cout << cur->m_name << '\t' << cur->m_numberOfCalls << '\t' << cur->m_accumulatedTime << endl;
