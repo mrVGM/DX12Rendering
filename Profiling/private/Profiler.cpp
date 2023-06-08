@@ -59,6 +59,7 @@ void profiling::Profiler::PrintProfile(const std::string& profileName)
 	if (profileIt == m_profiles.end())
 	{
 		cout << "No profile found!";
+		return;
 	}
 
 	Profile& profile = profileIt->second;
