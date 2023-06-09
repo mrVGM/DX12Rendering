@@ -1,12 +1,14 @@
 #include "CascadedSMMeta.h"
 
+#include "ShadowMapMeta.h"
+
 namespace
 {
 	rendering::CascadedSMMeta m_meta;
 }
 
 rendering::CascadedSMMeta::CascadedSMMeta() :
-	BaseObjectMeta(nullptr)
+	BaseObjectMeta(&ShadowMapMeta::GetInstance())
 {
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "BaseObject.h"
+#include "ShadowMap.h"
+
 #include "Job.h"
 
 #include <d3d12.h>
@@ -15,7 +16,7 @@ namespace rendering
 	class DXDescriptorHeap;
 	class DXMaterial;
 
-	class CascadedSM : public BaseObject
+	class CascadedSM : public ShadowMap
 	{
 	public:
 		static const UINT m_resolution;
@@ -49,7 +50,9 @@ namespace rendering
 		CascadedSM();
 		virtual ~CascadedSM();
 
-		void LoadResources(jobs::Job* done);
+		void LoadResources(jobs::Job* done) override;
+		DXTexture* GetShadowMask() override;
+		void RenderShadowMask() override;
 
 		void UpdateSMSettings();
 		DXTexture* GetShadowMap(int index);

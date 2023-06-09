@@ -808,7 +808,7 @@ void rendering::CascadedSM::UpdateSMSettings()
 }
 
 rendering::CascadedSM::CascadedSM() :
-	BaseObject(CascadedSMMeta::GetInstance())
+	ShadowMap(CascadedSMMeta::GetInstance())
 {
 	CacheObjects();
 }
@@ -897,6 +897,15 @@ rendering::DXTexture* rendering::CascadedSM::GetShadowMapFilterTex()
 rendering::DXTexture* rendering::CascadedSM::GetShadowMask(int index)
 {
 	return m_shadowMaskTex[index];
+}
+
+rendering::DXTexture* rendering::CascadedSM::GetShadowMask()
+{
+	return GetShadowMask(0);
+}
+
+void rendering::CascadedSM::RenderShadowMask()
+{
 }
 
 rendering::DXDescriptorHeap* rendering::CascadedSM::GetDSDescriptorHeap()
