@@ -12,6 +12,7 @@
 #include "DXGBufferPositionTexMeta.h"
 
 #include "DXBuffer.h"
+#include "DXMaterialRepoMeta.h"
 
 #include "BaseObjectContainer.h"
 
@@ -149,4 +150,19 @@ rendering::DXTexture* rendering::cascaded::GetGBufferPositionTex()
 
 	DXTexture* tex = static_cast<DXTexture*>(obj);
 	return tex;
+}
+
+rendering::DXMaterialRepo* rendering::cascaded::GetMaterialRepo()
+{
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+
+	BaseObject* obj = container.GetObjectOfClass(DXMaterialRepoMeta::GetInstance());
+
+	if (!obj)
+	{
+		throw "Can't find Material Repo!";
+	}
+
+	DXMaterialRepo* materialRepo = static_cast<DXMaterialRepo*>(obj);
+	return materialRepo;
 }

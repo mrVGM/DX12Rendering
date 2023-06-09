@@ -6,6 +6,7 @@
 #include "DXScene.h"
 #include "DXCameraBufferMeta.h"
 #include "DXTexture.h"
+#include "DXMaterialRepo.h"
 
 namespace rendering::cascaded
 {
@@ -19,4 +20,6 @@ namespace rendering::cascaded
 	DXTexture* GetGBufferSpecularTex();
 	DXTexture* GetGBufferNormalTex();
 	DXTexture* GetGBufferPositionTex();
+
+	DXMaterialRepo* GetMaterialRepo();
 }

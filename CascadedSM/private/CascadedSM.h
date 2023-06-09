@@ -6,6 +6,8 @@
 
 #include <d3d12.h>
 
+#include "CommandListCache.h"
+
 #include <list>
 #include <vector>
 
@@ -22,6 +24,11 @@ namespace rendering
 		static const UINT m_resolution;
 
 	private:
+		CommandListCache m_materialCLsCache;
+
+		int m_numCommandLists = -1;
+		ID3D12CommandList** m_commandListsCache = nullptr;
+
 		const float m_cascadeSeparators[3] = { 20, 50, 200 };
 
 		DXBuffer* m_smSettingsBuffer = nullptr;
@@ -56,7 +63,6 @@ namespace rendering
 
 		void UpdateSMSettings();
 		DXTexture* GetShadowMap(int index);
-		DXTexture* GetShadowSQMap();
 		DXTexture* GetShadowMapFilterTex();
 		DXTexture* GetShadowMask(int index);
 		DXDescriptorHeap* GetDSDescriptorHeap();

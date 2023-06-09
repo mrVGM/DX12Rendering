@@ -34,9 +34,10 @@
 
 #include "ICamera.h"
 
-#include "utils.h"
+#include "DXDeferredMaterialMetaTag.h"
 
-#include "HelperMaterials/DXDisplaySMMaterial.h"
+#include "CoreUtils.h"
+#include "utils.h"
 
 #include <DirectXMath.h>
 
@@ -48,6 +49,8 @@ namespace
 	rendering::DXScene* m_scene = nullptr;
 	rendering::ILightsManager* m_lightsManager = nullptr;
 	rendering::Window* m_wnd = nullptr;
+	rendering::DXMaterialRepo* m_materialRepo = nullptr;
+	rendering::DXCommandQueue* m_commandQueue = nullptr;
 
 	void CacheObjects()
 	{
@@ -70,6 +73,16 @@ namespace
 		if (!m_wnd)
 		{
 			m_wnd = core::utils::GetWindow();
+		}
+
+		if (!m_materialRepo)
+		{
+			m_materialRepo = cascaded::GetMaterialRepo();
+		}
+		
+		if (!m_commandQueue)
+		{
+			m_commandQueue = core::utils::GetCommandQueue();
 		}
 	}
 
@@ -815,6 +828,10 @@ rendering::CascadedSM::CascadedSM() :
 
 rendering::CascadedSM::~CascadedSM()
 {
+	if (m_commandListsCache)
+	{
+		delete[] m_commandListsCache;
+	}
 }
 
 
@@ -906,6 +923,100 @@ rendering::DXTexture* rendering::CascadedSM::GetShadowMask()
 
 void rendering::CascadedSM::RenderShadowMask()
 {
+	DXScene* scene = m_scene;
+	DXMaterialRepo* repo = m_materialRepo;
+
+	std::list<ID3D12CommandList*> deferredLists;
+	for (int i = 0; i < scene->m_scenesLoaded; ++i)
+	{
+		collada::ColladaScene& curColladaScene = *scene->m_colladaScenes[i];
+		const DXScene::SceneResources& curSceneResources = scene->m_sceneResources[i];
+
+		collada::Scene& s = curColladaScene.GetScene();
+
+		for (auto it = s.m_objects.begin(); it != s.m_objects.end(); ++it)
+		{
+			collada::Object& obj = it->second;
+			collada::Geometry& geo = s.m_geometries[obj.m_geometry];
+			int instanceIndex = s.m_objectInstanceMap[it->first];
+
+			const std::string& objectName = it->first;
+
+			int index = 0;
+			for (auto smMatIt = GetShadowMapMaterials().begin();
+				smMatIt != GetShadowMapMaterials().end();
+				++smMatIt)
+			{
+				auto matOverrideIt = obj.m_materialOverrides.begin();
+				std::string matName = "_sm_";
+				matName += '0' + index;
+				matName += "_";
+
+				for (auto it = geo.m_materials.begin(); it != geo.m_materials.end(); ++it)
+				{
+					const std::string matOverrideName = *matOverrideIt;
+					++matOverrideIt;
+
+					std::string smMatName = matName + matOverrideName;
+					{
+						ID3D12CommandList* cl = m_materialCLsCache.GetCommandList(smMatName, objectName);
+						if (cl)
+						{
+							deferredLists.push_back(cl);
+							continue;
+						}
+					}
+
+					DXMaterial* mat = repo->GetMaterial(matOverrideName);
+
+					const DXScene::GeometryResources& geometryResources = curSceneResources.m_geometryResources.find(obj.m_geometry)->second;
+					DXBuffer* vertBuf = geometryResources.m_vertexBuffer;
+					DXBuffer* indexBuf = geometryResources.m_indexBuffer;
+					DXBuffer* instanceBuf = geometryResources.m_instanceBuffer;
+
+					if (!mat)
+					{
+						continue;
+					}
+
+					if (!mat->GetMeta().HasTag(DXDeferredMaterialMetaTag::GetInstance()))
+					{
+						continue;
+					}
+
+					ID3D12CommandList* cl = (*smMatIt)->GenerateCommandList(
+						*vertBuf,
+						*indexBuf,
+						*instanceBuf,
+						(*it).indexOffset,
+						(*it).indexCount,
+						instanceIndex);
+
+					m_materialCLsCache.CacheCommandList(smMatName, objectName, cl);
+					deferredLists.push_back(cl);
+				}
+			}
+		}
+	}
+
+	int numLists = deferredLists.size();
+	if (m_numCommandLists < numLists)
+	{
+		if (m_numCommandLists)
+		{
+			delete[] m_commandListsCache;
+		}
+		m_commandListsCache = new ID3D12CommandList * [numLists];
+		m_numCommandLists = numLists;
+	}
+
+	int index = 0;
+	for (auto it = deferredLists.begin(); it != deferredLists.end(); ++it)
+	{
+		m_commandListsCache[index++] = *it;
+	}
+
+	m_commandQueue->GetCommandQueue()->ExecuteCommandLists(numLists, m_commandListsCache);
 }
 
 rendering::DXDescriptorHeap* rendering::CascadedSM::GetDSDescriptorHeap()
