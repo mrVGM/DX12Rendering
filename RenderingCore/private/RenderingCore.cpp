@@ -16,6 +16,8 @@
 
 #include "DXResidentHeapFenceMeta.h"
 
+#include "Notifications.h"
+
 #include "CoreUtils.h"
 
 void rendering::core::Boot()
@@ -23,6 +25,8 @@ void rendering::core::Boot()
 	new jobs::JobSystem(MainJobSystemMeta::GetInstance(), 1);
 	new jobs::JobSystem(LoadJobSystemMeta::GetInstance(), 5);
 	new jobs::JobSystem(ResidentHeapJobSystemMeta::GetInstance(), 1);
+
+	notifications::Boot();
 
 	new rendering::Window();
 	new DXDevice();
