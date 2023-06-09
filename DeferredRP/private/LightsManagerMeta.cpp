@@ -1,12 +1,14 @@
 #include "LightsManagerMeta.h"
 
+#include "ILightsManagerMeta.h"
+
 namespace
 {
 	rendering::LightsManagerMeta m_instance;
 }
 
 rendering::LightsManagerMeta::LightsManagerMeta() :
-	BaseObjectMeta(nullptr)
+	BaseObjectMeta(&ILightsManagerMeta::GetInstance())
 {
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "BaseObject.h"
+#include "ILightsManager.h"
+
 #include "Job.h"
 
 #include <vector>
@@ -17,7 +18,7 @@ namespace rendering
 		float m_range;
 	};
 
-	class LightsManager : public BaseObject
+	class LightsManager : public ILightsManager
 	{
 	public:
 		static int m_shadowMapResolution;
@@ -25,6 +26,8 @@ namespace rendering
 
 		std::vector<Light> m_lights;
 		DXBuffer* m_lightsBuffer = nullptr;
+
+		DirectionalLight m_primaryLight;
 		
 	public:
 		LightsManager();
@@ -35,5 +38,7 @@ namespace rendering
 		DXBuffer* GetLightsBuffer();
 
 		const Light& GetLight(int index) const;
+
+		const DirectionalLight& GetPrimaryDirectionalLight() const override;
 	};
 }

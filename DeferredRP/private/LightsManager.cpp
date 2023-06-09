@@ -520,7 +520,7 @@ namespace
 int rendering::LightsManager::m_shadowMapResolution = 2048;
 
 rendering::LightsManager::LightsManager() :
-	BaseObject(LightsManagerMeta::GetInstance())
+	ILightsManager(LightsManagerMeta::GetInstance())
 {
 	CacheObjects();
 
@@ -531,6 +531,8 @@ rendering::LightsManager::LightsManager() :
 	l.m_range = 300000;
 
 	AddLight(l);
+
+	m_primaryLight.m_direction = DirectX::XMVectorSet(l.m_direction[0], l.m_direction[1], l.m_direction[2], 1);
 }
 
 rendering::LightsManager::~LightsManager()
@@ -634,5 +636,10 @@ rendering::DXBuffer* rendering::LightsManager::GetLightsBuffer()
 const rendering::Light& rendering::LightsManager::GetLight(int index) const
 {
 	return m_lights[index];
+}
+
+const rendering::DirectionalLight& rendering::LightsManager::GetPrimaryDirectionalLight() const
+{
+	return m_primaryLight;
 }
 

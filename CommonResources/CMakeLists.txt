@@ -14,7 +14,16 @@ add_library (CommonResources
 	"public/TickUpdaterMeta.h"
 	"private/TickUpdaterMeta.cpp"
 	"public/TickUpdater.h"
-	"private/TickUpdater.cpp")
+	"private/TickUpdater.cpp"
+	"private/DXGBufferDiffuseTexMeta.cpp"
+	"public/DXGBufferDuffuseTexMeta.h"
+	"private/DXGBufferNormalTexMeta.cpp"
+	"public/DXGBufferNormalTexMeta.h"
+	"private/DXGBufferPositionTexMeta.cpp"
+	"public/DXGBufferPositionTexMeta.h"
+	"private/DXGBufferSpecularTexMeta.cpp"
+	"public/DXGBufferSpecularTexMeta.h"
+)
 
 target_include_directories(CommonResources INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(CommonResources PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")

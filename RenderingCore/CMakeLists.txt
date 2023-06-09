@@ -72,6 +72,14 @@ add_library (RenderingCore
 	"public/DXDescriptorHeapMeta.h"
 	"private/DXDescriptorHeap.cpp"
 	"private/DXDescriptorHeapMeta.cpp"
+	"public/ShadowMapMeta.h"
+	"private/ShadowMapMeta.cpp"
+	"public/ShadowMap.h"
+	"private/ShadowMap.cpp"
+	"public/ILightsManagerMeta.h"
+	"private/ILightsManagerMeta.cpp"
+	"public/ILightsManager.h"
+	"private/ILightsManager.cpp"
 )
 
 target_include_directories(RenderingCore INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

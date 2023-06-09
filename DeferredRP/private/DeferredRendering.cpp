@@ -2,10 +2,10 @@
 
 #include "CoreUtils.h"
 
-#include "resources/DXGBufferDuffuseTexMeta.h"
-#include "resources/DXGBufferNormalTexMeta.h"
-#include "resources/DXGBufferPositionTexMeta.h"
-#include "resources/DXGBufferSpecularTexMeta.h"
+#include "DXGBufferDuffuseTexMeta.h"
+#include "DXGBufferNormalTexMeta.h"
+#include "DXGBufferPositionTexMeta.h"
+#include "DXGBufferSpecularTexMeta.h"
 
 #include "resources/DXGBufferAmbientLitTexMeta.h"
 #include "resources/DXGBufferDiffuseLitTexMeta.h"
