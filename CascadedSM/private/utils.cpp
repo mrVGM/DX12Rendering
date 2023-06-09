@@ -10,6 +10,7 @@
 #include "DXGBufferSpecularTexMeta.h"
 #include "DXGBufferNormalTexMeta.h"
 #include "DXGBufferPositionTexMeta.h"
+#include "DXRenderTextureVertexBufferMeta.h"
 
 #include "DXBuffer.h"
 #include "DXMaterialRepoMeta.h"
@@ -150,6 +151,21 @@ rendering::DXTexture* rendering::cascaded::GetGBufferPositionTex()
 
 	DXTexture* tex = static_cast<DXTexture*>(obj);
 	return tex;
+}
+
+rendering::DXBuffer* rendering::cascaded::GetRenderTextureBuffer()
+{
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+
+	BaseObject* obj = container.GetObjectOfClass(DXRenderTextureVertexBufferMeta::GetInstance());
+
+	if (!obj)
+	{
+		throw "Can't find Render Texture Buffer!";
+	}
+
+	DXBuffer* buffer = static_cast<DXBuffer*>(obj);
+	return buffer;
 }
 
 rendering::DXMaterialRepo* rendering::cascaded::GetMaterialRepo()

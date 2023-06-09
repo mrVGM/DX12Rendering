@@ -60,6 +60,7 @@ namespace
 
 	rendering::DXTexture* m_gBuffPositionTex = nullptr;
 
+	rendering::DXBuffer* m_renderTextureBuffer = nullptr;
 	rendering::DXMaterial* m_shadowMaskMat = nullptr;
 
 	void CacheObjects()
@@ -98,6 +99,11 @@ namespace
 		if (!m_gBuffPositionTex)
 		{
 			m_gBuffPositionTex = cascaded::GetGBufferPositionTex();
+		}
+
+		if (!m_renderTextureBuffer)
+		{
+			m_renderTextureBuffer = cascaded::GetRenderTextureBuffer();
 		}
 	}
 
@@ -1053,6 +1059,15 @@ void rendering::CascadedSM::RenderShadowMask()
 
 	{
 		ID3D12CommandList* ppCommandLists[] = { m_postSMRenderList.Get() };
+		m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+	}
+
+	{
+		DXBuffer* dummy = nullptr;
+		ID3D12CommandList* commandList = m_shadowMaskMat->GenerateCommandList(
+			*m_renderTextureBuffer,
+			*dummy, *dummy, 0, 0, 0);
+		ID3D12CommandList* ppCommandLists[] = { commandList };
 		m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 	}
 }

@@ -13,6 +13,7 @@
 
 #include "DXHeap.h"
 #include "DXBufferMeta.h"
+#include "DXRenderTextureVertexBufferMeta.h"
 
 #include "DXDescriptorHeap.h"
 
@@ -223,7 +224,7 @@ namespace
 				UINT stride = sizeof(Vertex);
 				UINT size = 6 * stride;
 
-				m_ctx.m_buffer = new DXBuffer(DXBufferMeta::GetInstance());
+				m_ctx.m_buffer = new DXBuffer(DXRenderTextureVertexBufferMeta::GetInstance());
 				m_ctx.m_buffer->SetBufferSizeAndFlags(size, D3D12_RESOURCE_FLAG_NONE);
 				m_ctx.m_buffer->SetBufferStride(stride);
 

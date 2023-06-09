@@ -23,6 +23,8 @@ add_library (CommonResources
 	"public/DXGBufferPositionTexMeta.h"
 	"private/DXGBufferSpecularTexMeta.cpp"
 	"public/DXGBufferSpecularTexMeta.h"
+	"public/DXRenderTextureVertexBufferMeta.h"
+	"private/DXRenderTextureVertexBufferMeta.cpp"
 )
 
 target_include_directories(CommonResources INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
