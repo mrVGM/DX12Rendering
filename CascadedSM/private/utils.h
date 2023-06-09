@@ -7,7 +7,7 @@
 #include "DXCameraBufferMeta.h"
 #include "DXTexture.h"
 
-namespace rendering::deferred
+namespace rendering::cascaded
 {
 	ILightsManager* GetLightsManager();
 	CascadedSM* GetCascadedSM();

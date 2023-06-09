@@ -15,7 +15,7 @@
 
 #include "BaseObjectContainer.h"
 
-rendering::ILightsManager* rendering::deferred::GetLightsManager()
+rendering::ILightsManager* rendering::cascaded::GetLightsManager()
 {
 	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
 
@@ -30,7 +30,7 @@ rendering::ILightsManager* rendering::deferred::GetLightsManager()
 	return lightsManager;
 }
 
-rendering::CascadedSM* rendering::deferred::GetCascadedSM()
+rendering::CascadedSM* rendering::cascaded::GetCascadedSM()
 {
 	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
 
@@ -46,7 +46,7 @@ rendering::CascadedSM* rendering::deferred::GetCascadedSM()
 }
 
 
-rendering::ICamera* rendering::deferred::GetCamera()
+rendering::ICamera* rendering::cascaded::GetCamera()
 {
 	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
 
@@ -61,7 +61,7 @@ rendering::ICamera* rendering::deferred::GetCamera()
 	return camera;
 }
 
-rendering::DXScene* rendering::deferred::GetScene()
+rendering::DXScene* rendering::cascaded::GetScene()
 {
 	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
 
@@ -76,7 +76,7 @@ rendering::DXScene* rendering::deferred::GetScene()
 	return scene;
 }
 
-rendering::DXBuffer* rendering::deferred::GetCameraBuffer()
+rendering::DXBuffer* rendering::cascaded::GetCameraBuffer()
 {
 	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
 
@@ -91,11 +91,11 @@ rendering::DXBuffer* rendering::deferred::GetCameraBuffer()
 	return buffer;
 }
 
-rendering::DXTexture* rendering::deferred::GetGBufferDiffuseTex()
+rendering::DXTexture* rendering::cascaded::GetGBufferDiffuseTex()
 {
 	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
 
-	BaseObject* obj = container.GetObjectOfClass(DXGBufferDuffuseTexMeta::GetInstance());
+	BaseObject* obj = container.GetObjectOfClass(deferred::DXGBufferDuffuseTexMeta::GetInstance());
 
 	if (!obj)
 	{
@@ -106,11 +106,11 @@ rendering::DXTexture* rendering::deferred::GetGBufferDiffuseTex()
 	return tex;
 }
 
-rendering::DXTexture* rendering::deferred::GetGBufferSpecularTex()
+rendering::DXTexture* rendering::cascaded::GetGBufferSpecularTex()
 {
 	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
 
-	BaseObject* obj = container.GetObjectOfClass(DXGBufferSpecularTexMeta::GetInstance());
+	BaseObject* obj = container.GetObjectOfClass(deferred::DXGBufferSpecularTexMeta::GetInstance());
 
 	if (!obj)
 	{
@@ -121,11 +121,11 @@ rendering::DXTexture* rendering::deferred::GetGBufferSpecularTex()
 	return tex;
 }
 
-rendering::DXTexture* rendering::deferred::GetGBufferNormalTex()
+rendering::DXTexture* rendering::cascaded::GetGBufferNormalTex()
 {
 	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
 
-	BaseObject* obj = container.GetObjectOfClass(DXGBufferNormalTexMeta::GetInstance());
+	BaseObject* obj = container.GetObjectOfClass(deferred::DXGBufferNormalTexMeta::GetInstance());
 
 	if (!obj)
 	{
@@ -136,11 +136,11 @@ rendering::DXTexture* rendering::deferred::GetGBufferNormalTex()
 	return tex;
 }
 
-rendering::DXTexture* rendering::deferred::GetGBufferPositionTex()
+rendering::DXTexture* rendering::cascaded::GetGBufferPositionTex()
 {
 	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
 
-	BaseObject* obj = container.GetObjectOfClass(DXGBufferPositionTexMeta::GetInstance());
+	BaseObject* obj = container.GetObjectOfClass(deferred::DXGBufferPositionTexMeta::GetInstance());
 
 	if (!obj)
 	{

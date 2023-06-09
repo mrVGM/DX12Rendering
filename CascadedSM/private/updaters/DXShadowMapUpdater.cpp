@@ -16,7 +16,7 @@ namespace
 
 		if (!m_lightsManager)
 		{
-			m_lightsManager = deferred::GetLightsManager();
+			m_lightsManager = cascaded::GetLightsManager();
 		}
 	}
 }

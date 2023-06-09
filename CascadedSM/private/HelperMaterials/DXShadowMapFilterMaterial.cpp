@@ -45,7 +45,7 @@ namespace
 
         if (!m_cascadedSM)
         {
-            m_cascadedSM = deferred::GetCascadedSM();
+            m_cascadedSM = cascaded::GetCascadedSM();
         }
 
     }

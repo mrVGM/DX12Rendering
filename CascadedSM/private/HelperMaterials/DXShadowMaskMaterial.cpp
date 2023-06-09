@@ -34,6 +34,8 @@ namespace
     rendering::DXBuffer* m_smSettingsBuffer = nullptr;
     rendering::DXTexture* m_shadowMap = nullptr;
 
+    rendering::DXTexture* m_gBuffPositionTex = nullptr;
+
     rendering::CascadedSM* m_cascadedSM = nullptr;
     rendering::Window* m_wnd = nullptr;
 
@@ -92,6 +94,10 @@ namespace
             m_smSettingsBuffer = static_cast<DXBuffer*>(obj);
         }
 
+        if (!m_gBuffPositionTex)
+        {
+            m_gBuffPositionTex = cascaded::GetGBufferPositionTex();
+        }
 
         if (!m_device)
         {
@@ -101,7 +107,7 @@ namespace
 
         if (!m_cascadedSM)
         {
-            m_cascadedSM = deferred::GetCascadedSM();
+            m_cascadedSM = cascaded::GetCascadedSM();
         }
 
         if (!m_wnd)
@@ -149,7 +155,7 @@ ID3D12CommandList* rendering::DXShadowMaskMaterial::GenerateCommandList(
     {
         CD3DX12_RESOURCE_BARRIER barrier[] =
         {
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferPositionTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_gBuffPositionTex->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMap(0)->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMap(1)->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMap(2)->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
@@ -204,7 +210,7 @@ ID3D12CommandList* rendering::DXShadowMaskMaterial::GenerateCommandList(
     {
         CD3DX12_RESOURCE_BARRIER barrier[] =
         {
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferPositionTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_gBuffPositionTex->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMap(0)->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMap(1)->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMap(2)->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
@@ -332,7 +338,7 @@ void rendering::DXShadowMaskMaterial::CreateDescriptorHeaps()
 {
     {
         std::list<DXTexture*> textures;
-        textures.push_back(deferred::GetGBufferPositionTex());
+        textures.push_back(m_gBuffPositionTex);
         textures.push_back(m_cascadedSM->GetShadowMap(0));
         textures.push_back(m_cascadedSM->GetShadowMap(1));
         textures.push_back(m_cascadedSM->GetShadowMap(2));

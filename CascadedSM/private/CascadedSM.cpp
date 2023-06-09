@@ -54,17 +54,17 @@ namespace
 		using namespace rendering;
 		if (!m_camera)
 		{
-			m_camera = deferred::GetCamera();
+			m_camera = cascaded::GetCamera();
 		}
 
 		if (!m_scene)
 		{
-			m_scene = deferred::GetScene();
+			m_scene = cascaded::GetScene();
 		}
 
 		if (!m_lightsManager)
 		{
-			m_lightsManager = deferred::GetLightsManager();
+			m_lightsManager = cascaded::GetLightsManager();
 		}
 
 		if (!m_wnd)
