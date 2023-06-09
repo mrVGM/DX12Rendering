@@ -24,10 +24,6 @@ add_library (RenderingCore
 	"private/DXCommandQueueMeta.cpp"
 	"public/RenderingCore.h"
 	"private/RenderingCore.cpp"
-	"public/MainJobSystemMeta.h"
-	"private/MainJobSystemMeta.cpp"
-	"private/LoadJobSystemMeta.cpp"
-	"public/LoadJobSystemMeta.h"
 	"public/WaitFence.h"
 	"private/WaitFence.cpp"
 	"public/DXFence.h"
@@ -85,7 +81,7 @@ add_library (RenderingCore
 target_include_directories(RenderingCore INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(RenderingCore PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(RenderingCore INTERFACE PUBLIC Base Jobs DataLib)
+target_link_libraries(RenderingCore INTERFACE PUBLIC Base Jobs DataLib CommonResources)
 
 target_link_libraries(RenderingCore PRIVATE "d3d12.lib" "dxgi.lib" "d3dcompiler.lib" "dxguid.lib")
 
