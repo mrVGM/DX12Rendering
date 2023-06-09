@@ -41,6 +41,12 @@
 
 #include <DirectXMath.h>
 
+#define THROW_ERROR(hRes, error) \
+if (FAILED(hRes)) {\
+    throw error;\
+}
+
+
 namespace
 {
 	static const float eps = 0.00000000001f;
@@ -51,6 +57,10 @@ namespace
 	rendering::Window* m_wnd = nullptr;
 	rendering::DXMaterialRepo* m_materialRepo = nullptr;
 	rendering::DXCommandQueue* m_commandQueue = nullptr;
+
+	rendering::DXTexture* m_gBuffPositionTex = nullptr;
+
+	rendering::DXMaterial* m_shadowMaskMat = nullptr;
 
 	void CacheObjects()
 	{
@@ -83,6 +93,11 @@ namespace
 		if (!m_commandQueue)
 		{
 			m_commandQueue = core::utils::GetCommandQueue();
+		}
+
+		if (!m_gBuffPositionTex)
+		{
+			m_gBuffPositionTex = cascaded::GetGBufferPositionTex();
 		}
 	}
 
@@ -820,10 +835,113 @@ void rendering::CascadedSM::UpdateSMSettings()
 	m_smSettingsBuffer->Unmap();
 }
 
+void rendering::CascadedSM::PreparePreSMRenderList()
+{
+	if (m_preSMRenderListPrepared)
+	{
+		return;
+	}
+
+	THROW_ERROR(
+		m_preSMRenderList->Reset(m_commandAllocator.Get(), nullptr),
+		"Can't reset Command List!")
+
+	{
+		CD3DX12_RESOURCE_BARRIER barrier[] =
+		{
+			CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(GetShadowMap(0)->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
+			CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(GetShadowMap(1)->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
+			CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(GetShadowMap(2)->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
+			CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(GetShadowMap(3)->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
+
+			CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_gBuffPositionTex->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
+		};
+		m_preSMRenderList->ResourceBarrier(_countof(barrier), barrier);
+	}
+
+	{
+		const float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+		m_preSMRenderList->ClearRenderTargetView(GetSMDescriptorHeap()->GetDescriptorHandle(0), clearColor, 0, nullptr);
+		m_preSMRenderList->ClearRenderTargetView(GetSMDescriptorHeap()->GetDescriptorHandle(1), clearColor, 0, nullptr);
+		m_preSMRenderList->ClearRenderTargetView(GetSMDescriptorHeap()->GetDescriptorHandle(2), clearColor, 0, nullptr);
+		m_preSMRenderList->ClearRenderTargetView(GetSMDescriptorHeap()->GetDescriptorHandle(3), clearColor, 0, nullptr);
+	}
+
+	{
+		DXDescriptorHeap* dsDescriptorHeap = GetDSDescriptorHeap();
+		m_preSMRenderList->ClearDepthStencilView(dsDescriptorHeap->GetDescriptorHandle(0), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+		m_preSMRenderList->ClearDepthStencilView(dsDescriptorHeap->GetDescriptorHandle(1), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+		m_preSMRenderList->ClearDepthStencilView(dsDescriptorHeap->GetDescriptorHandle(2), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+		m_preSMRenderList->ClearDepthStencilView(dsDescriptorHeap->GetDescriptorHandle(3), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	}
+
+	THROW_ERROR(
+		m_preSMRenderList->Close(),
+		"Can't close Command List!")
+
+	m_preSMRenderListPrepared = true;
+}
+
+void rendering::CascadedSM::PreparePostSMRenderList()
+{
+	if (m_postSMRenderListPrepared)
+	{
+		return;
+	}
+
+	THROW_ERROR(
+		m_postSMRenderList->Reset(m_commandAllocator.Get(), nullptr),
+		"Can't reset Command List!")
+
+	{
+		CD3DX12_RESOURCE_BARRIER barrier[] =
+		{
+			CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(GetShadowMap(0)->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
+			CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(GetShadowMap(1)->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
+			CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(GetShadowMap(2)->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
+			CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(GetShadowMap(3)->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
+
+			CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_gBuffPositionTex->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
+		};
+		m_postSMRenderList->ResourceBarrier(_countof(barrier), barrier);
+	}
+
+	THROW_ERROR(
+		m_postSMRenderList->Close(),
+		"Can't close Command List!")
+
+	m_postSMRenderListPrepared = true;
+}
+
 rendering::CascadedSM::CascadedSM() :
 	ShadowMap(CascadedSMMeta::GetInstance())
 {
 	CacheObjects();
+
+	DXDevice* device = core::utils::GetDevice();
+
+	{
+		THROW_ERROR(
+			device->GetDevice().CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator)),
+			"Can't create Command Allocator!")
+
+		THROW_ERROR(
+			device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&m_preSMRenderList)),
+			"Can't reset Command List!")
+
+		THROW_ERROR(
+			m_preSMRenderList->Close(),
+			"Can't close Command List!")
+
+		THROW_ERROR(
+			device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&m_postSMRenderList)),
+			"Can't reset Command List!")
+
+		THROW_ERROR(
+			m_postSMRenderList->Close(),
+			"Can't close Command List!")
+	}
 }
 
 rendering::CascadedSM::~CascadedSM()
@@ -922,6 +1040,24 @@ rendering::DXTexture* rendering::CascadedSM::GetShadowMask()
 }
 
 void rendering::CascadedSM::RenderShadowMask()
+{
+	PreparePreSMRenderList();
+	PreparePostSMRenderList();
+
+	{
+		ID3D12CommandList* ppCommandLists[] = { m_preSMRenderList.Get() };
+		m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+	}
+
+	RenderScene();
+
+	{
+		ID3D12CommandList* ppCommandLists[] = { m_postSMRenderList.Get() };
+		m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+	}
+}
+
+void rendering::CascadedSM::RenderScene()
 {
 	DXScene* scene = m_scene;
 	DXMaterialRepo* repo = m_materialRepo;
@@ -1038,3 +1174,6 @@ const std::list<rendering::DXMaterial*>& rendering::CascadedSM::GetShadowMapMate
 {
 	return m_shadowMapMaterials;
 }
+
+
+#undef THROW_ERROR

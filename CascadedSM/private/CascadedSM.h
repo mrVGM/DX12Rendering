@@ -4,10 +4,10 @@
 
 #include "Job.h"
 
-#include <d3d12.h>
-
 #include "CommandListCache.h"
 
+#include <d3d12.h>
+#include <wrl.h>
 #include <list>
 #include <vector>
 
@@ -28,6 +28,10 @@ namespace rendering
 
 		int m_numCommandLists = -1;
 		ID3D12CommandList** m_commandListsCache = nullptr;
+
+		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocator;
+		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_preSMRenderList;
+		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_postSMRenderList;
 
 		const float m_cascadeSeparators[3] = { 20, 50, 200 };
 
@@ -52,6 +56,13 @@ namespace rendering
 		void LoadSMMaterials(jobs::Job* done);
 
 		void CreateDescriptorHeaps();
+
+		bool m_preSMRenderListPrepared = false;
+		bool m_postSMRenderListPrepared = false;
+		void PreparePreSMRenderList();
+		void PreparePostSMRenderList();
+
+		void RenderScene();
 
 	public:
 		CascadedSM();
