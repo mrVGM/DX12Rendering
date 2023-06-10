@@ -10,7 +10,6 @@
 #include "DXTexture.h"
 
 #include "DXCameraBufferMeta.h"
-#include "resources/DXLightsBufferMeta.h"
 #include "resources/DXShadowMapMeta.h"
 
 #include "DXDescriptorHeap.h"

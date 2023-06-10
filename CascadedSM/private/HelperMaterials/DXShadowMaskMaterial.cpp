@@ -10,7 +10,6 @@
 #include "DXTexture.h"
 
 #include "DXCameraBufferMeta.h"
-#include "resources/DXLightsBufferMeta.h"
 #include "resources/DXShadowMapMeta.h"
 
 #include "DXDescriptorHeap.h"
@@ -30,7 +29,6 @@ if (FAILED(hRes)) {\
 namespace
 {
     rendering::DXBuffer* m_cameraBuffer = nullptr;
-    rendering::DXBuffer* m_lightsBuffer = nullptr;
     rendering::DXBuffer* m_smSettingsBuffer = nullptr;
     rendering::DXTexture* m_shadowMap = nullptr;
 
@@ -56,18 +54,6 @@ namespace
             }
 
             m_cameraBuffer = static_cast<DXBuffer*>(obj);
-        }
-
-        if (!m_lightsBuffer)
-        {
-            BaseObject* obj = container.GetObjectOfClass(DXLightsBufferMeta::GetInstance());
-
-            if (!obj)
-            {
-                throw "Can't find Lights Buffer!";
-            }
-
-            m_lightsBuffer = static_cast<DXBuffer*>(obj);
         }
 
         if (!m_shadowMap)
