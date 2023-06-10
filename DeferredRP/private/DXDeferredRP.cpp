@@ -63,6 +63,8 @@ namespace
 
     rendering::DXCommandQueue* m_commandQueue = nullptr;
 
+    rendering::shadow_mapping::ShadowMap* m_shadowMap = nullptr;
+
     void CacheObjects()
     {
         using namespace rendering;
@@ -345,6 +347,8 @@ void rendering::DXDeferredRP::Execute()
         m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
     }
 
+    m_shadowMap->RenderShadowMask();
+
 #if false
     for (int i = 0; i < 4; ++i)
     {
@@ -523,8 +527,8 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
 
         void Do() override
         {
-            shadow_mapping::ShadowMap* sm = shadow_mapping::GetShadowMap();
-            sm->LoadResources(new SMReady(m_ctx));
+            m_shadowMap = shadow_mapping::GetShadowMap();
+            m_shadowMap->LoadResources(new SMReady(m_ctx));
         }
     };
 

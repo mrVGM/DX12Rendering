@@ -4,8 +4,6 @@
 
 #include "Job.h"
 
-#include "CommandListCache.h"
-
 #include <d3d12.h>
 #include <wrl.h>
 #include <list>
@@ -24,8 +22,6 @@ namespace rendering
 		static const UINT m_resolution;
 
 	private:
-		CommandListCache m_materialCLsCache;
-
 		int m_numCommandLists = -1;
 		ID3D12CommandList** m_commandListsCache = nullptr;
 

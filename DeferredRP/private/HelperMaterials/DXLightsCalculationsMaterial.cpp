@@ -22,6 +22,7 @@
 #include "resources/DXSMSettingsBufferMeta.h"
 
 #include "utils.h"
+#include "ShadowMapping.h"
 
 #include "CoreUtils.h"
 
@@ -34,6 +35,7 @@ namespace
 {
     rendering::DXBuffer* m_cameraBuffer = nullptr;
     rendering::DXBuffer* m_lightsBuffer = nullptr;
+    rendering::shadow_mapping::ShadowMap* m_shadowMap = nullptr;
 
     rendering::DXDevice* m_device = nullptr;
     rendering::DXSwapChain* m_swapChain = nullptr;
@@ -65,6 +67,11 @@ namespace
             }
 
             m_lightsBuffer = static_cast<DXBuffer*>(obj);
+        }
+
+        if (!m_shadowMap)
+        {
+            m_shadowMap = shadow_mapping::GetShadowMap();
         }
 
         if (!m_device)
@@ -128,6 +135,7 @@ ID3D12CommandList* rendering::DXLightsCalculationsMaterial::GenerateCommandList(
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferNormalTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferPositionTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_shadowMap->GetShadowMask()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
         };
         commandList->ResourceBarrier(_countof(barrier), barrier);
     }
@@ -180,7 +188,8 @@ ID3D12CommandList* rendering::DXLightsCalculationsMaterial::GenerateCommandList(
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferDiffuseTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferNormalTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferPositionTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT)
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferPositionTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_shadowMap->GetShadowMask()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT)
         };
         commandList->ResourceBarrier(_countof(barrier), barrier);
     }
@@ -230,7 +239,7 @@ void rendering::DXLightsCalculationsMaterial::CreatePipelineStateAndRootSignatur
             D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 
         CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
-        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 4, 0, 0);
+        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 5, 0, 0);
         CD3DX12_ROOT_PARAMETER1 rootParameters[3];
         rootParameters[0].InitAsConstantBufferView(0, 0);
         rootParameters[1].InitAsConstantBufferView(1, 0);
@@ -304,8 +313,7 @@ void rendering::DXLightsCalculationsMaterial::CreateDescriptorHeaps()
         textures.push_back(deferred::GetGBufferSpecularTex());
         textures.push_back(deferred::GetGBufferNormalTex());
         textures.push_back(deferred::GetGBufferPositionTex());
-        //textures.push_back(m_cascadedSM->GetShadowMap(0));
-        //textures.push_back(m_cascadedSM->GetShadowMask(0));
+        textures.push_back(m_shadowMap->GetShadowMask());
 
         m_srvHeap = DXDescriptorHeap::CreateSRVDescriptorHeap(DXDescriptorHeapMeta::GetInstance(), textures);
     }

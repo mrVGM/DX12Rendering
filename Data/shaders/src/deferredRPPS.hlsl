@@ -24,8 +24,7 @@ Texture2D p_diffuse      : register(t0);
 Texture2D p_specular     : register(t1);
 Texture2D p_normal       : register(t2);
 Texture2D p_position     : register(t3);
-//Texture2D p_shadowMap    : register(t4);
-//Texture2D p_shadowMask    : register(t5);
+Texture2D p_shadowMask    : register(t4);
 
 SamplerState p_sampler  : register(s0);
 
@@ -64,12 +63,12 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
     {
         float lightIntensity = 1;
 
-        /*
+        
         if (i == 0)
         {
             lightIntensity = p_shadowMask.Sample(p_sampler, uv);
         }
-        */
+        
 
         lightIntensity = clamp(lightIntensity, 0, 0.6);
 
