@@ -33,6 +33,8 @@
 
 #include "utils.h"
 
+#include "ShadowMapping.h"
+
 #include <set>
 #include <list>
 #include <vector>
@@ -512,6 +514,8 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
 #endif
 
             core::utils::RunSync(m_ctx.m_done);
+
+            shadow_mapping::ShadowMap* sm = shadow_mapping::GetShadowMap();
 
             delete& m_ctx;
         }

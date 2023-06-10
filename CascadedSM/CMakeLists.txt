@@ -3,7 +3,7 @@
 add_library (CascadedSM
 	"private/CascadedSMMeta.h"
 	"private/CascadedSMMeta.cpp"
-	"private/CascadedSM.h"
+	"public/CascadedSM.h"
 	"private/CascadedSM.cpp"
 	"private/resources/DXShadowMapDSDescriptorHeapMeta.cpp"
 	"private/resources/DXShadowMapDSDescriptorHeapMeta.h"
@@ -45,7 +45,7 @@ add_library (CascadedSM
 	"private/HelperMaterials/DXShadowMaskMaterial.h"
 	"private/HelperMaterials/DXShadowMaskMaterialMeta.cpp"
 	"private/HelperMaterials/DXShadowMaskMaterialMeta.h"
-	"private/CommandListCache.h"
+	"public/CommandListCache.h"
 	"private/CommandListCache.cpp"
 )
 

@@ -1,6 +1,8 @@
 #pragma once
 
+#include "ShadowMap.h"
+
 namespace rendering::shadow_mapping
 {
-	void Boot();
+	shadow_mapping::ShadowMap* GetShadowMap();
 }
