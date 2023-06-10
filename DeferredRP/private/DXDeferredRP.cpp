@@ -448,31 +448,25 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
     struct Context
     {
         DXDeferredRP* m_deferredRP = nullptr;
-        int m_itemsLeft = 3;
 
         jobs::Job* m_done = nullptr;
     };
 
-    class ItemReady : public jobs::Job
+    Context ctx{ this, done };
+
+    class SMReady : public jobs::Job
     {
     private:
-        Context& m_ctx;
+        Context m_ctx;
     public:
-        ItemReady(Context& ctx) :
+        SMReady(const Context& ctx) :
             m_ctx(ctx)
         {
         }
 
         void Do() override
         {
-            --m_ctx.m_itemsLeft;
-            if (m_ctx.m_itemsLeft > 0)
-            {
-                return;
-            }
-            
             m_ctx.m_deferredRP->CreateRTVHeap();
-
 
             m_lightCalculationsMat = new DXLightsCalculationsMaterial(
                 *shader_repo::GetDeferredRPVertexShader(),
@@ -514,15 +508,63 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
 #endif
 
             core::utils::RunSync(m_ctx.m_done);
+        }
+    };
 
+    class GBufferReady : public jobs::Job
+    {
+    private:
+        Context m_ctx;
+    public:
+        GBufferReady(const Context& ctx) :
+            m_ctx(ctx)
+        {
+        }
+
+        void Do() override
+        {
             shadow_mapping::ShadowMap* sm = shadow_mapping::GetShadowMap();
+            sm->LoadResources(new SMReady(m_ctx));
+        }
+    };
+
+    LoadGBuffer(new GBufferReady(ctx));
+}
+
+void rendering::DXDeferredRP::LoadGBuffer(jobs::Job* done)
+{
+    struct Context
+    {
+        int m_itemsLeft = 3;
+
+        jobs::Job* m_done = nullptr;
+    };
+
+    class ItemReady : public jobs::Job
+    {
+    private:
+        Context& m_ctx;
+    public:
+        ItemReady(Context& ctx) :
+            m_ctx(ctx)
+        {
+        }
+
+        void Do() override
+        {
+            --m_ctx.m_itemsLeft;
+            if (m_ctx.m_itemsLeft > 0)
+            {
+                return;
+            }
+            
+            core::utils::RunSync(m_ctx.m_done);
 
             delete& m_ctx;
         }
     };
 
     Context* ctx = new Context();
-    ctx->m_deferredRP = this;
     ctx->m_done = done;
 
     deferred::LoadGBuffer(new ItemReady(*ctx));

@@ -41,6 +41,8 @@ namespace rendering
 
 		void RenderDeferred();
 
+		void LoadGBuffer(jobs::Job* done);
+
 	public:
 		DXDeferredRP();
 		virtual ~DXDeferredRP();
