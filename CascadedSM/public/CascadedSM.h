@@ -22,6 +22,7 @@ namespace rendering
 		static const UINT m_resolution;
 
 	private:
+		bool m_listsDirty = true;
 		int m_numCommandLists = 0;
 		ID3D12CommandList** m_commandListsCache = nullptr;
 
@@ -77,5 +78,7 @@ namespace rendering
 		DXBuffer* GetSettingsBuffer();
 
 		const std::list<DXMaterial*>& GetShadowMapMaterials();
+
+		void SetListsDirty();
 	};
 }

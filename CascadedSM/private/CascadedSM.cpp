@@ -40,6 +40,10 @@
 
 #include "DXDeferredMaterialMetaTag.h"
 
+#include "NotificationReceiver.h"
+
+#include "SceneLoadedNotificationMeta.h"
+#include "MaterialResisteredNotificationMeta.h"
 
 #include "CoreUtils.h"
 #include "utils.h"
@@ -339,6 +343,22 @@ namespace
 		matrix = XMMatrixMultiply(scale, XMMatrixMultiply(viewRaw, translate));
 		matrix = XMMatrixTranspose(matrix);
 	}
+
+
+	class SceneDirty : public notifications::NotificationReceiver
+	{
+	public:
+		SceneDirty(const BaseObjectMeta& meta) :
+			notifications::NotificationReceiver(meta)
+		{
+		}
+
+		void Notify() override
+		{
+			rendering::CascadedSM* sm = rendering::cascaded::GetCascadedSM();
+			sm->SetListsDirty();
+		}
+	};
 }
 
 const UINT rendering::CascadedSM::m_resolution = 2048;
@@ -935,6 +955,9 @@ void rendering::CascadedSM::PreparePostSMRenderList()
 rendering::CascadedSM::CascadedSM() :
 	ShadowMap(CascadedSMMeta::GetInstance())
 {
+	new SceneDirty(SceneLoadedNotificationMeta::GetInstance());
+	new SceneDirty(MaterialResisteredNotificationMeta::GetInstance());
+
 	CacheObjects();
 
 	DXDevice* device = core::utils::GetDevice();
@@ -1146,11 +1169,12 @@ void rendering::CascadedSM::RenderShadowMask()
 
 void rendering::CascadedSM::RenderScene()
 {
-	if (m_numCommandLists > 0)
+	if (!m_listsDirty)
 	{
 		m_commandQueue->GetCommandQueue()->ExecuteCommandLists(m_numCommandLists, m_commandListsCache);
 		return;
 	}
+	m_listsDirty = false;
 
 	DXScene* scene = m_scene;
 	DXMaterialRepo* repo = m_materialRepo;
@@ -1259,6 +1283,11 @@ rendering::DXBuffer* rendering::CascadedSM::GetSettingsBuffer()
 const std::list<rendering::DXMaterial*>& rendering::CascadedSM::GetShadowMapMaterials()
 {
 	return m_shadowMapMaterials;
+}
+
+void rendering::CascadedSM::SetListsDirty()
+{
+	m_listsDirty = true;
 }
 
 
