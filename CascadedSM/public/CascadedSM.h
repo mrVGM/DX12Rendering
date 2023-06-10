@@ -22,7 +22,7 @@ namespace rendering
 		static const UINT m_resolution;
 
 	private:
-		int m_numCommandLists = -1;
+		int m_numCommandLists = 0;
 		ID3D12CommandList** m_commandListsCache = nullptr;
 
 		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocator;

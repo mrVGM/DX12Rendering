@@ -1146,6 +1146,12 @@ void rendering::CascadedSM::RenderShadowMask()
 
 void rendering::CascadedSM::RenderScene()
 {
+	if (m_numCommandLists > 0)
+	{
+		m_commandQueue->GetCommandQueue()->ExecuteCommandLists(m_numCommandLists, m_commandListsCache);
+		return;
+	}
+
 	DXScene* scene = m_scene;
 	DXMaterialRepo* repo = m_materialRepo;
 
