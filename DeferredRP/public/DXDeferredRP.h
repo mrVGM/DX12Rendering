@@ -3,8 +3,6 @@
 #include "BaseObject.h"
 #include "RenderPass.h"
 
-#include "CommandListCache.h"
-
 #include "d3dx12.h"
 
 #include <d3d12.h>
@@ -24,8 +22,6 @@ namespace rendering
 	private:
 		ID3D12CommandList** m_commandListsCache = nullptr;
 		int m_numCommandLists = 0;
-
-		CommandListCache m_materialCLsCache;
 
 		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocator;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_startList;

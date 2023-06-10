@@ -271,6 +271,13 @@ void rendering::DXDeferredRP::RenderShadowMap()
     DXScene* scene = m_scene;
     DXMaterialRepo* repo = m_materialRepo;
 
+    for (auto smMatIt = m_cascadedSM->GetShadowMapMaterials().begin();
+        smMatIt != m_cascadedSM->GetShadowMapMaterials().end();
+        ++smMatIt)
+    {
+        (*smMatIt)->ResetCommandLists();
+    }
+
     std::list<ID3D12CommandList*> deferredLists;
     for (int i = 0; i < scene->m_scenesLoaded; ++i)
     {
@@ -287,47 +294,34 @@ void rendering::DXDeferredRP::RenderShadowMap()
 
             const std::string& objectName = it->first;
 
-            int index = 0;
-            for (auto smMatIt = m_cascadedSM->GetShadowMapMaterials().begin();
-                smMatIt != m_cascadedSM->GetShadowMapMaterials().end();
-                ++smMatIt)
+            auto matOverrideIt = obj.m_materialOverrides.begin();
+
+            for (auto it = geo.m_materials.begin(); it != geo.m_materials.end(); ++it)
             {
-                auto matOverrideIt = obj.m_materialOverrides.begin();
-                std::string matName = "_sm_";
-                matName += '0' + index;
-                matName += "_";
+                const std::string matOverrideName = *matOverrideIt;
+                ++matOverrideIt;
 
-                for (auto it = geo.m_materials.begin(); it != geo.m_materials.end(); ++it)
+                DXMaterial* mat = repo->GetMaterial(matOverrideName);
+
+                const DXScene::GeometryResources& geometryResources = curSceneResources.m_geometryResources.find(obj.m_geometry)->second;
+                DXBuffer* vertBuf = geometryResources.m_vertexBuffer;
+                DXBuffer* indexBuf = geometryResources.m_indexBuffer;
+                DXBuffer* instanceBuf = geometryResources.m_instanceBuffer;
+
+                if (!mat)
                 {
-                    const std::string matOverrideName = *matOverrideIt;
-                    ++matOverrideIt;
+                    continue;
+                }
 
-                    std::string smMatName = matName + matOverrideName;
-                    {
-                        ID3D12CommandList* cl = m_materialCLsCache.GetCommandList(smMatName, objectName);
-                        if (cl)
-                        {
-                            deferredLists.push_back(cl);
-                            continue;
-                        }
-                    }
+                if (!mat->GetMeta().HasTag(DXDeferredMaterialMetaTag::GetInstance()))
+                {
+                    continue;
+                }
 
-                    DXMaterial* mat = repo->GetMaterial(matOverrideName);
-
-                    const DXScene::GeometryResources& geometryResources = curSceneResources.m_geometryResources.find(obj.m_geometry)->second;
-                    DXBuffer* vertBuf = geometryResources.m_vertexBuffer;
-                    DXBuffer* indexBuf = geometryResources.m_indexBuffer;
-                    DXBuffer* instanceBuf = geometryResources.m_instanceBuffer;
-
-                    if (!mat)
-                    {
-                        continue;
-                    }
-
-                    if (!mat->GetMeta().HasTag(DXDeferredMaterialMetaTag::GetInstance()))
-                    {
-                        continue;
-                    }
+                for (auto smMatIt = m_cascadedSM->GetShadowMapMaterials().begin();
+                    smMatIt != m_cascadedSM->GetShadowMapMaterials().end();
+                    ++smMatIt)
+                {
 
                     ID3D12CommandList* cl = (*smMatIt)->GenerateCommandList(
                         *vertBuf,
@@ -337,7 +331,6 @@ void rendering::DXDeferredRP::RenderShadowMap()
                         (*it).indexCount,
                         instanceIndex);
 
-                    m_materialCLsCache.CacheCommandList(smMatName, objectName, cl);
                     deferredLists.push_back(cl);
                 }
             }
@@ -363,6 +356,33 @@ void rendering::DXDeferredRP::RenderShadowMap()
 
 void rendering::DXDeferredRP::RenderDeferred()
 {
+    for (int i = 0; i < m_scene->m_scenesLoaded; ++i)
+    {
+        collada::ColladaScene& curColladaScene = *m_scene->m_colladaScenes[i];
+        const DXScene::SceneResources& curSceneResources = m_scene->m_sceneResources[i];
+
+        collada::Scene& s = curColladaScene.GetScene();
+
+        for (auto it = s.m_objects.begin(); it != s.m_objects.end(); ++it)
+        {
+            collada::Object& obj = it->second;
+            for (auto it = obj.m_materialOverrides.begin(); it != obj.m_materialOverrides.end(); ++it)
+            {
+                DXMaterial* mat = m_materialRepo->GetMaterial(*it);
+                if (!mat)
+                {
+                    continue;
+                }
+
+                if (mat->GetMeta().HasTag(DXDeferredMaterialMetaTag::GetInstance()))
+                {
+                    mat->ResetCommandLists();
+                }
+            }
+        }
+    }
+
+
     std::list<ID3D12CommandList*> deferredLists;
     for (int i = 0; i < m_scene->m_scenesLoaded; ++i)
     {
@@ -385,14 +405,6 @@ void rendering::DXDeferredRP::RenderDeferred()
             {
                 const std::string& matOverrideName = *matOverrideIt;
                 ++matOverrideIt;
-                {
-                    ID3D12CommandList* cl = m_materialCLsCache.GetCommandList(matOverrideName, objectName);
-                    if (cl)
-                    {
-                        deferredLists.push_back(cl);
-                        continue;
-                    }
-                }
 
                 DXMaterial* mat = m_materialRepo->GetMaterial(matOverrideName);
 
@@ -418,8 +430,6 @@ void rendering::DXDeferredRP::RenderDeferred()
                     (*it).indexOffset,
                     (*it).indexCount,
                     instanceIndex);
-
-                m_materialCLsCache.CacheCommandList(matOverrideName, objectName, cl);
 
                 deferredLists.push_back(cl);
             }
