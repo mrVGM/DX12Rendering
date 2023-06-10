@@ -34,7 +34,6 @@ namespace
 {
     rendering::DXBuffer* m_cameraBuffer = nullptr;
     rendering::DXBuffer* m_lightsBuffer = nullptr;
-    rendering::CascadedSM* m_cascadedSM = nullptr;
 
     rendering::DXDevice* m_device = nullptr;
     rendering::DXSwapChain* m_swapChain = nullptr;
@@ -76,11 +75,6 @@ namespace
         if (!m_swapChain)
         {
             m_swapChain = core::utils::GetSwapChain();
-        }
-
-        if (!m_cascadedSM)
-        {
-            m_cascadedSM = deferred::GetCascadedSM();
         }
     }
 }
@@ -134,8 +128,6 @@ ID3D12CommandList* rendering::DXLightsCalculationsMaterial::GenerateCommandList(
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferNormalTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferPositionTex()->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMap(0)->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMask(0)->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
         };
         commandList->ResourceBarrier(_countof(barrier), barrier);
     }
@@ -153,8 +145,7 @@ ID3D12CommandList* rendering::DXLightsCalculationsMaterial::GenerateCommandList(
 
     commandList->SetGraphicsRootConstantBufferView(0, m_cameraBuffer->GetBuffer()->GetGPUVirtualAddress());
     commandList->SetGraphicsRootConstantBufferView(1, m_lightsBuffer->GetBuffer()->GetGPUVirtualAddress());
-    commandList->SetGraphicsRootConstantBufferView(2, m_cascadedSM->GetSettingsBuffer()->GetBuffer()->GetGPUVirtualAddress());
-    commandList->SetGraphicsRootDescriptorTable(3, descriptorHeaps[0]->GetGPUDescriptorHandleForHeapStart());
+    commandList->SetGraphicsRootDescriptorTable(2, descriptorHeaps[0]->GetGPUDescriptorHandleForHeapStart());
 
     commandList->RSSetViewports(1, &swapChain->GetViewport());
     commandList->RSSetScissorRects(1, &swapChain->GetScissorRect());
@@ -189,9 +180,7 @@ ID3D12CommandList* rendering::DXLightsCalculationsMaterial::GenerateCommandList(
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferDiffuseTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferSpecularTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
             CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferNormalTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferPositionTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMap(0)->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
-            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_cascadedSM->GetShadowMask(0)->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT),
+            CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(deferred::GetGBufferPositionTex()->GetTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT)
         };
         commandList->ResourceBarrier(_countof(barrier), barrier);
     }
@@ -241,12 +230,11 @@ void rendering::DXLightsCalculationsMaterial::CreatePipelineStateAndRootSignatur
             D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 
         CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
-        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 6, 0, 0);
-        CD3DX12_ROOT_PARAMETER1 rootParameters[4];
+        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 4, 0, 0);
+        CD3DX12_ROOT_PARAMETER1 rootParameters[3];
         rootParameters[0].InitAsConstantBufferView(0, 0);
         rootParameters[1].InitAsConstantBufferView(1, 0);
-        rootParameters[2].InitAsConstantBufferView(2, 0);
-        rootParameters[3].InitAsDescriptorTable(1, ranges, D3D12_SHADER_VISIBILITY_PIXEL);
+        rootParameters[2].InitAsDescriptorTable(1, ranges, D3D12_SHADER_VISIBILITY_PIXEL);
 
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
         rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, &sampler, rootSignatureFlags);
@@ -316,8 +304,8 @@ void rendering::DXLightsCalculationsMaterial::CreateDescriptorHeaps()
         textures.push_back(deferred::GetGBufferSpecularTex());
         textures.push_back(deferred::GetGBufferNormalTex());
         textures.push_back(deferred::GetGBufferPositionTex());
-        textures.push_back(m_cascadedSM->GetShadowMap(0));
-        textures.push_back(m_cascadedSM->GetShadowMask(0));
+        //textures.push_back(m_cascadedSM->GetShadowMap(0));
+        //textures.push_back(m_cascadedSM->GetShadowMask(0));
 
         m_srvHeap = DXDescriptorHeap::CreateSRVDescriptorHeap(DXDescriptorHeapMeta::GetInstance(), textures);
     }

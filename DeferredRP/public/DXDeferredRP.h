@@ -39,7 +39,6 @@ namespace rendering
 
 		void LoadLightsBuffer(jobs::Job* done);
 
-		void RenderShadowMap();
 		void RenderDeferred();
 
 	public:
