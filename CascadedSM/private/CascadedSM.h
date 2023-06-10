@@ -18,7 +18,7 @@ namespace rendering
 	class DXDescriptorHeap;
 	class DXMaterial;
 
-	class CascadedSM : public ShadowMap
+	class CascadedSM : public shadow_mapping::ShadowMap
 	{
 	public:
 		static const UINT m_resolution;

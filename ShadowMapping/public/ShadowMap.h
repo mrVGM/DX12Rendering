@@ -7,6 +7,10 @@
 namespace rendering
 {
 	class DXTexture;
+}
+
+namespace rendering::shadow_mapping
+{
 
 	class ShadowMap : public BaseObject
 	{

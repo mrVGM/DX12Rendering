@@ -8,7 +8,7 @@ namespace
 }
 
 rendering::CascadedSMMeta::CascadedSMMeta() :
-	BaseObjectMeta(&ShadowMapMeta::GetInstance())
+	BaseObjectMeta(&shadow_mapping::ShadowMapMeta::GetInstance())
 {
 }
 

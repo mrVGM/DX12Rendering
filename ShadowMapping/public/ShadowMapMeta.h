@@ -2,7 +2,7 @@
 
 #include "BaseObjectMeta.h"
 
-namespace rendering
+namespace rendering::shadow_mapping
 {
 	class ShadowMapMeta : public BaseObjectMeta
 	{

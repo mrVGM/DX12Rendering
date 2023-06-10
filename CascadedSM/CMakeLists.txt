@@ -29,10 +29,6 @@ add_library (CascadedSM
 	"private/updaters/DXShadowMapUpdater.h"
 	"private/updaters/DXShadowMapUpdaterMeta.cpp"
 	"private/updaters/DXShadowMapUpdaterMeta.h"
-	
-	
-	
-	
 	"private/HelperMaterials/DXShadowMapFilterMaterial.cpp"
 	"private/HelperMaterials/DXShadowMapFilterMaterial.h"
 	"private/HelperMaterials/DXShadowMapFilterMaterialMeta.cpp"
@@ -56,7 +52,7 @@ add_library (CascadedSM
 target_include_directories(CascadedSM INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(CascadedSM PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(CascadedSM INTERFACE PUBLIC RenderingCore CommonResources Scene Materials)
+target_link_libraries(CascadedSM INTERFACE PUBLIC RenderingCore CommonResources Scene Materials ShadowMapping)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET CascadedSM PROPERTY CXX_STANDARD 20)
