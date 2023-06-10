@@ -20,6 +20,7 @@ namespace rendering
 	class DXDeferredRP : public RenderPass
 	{
 	private:
+		bool m_listsDirty = true;
 		ID3D12CommandList** m_commandListsCache = nullptr;
 		int m_numCommandLists = 0;
 
@@ -46,6 +47,8 @@ namespace rendering
 	public:
 		DXDeferredRP();
 		virtual ~DXDeferredRP();
+
+		void SetListsDirty();
 
 		void Prepare() override;
 		void Execute() override;

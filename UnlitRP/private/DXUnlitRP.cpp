@@ -183,7 +183,7 @@ void rendering::DXUnlitRP::RenderUnlit()
         errorMat->ResetCommandLists();
     }
 
-    for (int i = 0; i < m_scene->m_scenesLoaded; ++i)
+    for (int i = 0; i < m_scene->GetScenesCount(); ++i)
     {
         collada::ColladaScene& curColladaScene = *m_scene->m_colladaScenes[i];
         const DXScene::SceneResources& curSceneResources = m_scene->m_sceneResources[i];
@@ -210,7 +210,7 @@ void rendering::DXUnlitRP::RenderUnlit()
     }
 
     std::list<ID3D12CommandList*> unlitLists;
-    for (int i = 0; i < m_scene->m_scenesLoaded; ++i)
+    for (int i = 0; i < m_scene->GetScenesCount(); ++i)
     {
         collada::ColladaScene& curColladaScene = *m_scene->m_colladaScenes[i];
         const DXScene::SceneResources& curSceneResources = m_scene->m_sceneResources[i];

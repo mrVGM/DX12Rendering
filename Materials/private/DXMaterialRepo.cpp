@@ -4,6 +4,8 @@
 
 #include "DXMaterial.h"
 
+#include "Notifications.h"
+#include "MaterialResisteredNotificationMeta.h"
 
 rendering::DXMaterialRepo::DXMaterialRepo() :
 	BaseObject(rendering::DXMaterialRepoMeta::GetInstance())
@@ -29,4 +31,5 @@ rendering::DXMaterial* rendering::DXMaterialRepo::GetMaterial(const std::string&
 void rendering::DXMaterialRepo::Register(const std::string& name, rendering::DXMaterial& material)
 {
 	m_repo[name] = &material;
+	notifications::Notify(MaterialResisteredNotificationMeta::GetInstance());
 }

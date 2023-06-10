@@ -1163,7 +1163,7 @@ void rendering::CascadedSM::RenderScene()
 	}
 
 	std::list<ID3D12CommandList*> deferredLists;
-	for (int i = 0; i < scene->m_scenesLoaded; ++i)
+	for (int i = 0; i < scene->GetScenesCount(); ++i)
 	{
 		collada::ColladaScene& curColladaScene = *scene->m_colladaScenes[i];
 		const DXScene::SceneResources& curSceneResources = scene->m_sceneResources[i];

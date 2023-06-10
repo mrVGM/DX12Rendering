@@ -35,6 +35,11 @@
 
 #include "ShadowMapping.h"
 
+#include "SceneLoadedNotificationMeta.h"
+#include "MaterialResisteredNotificationMeta.h"
+
+#include "NotificationReceiver.h"
+
 #include <set>
 #include <list>
 #include <vector>
@@ -102,12 +107,30 @@ namespace
             m_materialRepo = static_cast<DXMaterialRepo*>(obj);
         }
     }
+
+    class SceneDirty : public notifications::NotificationReceiver
+    {
+    public:
+        SceneDirty(const BaseObjectMeta& meta) :
+            notifications::NotificationReceiver(meta)
+        {
+        }
+
+        void Notify() override
+        {
+            rendering::DXDeferredRP* rp = rendering::deferred::GetdeferredRP();
+            rp->SetListsDirty();
+        }
+    };
 }
 
 rendering::DXDeferredRP::DXDeferredRP() :
     RenderPass(DXDeferredRPMeta::GetInstance())
 {
     using Microsoft::WRL::ComPtr;
+
+    new SceneDirty(SceneLoadedNotificationMeta::GetInstance());
+    new SceneDirty(MaterialResisteredNotificationMeta::GetInstance());
 
     new LightsManager();
 
@@ -225,7 +248,14 @@ void rendering::DXDeferredRP::PrepareAfterRenderSceneList()
 
 void rendering::DXDeferredRP::RenderDeferred()
 {
-    for (int i = 0; i < m_scene->m_scenesLoaded; ++i)
+    if (!m_listsDirty)
+    {
+        m_commandQueue->GetCommandQueue()->ExecuteCommandLists(m_numCommandLists, m_commandListsCache);
+        return;
+    }
+    m_listsDirty = false;
+
+    for (int i = 0; i < m_scene->GetScenesCount(); ++i)
     {
         collada::ColladaScene& curColladaScene = *m_scene->m_colladaScenes[i];
         const DXScene::SceneResources& curSceneResources = m_scene->m_sceneResources[i];
@@ -253,7 +283,7 @@ void rendering::DXDeferredRP::RenderDeferred()
 
 
     std::list<ID3D12CommandList*> deferredLists;
-    for (int i = 0; i < m_scene->m_scenesLoaded; ++i)
+    for (int i = 0; i < m_scene->GetScenesCount(); ++i)
     {
         collada::ColladaScene& curColladaScene = *m_scene->m_colladaScenes[i];
         const DXScene::SceneResources& curSceneResources = m_scene->m_sceneResources[i];
@@ -484,6 +514,11 @@ void rendering::DXDeferredRP::LoadGBuffer(jobs::Job* done)
     deferred::LoadGBufferLitTextures(new ItemReady(*ctx));
 
     LoadLightsBuffer(new ItemReady(*ctx));
+}
+
+void rendering::DXDeferredRP::SetListsDirty()
+{
+    m_listsDirty = true;
 }
 
 

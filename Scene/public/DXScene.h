@@ -19,8 +19,9 @@ namespace rendering
 	class DXBuffer;
 	class DXScene : public BaseObject
 	{
-	public:
+	private:
 		int m_scenesLoaded = 0;
+	public:
 		struct GeometryResources
 		{
 			DXBuffer* m_vertexBuffer = nullptr;
@@ -46,5 +47,7 @@ namespace rendering
 		void LoadColladaScene(const std::string& filePath, jobs::Job* done);
 
 		void GetSceneBB(DirectX::XMVECTOR& minPoint, DirectX::XMVECTOR& maxPoint);
+
+		int GetScenesCount();
 	};
 }

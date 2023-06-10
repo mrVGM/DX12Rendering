@@ -30,6 +30,8 @@ void notifications::Notify(const BaseObjectMeta& meta)
 		const BaseObjectMeta* m_meta = nullptr;
 	};
 
+	Context ctx{ &meta };
+
 	class NotifyJob : public jobs::Job
 	{
 	private:
@@ -54,4 +56,6 @@ void notifications::Notify(const BaseObjectMeta& meta)
 			}
 		}
 	};
+
+	m_mainJobSystem->ScheduleJob(new NotifyJob(ctx));
 }

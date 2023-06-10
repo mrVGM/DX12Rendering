@@ -10,6 +10,9 @@
 #include "DXBufferMeta.h"
 #include "DXHeap.h"
 
+#include "Notifications.h"
+#include "SceneLoadedNotificationMeta.h"
+
 #include <list>
 
 #include "ColladaEntities.h"
@@ -491,6 +494,26 @@ void rendering::DXScene::LoadColladaScene(const std::string& filePath, jobs::Job
 		jobs::JobSystem* m_jobSystem = nullptr;
 	};
 
+	class BuffersLoaded : public jobs::Job
+	{
+	private:
+		JobContext m_context;
+	public:
+		BuffersLoaded(const JobContext& context) :
+			m_context(context)
+		{
+		}
+
+		void Do() override
+		{
+			++m_context.m_dxScene->m_scenesLoaded;
+
+			notifications::Notify(SceneLoadedNotificationMeta::GetInstance());
+
+			core::utils::RunSync(m_context.m_done);
+		}
+	};
+
 	class PostLoadColladaSceneJob : public jobs::Job
 	{
 	private:
@@ -508,7 +531,7 @@ void rendering::DXScene::LoadColladaScene(const std::string& filePath, jobs::Job
 			m_context.m_dxScene->m_colladaScenes.push_back(m_context.m_scene);
 			m_context.m_dxScene->m_sceneResources.push_back(SceneResources());
 
-			m_context.m_dxScene->LoadBuffers(index, m_context.m_done);
+			m_context.m_dxScene->LoadBuffers(index, new BuffersLoaded(m_context));
 		}
 	};
 
@@ -694,4 +717,9 @@ void rendering::DXScene::GetSceneBB(DirectX::XMVECTOR& minPoint, DirectX::XMVECT
 			}
 		}
 	}
+}
+
+int rendering::DXScene::GetScenesCount()
+{
+	return m_scenesLoaded;
 }

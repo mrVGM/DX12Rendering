@@ -142,10 +142,8 @@ namespace
 			void Do() override
 			{
 				DXScene* scene = utils::GetScene();
-				int sceneIndex = scene->m_scenesLoaded;
-				++scene->m_scenesLoaded;
 
-				const collada::Scene& justLoaded = scene->m_colladaScenes[sceneIndex]->GetScene();
+				const collada::Scene& justLoaded = scene->m_colladaScenes.back()->GetScene();
 				for (auto it = justLoaded.m_materials.begin(); it != justLoaded.m_materials.end(); ++it)
 				{
 					const collada::ColladaMaterial& mat = it->second;

@@ -4,6 +4,7 @@
 #include "ICamera.h"
 #include "DXScene.h"
 #include "DXCameraBufferMeta.h"
+#include "DXDeferredRP.h"
 
 namespace rendering::deferred
 {
@@ -11,4 +12,5 @@ namespace rendering::deferred
 	ICamera* GetCamera();
 	DXScene* GetScene();
 	DXBuffer* GetCameraBuffer();
+	DXDeferredRP* GetdeferredRP();
 }

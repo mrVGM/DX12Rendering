@@ -4,6 +4,7 @@
 #include "ICameraMeta.h"
 #include "DXSceneMeta.h"
 #include "DXCameraBufferMeta.h"
+#include "DXDeferredRPMeta.h"
 
 #include "DXBuffer.h"
 
@@ -67,4 +68,19 @@ rendering::DXBuffer* rendering::deferred::GetCameraBuffer()
 
 	DXBuffer* buffer = static_cast<DXBuffer*>(obj);
 	return buffer;
+}
+
+rendering::DXDeferredRP* rendering::deferred::GetdeferredRP()
+{
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+
+	BaseObject* obj = container.GetObjectOfClass(DXDeferredRPMeta::GetInstance());
+
+	if (!obj)
+	{
+		throw "Can't find Camera Buffer!";
+	}
+
+	DXDeferredRP* rp = static_cast<DXDeferredRP*>(obj);
+	return rp;
 }
