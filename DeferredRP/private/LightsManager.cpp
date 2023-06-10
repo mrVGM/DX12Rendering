@@ -2,9 +2,6 @@
 
 #include "LightsManagerMeta.h"
 
-#include "resources/DXShadowMapMeta.h"
-#include "resources/DXShadowMapDSMeta.h"
-
 #include "CoreUtils.h"
 
 #include "DXBuffer.h"
@@ -16,10 +13,8 @@
 
 #include "DXDescriptorHeap.h"
 #include "DXDescriptorHeapMeta.h"
-#include "resources/DXShadowMapDSDescriptorHeapMeta.h"
 
 #include "resources/DXLightsBufferMeta.h"
-#include "resources/DXSMSettingsBufferMeta.h"
 
 #include "ICamera.h"
 #include "ICameraMeta.h"

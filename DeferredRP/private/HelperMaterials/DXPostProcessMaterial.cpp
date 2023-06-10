@@ -11,14 +11,11 @@
 
 #include "DXCameraBufferMeta.h"
 #include "resources/DXLightsBufferMeta.h"
-#include "resources/DXShadowMapMeta.h"
 
 #include "DXDescriptorHeap.h"
 #include "DXDescriptorHeapMeta.h"
 
 #include "DeferredRendering.h"
-
-#include "resources/DXSMSettingsBufferMeta.h"
 
 #include "utils.h"
 
