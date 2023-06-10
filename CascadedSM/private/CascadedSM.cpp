@@ -29,7 +29,10 @@
 #include "resources/DXSMSettingsBufferMeta.h"
 
 #include "HelperMaterials/DXShadowMapMaterial.h"
+#include "HelperMaterials/DXShadowMapFilterMaterial.h"
+
 #include "HelperMaterials/DXShadowMaskMaterial.h"
+#include "HelperMaterials/DXShadowMaskFilterMaterial.h"
 
 #include "ShaderRepo.h"
 
@@ -42,6 +45,7 @@
 #include "utils.h"
 
 #include <DirectXMath.h>
+#include <vector>
 
 #define THROW_ERROR(hRes, error) \
 if (FAILED(hRes)) {\
@@ -63,7 +67,13 @@ namespace
 	rendering::DXTexture* m_gBuffPositionTex = nullptr;
 
 	rendering::DXBuffer* m_renderTextureBuffer = nullptr;
+
 	rendering::DXMaterial* m_shadowMaskMat = nullptr;
+	std::vector<rendering::DXMaterial*> m_shadowMapIdentityFilterMat;
+	std::vector<rendering::DXMaterial*> m_shadowMapGaussBlurFilterMat;
+
+	rendering::DXMaterial* m_shadowMaskPCFFilterMat = nullptr;
+	rendering::DXMaterial* m_shadowMaskDitherFilterMat = nullptr;
 
 	void CacheObjects()
 	{
@@ -997,12 +1007,42 @@ void rendering::CascadedSM::LoadResources(jobs::Job* done)
 			m_ctx.m_cascadedSM->CreateDescriptorHeaps();
 
 			core::utils::RunSync(m_ctx.m_done);
-			delete& m_ctx;
 
 			m_shadowMaskMat = new DXShadowMaskMaterial(
 				*shader_repo::GetDeferredRPVertexShader(),
 				*shader_repo::GetShadowMaskPixelShader()
 			);
+
+			for (int i = 0; i < 4; ++i)
+			{
+				m_shadowMapGaussBlurFilterMat.push_back(new rendering::DXShadowMapFilterMaterial(
+					*shader_repo::GetDeferredRPVertexShader(),
+					*shader_repo::GetGaussBlurFilterPixelShader(),
+					m_ctx.m_cascadedSM->GetShadowMap(i),
+					m_ctx.m_cascadedSM->GetShadowMapFilterTex()
+				));
+
+				m_shadowMapIdentityFilterMat.push_back(new DXShadowMapFilterMaterial(
+					*shader_repo::GetDeferredRPVertexShader(),
+					*shader_repo::GetIdentityFilterPixelShader(),
+					m_ctx.m_cascadedSM->GetShadowMapFilterTex(),
+					m_ctx.m_cascadedSM->GetShadowMap(i)
+				));
+			}
+
+			m_shadowMaskPCFFilterMat = new DXShadowMaskFilterMaterial(
+				*shader_repo::GetDeferredRPVertexShader(),
+				*shader_repo::GetShadowMaskPCFFilterPixelShader(),
+				1
+			);
+
+			m_shadowMaskDitherFilterMat = new DXShadowMaskFilterMaterial(
+				*shader_repo::GetDeferredRPVertexShader(),
+				*shader_repo::GetShadowMaskDitherFilterPixelShader(),
+				0
+			);
+
+			delete& m_ctx;
 
 			new DXShadowMapUpdater();
 			new DXShadowMapRDU();
@@ -1055,9 +1095,48 @@ void rendering::CascadedSM::RenderShadowMask()
 		m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 	}
 
+	for (int i = 0; i < 4; ++i)
+	{
+		{
+			DXBuffer* dummy = nullptr;
+			ID3D12CommandList* commandList = m_shadowMapGaussBlurFilterMat[i]->GenerateCommandList(
+				*m_renderTextureBuffer,
+				*dummy, *dummy, 0, 0, 0);
+			ID3D12CommandList* ppCommandLists[] = { commandList };
+			m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+		}
+
+		{
+			DXBuffer* dummy = nullptr;
+			ID3D12CommandList* commandList = m_shadowMapIdentityFilterMat[i]->GenerateCommandList(
+				*m_renderTextureBuffer,
+				*dummy, *dummy, 0, 0, 0);
+			ID3D12CommandList* ppCommandLists[] = { commandList };
+			m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+		}
+	}
+
 	{
 		DXBuffer* dummy = nullptr;
 		ID3D12CommandList* commandList = m_shadowMaskMat->GenerateCommandList(
+			*m_renderTextureBuffer,
+			*dummy, *dummy, 0, 0, 0);
+		ID3D12CommandList* ppCommandLists[] = { commandList };
+		m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+	}
+
+	{
+		DXBuffer* dummy = nullptr;
+		ID3D12CommandList* commandList = m_shadowMaskPCFFilterMat->GenerateCommandList(
+			*m_renderTextureBuffer,
+			*dummy, *dummy, 0, 0, 0);
+		ID3D12CommandList* ppCommandLists[] = { commandList };
+		m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+	}
+
+	{
+		DXBuffer* dummy = nullptr;
+		ID3D12CommandList* commandList = m_shadowMaskDitherFilterMat->GenerateCommandList(
 			*m_renderTextureBuffer,
 			*dummy, *dummy, 0, 0, 0);
 		ID3D12CommandList* ppCommandLists[] = { commandList };
