@@ -69,7 +69,7 @@ namespace
 			void Do() override
 			{
 				new DXCamera();
-				new DXBuffer(DXCameraBufferMeta::GetInstance());
+				new DXMutableBuffer(DXCameraBufferMeta::GetInstance(), 256, 256);
 
 				DXCamera* cam = utils::GetCamera();
 				utils::GetCameraBuffer();

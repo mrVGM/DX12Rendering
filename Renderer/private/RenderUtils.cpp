@@ -37,7 +37,7 @@ namespace
 	rendering::DXCommandQueue* m_commandQueue = nullptr;
 	rendering::DXCopyCommandQueue* m_copyCommandQueue = nullptr;
 	rendering::DXCamera* m_camera = nullptr;
-	rendering::DXBuffer* m_cameraBuffer = nullptr;
+	rendering::DXMutableBuffer* m_cameraBuffer = nullptr;
 	jobs::JobSystem* m_mainJobSystem = nullptr;
 	jobs::JobSystem* m_loadJobSystem = nullptr;
 
@@ -145,7 +145,7 @@ rendering::DXCamera* rendering::utils::GetCamera()
 	return m_camera;
 }
 
-rendering::DXBuffer* rendering::utils::GetCameraBuffer()
+rendering::DXMutableBuffer* rendering::utils::GetCameraBuffer()
 {
 	if (m_cameraBuffer)
 	{
@@ -153,7 +153,7 @@ rendering::DXBuffer* rendering::utils::GetCameraBuffer()
 	}
 	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
 	BaseObject* obj = container.GetObjectOfClass(DXCameraBufferMeta::GetInstance());
-	m_cameraBuffer = static_cast<DXBuffer*>(obj);
+	m_cameraBuffer = static_cast<DXMutableBuffer*>(obj);
 	return m_cameraBuffer;
 }
 

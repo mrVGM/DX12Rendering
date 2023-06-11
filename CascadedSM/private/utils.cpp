@@ -78,7 +78,7 @@ rendering::DXScene* rendering::cascaded::GetScene()
 	return scene;
 }
 
-rendering::DXBuffer* rendering::cascaded::GetCameraBuffer()
+rendering::DXMutableBuffer* rendering::cascaded::GetCameraBuffer()
 {
 	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
 
@@ -89,7 +89,7 @@ rendering::DXBuffer* rendering::cascaded::GetCameraBuffer()
 		throw "Can't find Camera Buffer!";
 	}
 
-	DXBuffer* buffer = static_cast<DXBuffer*>(obj);
+	DXMutableBuffer* buffer = static_cast<DXMutableBuffer*>(obj);
 	return buffer;
 }
 

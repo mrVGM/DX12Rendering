@@ -6,7 +6,7 @@
 #include "DXCameraBufferMeta.h"
 #include "DXDeferredRPMeta.h"
 
-#include "DXBuffer.h"
+#include "DXMutableBuffer.h"
 
 #include "BaseObjectContainer.h"
 
@@ -55,7 +55,7 @@ rendering::DXScene* rendering::deferred::GetScene()
 	return scene;
 }
 
-rendering::DXBuffer* rendering::deferred::GetCameraBuffer()
+rendering::DXMutableBuffer* rendering::deferred::GetCameraBuffer()
 {
 	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
 
@@ -66,7 +66,7 @@ rendering::DXBuffer* rendering::deferred::GetCameraBuffer()
 		throw "Can't find Camera Buffer!";
 	}
 
-	DXBuffer* buffer = static_cast<DXBuffer*>(obj);
+	DXMutableBuffer* buffer = static_cast<DXMutableBuffer*>(obj);
 	return buffer;
 }
 

@@ -137,13 +137,13 @@ void rendering::DXCamera::UpdateCamBuffer()
 	camSettings.m_resolution[0] = m_wnd->m_width;
 	camSettings.m_resolution[1] = m_wnd->m_height;
 
-	DXBuffer* camBuff = rendering::utils::GetCameraBuffer();
-	void* data = camBuff->Map();
+	DXMutableBuffer* camBuff = rendering::utils::GetCameraBuffer();
+	void* data = camBuff->GetUploadBuffer()->Map();
 	CameraSettings* camSettingsData = static_cast<CameraSettings*>(data);
 
 	*camSettingsData = camSettings;
 
-	camBuff->Unmap();
+	camBuff->GetUploadBuffer()->Unmap();
 }
 
 rendering::DXCamera::DXCamera() :
@@ -177,19 +177,11 @@ rendering::DXCamera::~DXCamera()
 
 void rendering::DXCamera::InitBuffer(jobs::Job* done)
 {
-	DXHeap* heap = new DXHeap();
-
-	heap->SetHeapSize(256);
-	heap->SetHeapType(D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_UPLOAD);
-	heap->SetHeapFlags(D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS);
-	heap->Create();
-	
 	struct JobContext
 	{
-		DXCamera* m_cam = nullptr;
 		jobs::Job* m_done = nullptr;
-		DXHeap* m_heap = nullptr;
 	};
+	JobContext jobContext{ done };
 
 	class CreateRDU : public jobs::Job
 	{
@@ -204,31 +196,24 @@ void rendering::DXCamera::InitBuffer(jobs::Job* done)
 		}
 	};
 
-	class InitBufferJob : public jobs::Job
+	class BufferLoaded : public jobs::Job
 	{
 	private:
 		JobContext m_jobContext;
 	public:
-		InitBufferJob(const JobContext& jobContext) :
+		BufferLoaded(const JobContext& jobContext) :
 			m_jobContext(jobContext)
 		{
 		}
 		void Do() override
 		{
-			DXBuffer* camBuffer = rendering::utils::GetCameraBuffer();
-			camBuffer->SetBufferSizeAndFlags(256, D3D12_RESOURCE_FLAG_NONE);
-			camBuffer->SetBufferStride(256);
-
-			camBuffer->Place(m_jobContext.m_heap, 0);
-
 			utils::RunSync(m_jobContext.m_done);
 			utils::RunSync(new CreateRDU());
 		}
 	};
 
-	JobContext jobContext{ this, done, heap };
-
-	heap->MakeResident(new InitBufferJob(jobContext));
+	DXMutableBuffer* camBuffer = rendering::utils::GetCameraBuffer();
+	camBuffer->Load(new BufferLoaded(jobContext));
 }
 
 void rendering::DXCamera::GetFrustrumCorners(std::list<DirectX::XMVECTOR>& corners, float& maxDist, float nearPlane, float farPlane)

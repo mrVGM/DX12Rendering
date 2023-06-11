@@ -1,8 +1,8 @@
 #pragma once
 
-#include "DXBuffer.h"
+#include "DXMutableBuffer.h"
 
 namespace rendering::unlit
 {
-	DXBuffer* GetCameraBuffer();
+	DXMutableBuffer* GetCameraBuffer();
 }

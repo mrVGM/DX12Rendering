@@ -7,6 +7,7 @@
 #include "DXTexture.h"
 #include "DXMaterialRepo.h"
 #include "DXBuffer.h"
+#include "DXMutableBuffer.h"
 
 
 namespace rendering::cascaded
@@ -15,7 +16,7 @@ namespace rendering::cascaded
 	CascadedSM* GetCascadedSM();
 	ICamera* GetCamera();
 	DXScene* GetScene();
-	DXBuffer* GetCameraBuffer();
+	DXMutableBuffer* GetCameraBuffer();
 
 	DXTexture* GetGBufferDiffuseTex();
 	DXTexture* GetGBufferSpecularTex();

@@ -13,6 +13,7 @@
 #include "DXRenderer.h"
 #include "DXMaterialRepo.h"
 #include "DXTexture.h"
+#include "DXMutableBuffer.h"
 
 #include "DXUnlitErrorMaterial.h"
 
@@ -34,7 +35,7 @@ namespace rendering
 		rendering::DXCommandQueue* GetCommandQueue();
 		rendering::DXCopyCommandQueue* GetCopyCommandQueue();
 		rendering::DXCamera* GetCamera();
-		rendering::DXBuffer* GetCameraBuffer();
+		rendering::DXMutableBuffer* GetCameraBuffer();
 		rendering::DXScene* GetScene();
 
 		rendering::DXMaterialRepo* GetMaterialRepo();

@@ -30,7 +30,7 @@ namespace
     rendering::Window* m_wnd = nullptr;
     rendering::DXDevice* m_device = nullptr;
     rendering::DXSwapChain* m_swapChain = nullptr;
-    rendering::DXBuffer* m_camBuffer = nullptr;
+    rendering::DXMutableBuffer* m_camBuffer = nullptr;
 
     void CacheObjects()
     {
@@ -108,7 +108,7 @@ ID3D12CommandList* rendering::DXPostProcessMaterial::GenerateCommandList(
     ID3D12DescriptorHeap* descriptorHeaps[] = { m_srvHeap->GetDescriptorHeap() };
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-    commandList->SetGraphicsRootConstantBufferView(0, m_camBuffer->GetBuffer()->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootConstantBufferView(0, m_camBuffer->GetBuffer()->GetBuffer()->GetGPUVirtualAddress());
     commandList->SetGraphicsRootDescriptorTable(1, descriptorHeaps[0]->GetGPUDescriptorHandleForHeapStart());
 
     UINT64 width = m_wnd->m_width;
