@@ -31,6 +31,8 @@
 #include "DXMaterialRepo.h"
 #include "DXMaterialRepoMeta.h"
 
+#include "DXMutableBuffer.h"
+
 #include "utils.h"
 
 #include "ShadowMapping.h"
@@ -310,7 +312,7 @@ void rendering::DXDeferredRP::RenderDeferred()
                 const DXScene::GeometryResources& geometryResources = curSceneResources.m_geometryResources.find(obj.m_geometry)->second;
                 DXBuffer* vertBuf = geometryResources.m_vertexBuffer;
                 DXBuffer* indexBuf = geometryResources.m_indexBuffer;
-                DXBuffer* instanceBuf = geometryResources.m_instanceBuffer;
+                DXBuffer* instanceBuf = geometryResources.m_instanceBuffer->GetBuffer();
 
                 if (!mat)
                 {

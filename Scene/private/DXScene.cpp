@@ -8,6 +8,8 @@
 
 #include "DXBuffer.h"
 #include "DXBufferMeta.h"
+#include "DXMutableBuffer.h"
+#include "DXMutableBufferMeta.h"
 #include "DXHeap.h"
 
 #include "Notifications.h"
@@ -373,7 +375,7 @@ namespace
 		core::utils::RunSync(new CreateObjects(*ctx));
 	}
 
-	void LoadInstanceBuff(const collada::InstanceBuffer& instanceBuffer, rendering::DXBuffer*& buffer, jobs::Job* done)
+	void LoadInstanceBuff(const collada::InstanceBuffer& instanceBuffer, rendering::DXMutableBuffer*& buffer, jobs::Job* done)
 	{
 		using namespace rendering;
 
@@ -381,10 +383,9 @@ namespace
 		{
 			const collada::InstanceBuffer* m_instanceBuff = nullptr;
 
-			DXBuffer** m_outBuffer = nullptr;
+			DXMutableBuffer** m_outBuffer = nullptr;
 
-			DXBuffer* m_buffer = nullptr;
-			DXHeap* m_heap = nullptr;
+			DXMutableBuffer* m_buffer = nullptr;
 
 			jobs::Job* m_done = nullptr;
 		};
@@ -393,6 +394,23 @@ namespace
 		ctx.m_instanceBuff = &instanceBuffer;
 		ctx.m_outBuffer = &buffer;
 		ctx.m_done = done;
+
+		class DataUploaded : public jobs::Job
+		{
+		private:
+			Context m_ctx;
+		public:
+			DataUploaded(const Context& ctx) :
+				m_ctx(ctx)
+			{
+			}
+
+			void Do() override
+			{
+				*m_ctx.m_outBuffer = m_ctx.m_buffer;
+				core::utils::RunSync(m_ctx.m_done);
+			}
+		};
 
 		class UploadData : public jobs::Job
 		{
@@ -406,7 +424,7 @@ namespace
 
 			void Do() override
 			{
-				void* data = m_ctx.m_buffer->Map();
+				void* data = m_ctx.m_buffer->GetUploadBuffer()->Map();
 
 				collada::GeometryInstanceData* curDataPosition = static_cast<collada::GeometryInstanceData*>(data);
 
@@ -416,27 +434,8 @@ namespace
 					++curDataPosition;
 				}
 
-				m_ctx.m_buffer->Unmap();
-				*m_ctx.m_outBuffer = m_ctx.m_buffer;
-
-				core::utils::RunSync(m_ctx.m_done);
-			}
-		};
-
-		class HeapResident : public jobs::Job
-		{
-		private:
-			Context m_ctx;
-		public:
-			HeapResident(const Context& ctx) :
-				m_ctx(ctx)
-			{
-			}
-
-			void Do() override
-			{
-				m_ctx.m_buffer->Place(m_ctx.m_heap, 0);
-				core::utils::RunAsync(new UploadData(m_ctx));
+				m_ctx.m_buffer->GetUploadBuffer()->Unmap();
+				m_ctx.m_buffer->Upload(new DataUploaded(m_ctx));
 			}
 		};
 
@@ -455,17 +454,8 @@ namespace
 				UINT64 stride = sizeof(collada::GeometryInstanceData);
 				UINT64 size = m_ctx.m_instanceBuff->m_data.size() * stride;
 
-				m_ctx.m_buffer = new DXBuffer(DXBufferMeta::GetInstance());
-				m_ctx.m_buffer->SetBufferSizeAndFlags(size, D3D12_RESOURCE_FLAG_NONE);
-				m_ctx.m_buffer->SetBufferStride(stride);
-
-				m_ctx.m_heap = new DXHeap();
-				m_ctx.m_heap->SetHeapSize(size);
-				m_ctx.m_heap->SetHeapType(D3D12_HEAP_TYPE_UPLOAD);
-				m_ctx.m_heap->SetHeapFlags(D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS);
-				m_ctx.m_heap->Create();
-
-				m_ctx.m_heap->MakeResident(new HeapResident(m_ctx));
+				m_ctx.m_buffer = new DXMutableBuffer(DXMutableBufferMeta::GetInstance(), size, stride);
+				m_ctx.m_buffer->Load(new UploadData(m_ctx));
 			}
 		};
 
@@ -571,7 +561,7 @@ void rendering::DXScene::LoadGeometryBuffers(int sceneIndex, const std::string& 
 
 		DXBuffer* m_vertexBuffer = nullptr;
 		DXBuffer* m_indexBuffer = nullptr;
-		DXBuffer* m_instanceBuffer = nullptr;
+		DXMutableBuffer* m_instanceBuffer = nullptr;
 
 		int m_jobsLeft = 3;
 		jobs::Job* m_done = nullptr;

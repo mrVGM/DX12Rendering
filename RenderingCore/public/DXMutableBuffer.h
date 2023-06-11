@@ -21,6 +21,7 @@ namespace rendering
 		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocator;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_commandList;
 
+		void CreateCommandList();
 	public:
 		DXMutableBuffer(const BaseObjectMeta& meta, UINT64 size, UINT64 stride);
 		virtual ~DXMutableBuffer();

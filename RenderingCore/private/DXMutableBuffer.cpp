@@ -24,22 +24,6 @@ rendering::DXMutableBuffer::DXMutableBuffer(const BaseObjectMeta& meta, UINT64 s
 	m_uploadBuffer = new DXBuffer(DXBufferMeta::GetInstance());
 	m_uploadBuffer->SetBufferSizeAndFlags(size, D3D12_RESOURCE_FLAG_NONE);
 	m_uploadBuffer->SetBufferStride(stride);
-
-	DXDevice* device = core::utils::GetDevice();
-
-	THROW_ERROR(
-		device->GetDevice().CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COPY, IID_PPV_ARGS(&m_commandAllocator)),
-		"Can't create Command Allocator!")
-
-	THROW_ERROR(
-		device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_COPY, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&m_commandList)),
-		"Can't create Command List!")
-
-	m_commandList->CopyResource(m_buffer->GetBuffer(), m_uploadBuffer->GetBuffer());
-
-	THROW_ERROR(
-		m_commandList->Close(),
-		"Can't close command List!")
 }
 
 rendering::DXMutableBuffer::~DXMutableBuffer()
@@ -95,6 +79,8 @@ void rendering::DXMutableBuffer::Load(jobs::Job* done)
 			m_ctx.m_mutableBuffer->GetBuffer()->Place(m_ctx.m_heap, 0);
 			m_ctx.m_mutableBuffer->GetUploadBuffer()->Place(m_ctx.m_uploadHeap, 0);
 
+			m_ctx.m_mutableBuffer->CreateCommandList();
+
 			core::utils::RunSync(m_ctx.m_done);
 			delete &m_ctx;
 		}
@@ -136,6 +122,25 @@ void rendering::DXMutableBuffer::Load(jobs::Job* done)
 void rendering::DXMutableBuffer::Upload(jobs::Job* done)
 {
 	m_uploadBuffer->CopyBuffer(*m_buffer, done);
+}
+
+void rendering::DXMutableBuffer::CreateCommandList()
+{
+	DXDevice* device = core::utils::GetDevice();
+
+	THROW_ERROR(
+		device->GetDevice().CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COPY, IID_PPV_ARGS(&m_commandAllocator)),
+		"Can't create Command Allocator!")
+
+	THROW_ERROR(
+		device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_COPY, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&m_commandList)),
+		"Can't create Command List!")
+
+	m_commandList->CopyResource(m_buffer->GetBuffer(), m_uploadBuffer->GetBuffer());
+
+	THROW_ERROR(
+		m_commandList->Close(),
+		"Can't close command List!")
 }
 
 #undef THROW_ERROR
