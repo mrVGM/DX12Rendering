@@ -9,7 +9,6 @@
 #include "DXBuffer.h"
 #include "DXTexture.h"
 
-#include "DXCameraBufferMeta.h"
 #include "resources/DXShadowMapMeta.h"
 
 #include "DXDescriptorHeap.h"
@@ -46,14 +45,7 @@ namespace
 
         if (!m_cameraBuffer)
         {
-            BaseObject* obj = container.GetObjectOfClass(DXCameraBufferMeta::GetInstance());
-
-            if (!obj)
-            {
-                throw "Can't find Camera Buffer!";
-            }
-
-            m_cameraBuffer = static_cast<DXBuffer*>(obj);
+            m_cameraBuffer = cascaded::GetCameraBuffer();
         }
 
         if (!m_shadowMap)

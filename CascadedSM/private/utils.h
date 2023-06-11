@@ -4,7 +4,6 @@
 #include "CascadedSM.h"
 #include "ICamera.h"
 #include "DXScene.h"
-#include "DXCameraBufferMeta.h"
 #include "DXTexture.h"
 #include "DXMaterialRepo.h"
 #include "DXBuffer.h"

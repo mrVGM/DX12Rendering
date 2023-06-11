@@ -14,7 +14,6 @@
 
 #include "BaseObjectContainer.h"
 
-#include "DXCameraBufferMeta.h"
 #include "DXBuffer.h"
 
 #include "DXDescriptorHeap.h"
@@ -53,14 +52,7 @@ namespace
 
         if (!m_cameraBuffer)
         {
-            BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-            BaseObject* obj = container.GetObjectOfClass(DXCameraBufferMeta::GetInstance());
-
-            if (!obj)
-            {
-                throw "Can't find Camera Buffer!";
-            }
-            m_cameraBuffer = static_cast<DXBuffer*>(obj);
+            m_cameraBuffer = cascaded::GetCameraBuffer();
         }
     }
 }
