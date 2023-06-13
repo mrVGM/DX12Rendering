@@ -160,29 +160,29 @@ void rendering::Updater::RunTickUpdaters(double dt)
 
 void rendering::Updater::SyncMutableBuffers()
 {	
-	std::list<BaseObject*> rdus;
+	std::list<BaseObject*> mutableBuffers;
 
 	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-	container.GetAllObjectsOfClass(DXMutableBufferMeta::GetInstance(), rdus);
+	container.GetAllObjectsOfClass(DXMutableBufferMeta::GetInstance(), mutableBuffers);
 
-	if (rdus.empty())
+	if (mutableBuffers.empty())
 	{
 		utils::RunSync(new NotifyUpdater(*this));
 		return;
 	}
 
-	if (m_numCopyLists < rdus.size())
+	if (m_numCopyLists < mutableBuffers.size())
 	{
 		if (m_copyLists)
 		{
 			delete m_copyLists;
 		}
 
-		m_copyLists = new ID3D12CommandList* [rdus.size()];
+		m_copyLists = new ID3D12CommandList* [mutableBuffers.size()];
 	}
 
 	UINT64 index = 0;
-	for (auto it = rdus.begin(); it != rdus.end(); ++it)
+	for (auto it = mutableBuffers.begin(); it != mutableBuffers.end(); ++it)
 	{
 		DXMutableBuffer* cur = static_cast<DXMutableBuffer*>(*it);
 		if (!cur->IsDirty())
