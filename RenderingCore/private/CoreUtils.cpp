@@ -163,8 +163,8 @@ namespace rendering::core::utils
 		utils::RunSync(new Dispose(baseObject));
 	}
 
-	void RunCopyLists(ID3D12CommandList* const* lists, UINT64 numLists)
+	void RunCopyLists(ID3D12CommandList* const* lists, UINT64 numLists, jobs::Job* done)
 	{
-
+		m_copyBuffers->Execute(lists, numLists, done);
 	}
 }

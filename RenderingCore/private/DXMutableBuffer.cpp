@@ -125,6 +125,11 @@ void rendering::DXMutableBuffer::Upload(jobs::Job* done)
 	m_uploadBuffer->CopyBuffer(*m_buffer, done);
 }
 
+ID3D12CommandList* rendering::DXMutableBuffer::GetCopyCommandList()
+{
+	return m_commandList.Get();
+}
+
 void rendering::DXMutableBuffer::SetDirty()
 {
 	if (m_isLoaded)

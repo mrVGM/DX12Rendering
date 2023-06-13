@@ -23,5 +23,5 @@ namespace rendering::core::utils
 	void RunAsync(jobs::Job* job);
 	void DisposeBaseObject(BaseObject& baseObject);
 
-	void RunCopyLists(ID3D12CommandList* const* lists, UINT64 numLists);
+	void RunCopyLists(ID3D12CommandList* const* lists, UINT64 numLists, jobs::Job* done);
 }

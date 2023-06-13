@@ -11,6 +11,8 @@
 
 #include "DXMutableBufferMeta.h"
 
+#include "CoreUtils.h"
+
 #include <corecrt_math_defines.h>
 #include <vector>
 #include <list>
@@ -34,6 +36,10 @@ rendering::Updater::Updater() :
 
 rendering::Updater::~Updater()
 {
+	if (m_copyLists)
+	{
+		delete[] m_copyLists;
+	}
 }
 
 void rendering::Updater::StartUpdate()
@@ -153,18 +159,7 @@ void rendering::Updater::RunTickUpdaters(double dt)
 }
 
 void rendering::Updater::SyncMutableBuffers()
-{
-	struct Context
-	{
-		Updater* m_updater = nullptr;
-		int m_updatersToWaitFor = -1;
-		jobs::Job* m_done = nullptr;
-	};
-
-	Context* ctx = new Context();
-	ctx->m_updater = this;
-	ctx->m_done = new NotifyUpdater(*this);
-	
+{	
 	std::list<BaseObject*> rdus;
 
 	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
@@ -172,48 +167,39 @@ void rendering::Updater::SyncMutableBuffers()
 
 	if (rdus.empty())
 	{
-		utils::RunSync(ctx->m_done);
-		delete ctx;
+		utils::RunSync(new NotifyUpdater(*this));
 		return;
 	}
 
-	ctx->m_updatersToWaitFor = rdus.size();
-
-	class RDUDone : public jobs::Job
+	if (m_numCopyLists < rdus.size())
 	{
-	private:
-		Context& m_ctx;
-	public:
-		RDUDone(Context& ctx) :
-			m_ctx(ctx)
+		if (m_copyLists)
 		{
+			delete m_copyLists;
 		}
 
-		void Do() override
-		{
-			--m_ctx.m_updatersToWaitFor;
-			if (m_ctx.m_updatersToWaitFor > 0)
-			{
-				return;
-			}
+		m_copyLists = new ID3D12CommandList* [rdus.size()];
+	}
 
-			utils::RunSync(m_ctx.m_done);
-			delete& m_ctx;
-		}
-	};
-
+	UINT64 index = 0;
 	for (auto it = rdus.begin(); it != rdus.end(); ++it)
 	{
-		DXMutableBuffer* rdu = static_cast<DXMutableBuffer*>(*it);
-		if (rdu->IsDirty())
+		DXMutableBuffer* cur = static_cast<DXMutableBuffer*>(*it);
+		if (!cur->IsDirty())
 		{
-			rdu->Upload(new RDUDone(*ctx));
+			continue;
 		}
-		else
-		{
-			--ctx->m_updatersToWaitFor;
-		}
+
+		m_copyLists[index++] = cur->GetCopyCommandList();
 	}
+
+	if (index == 0)
+	{
+		utils::RunSync(new NotifyUpdater(*this));
+		return;
+	}
+
+	core::utils::RunCopyLists(m_copyLists, index, new NotifyUpdater(*this));
 }
 
 double rendering::Updater::TimeStamp()

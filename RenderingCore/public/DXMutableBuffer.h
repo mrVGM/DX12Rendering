@@ -35,5 +35,7 @@ namespace rendering
 		DXBuffer* GetUploadBuffer();
 		void Load(jobs::Job* done);
 		void Upload(jobs::Job* done);
+
+		ID3D12CommandList* GetCopyCommandList();
 	};
 }

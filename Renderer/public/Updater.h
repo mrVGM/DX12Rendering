@@ -4,6 +4,7 @@
 
 #include "Job.h"
 
+#include <d3d12.h>
 #include <chrono>
 
 namespace rendering
@@ -28,6 +29,9 @@ namespace rendering
 		};
 
 	private:
+		ID3D12CommandList** m_copyLists = nullptr;
+		UINT64 m_numCopyLists = 0;
+
 		UpdaterState m_state = NotStarted;
 		int m_updatesToWaitFor = 0;
 
