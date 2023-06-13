@@ -8,6 +8,8 @@
 
 #include "Job.h"
 
+#include <d3d12.h>
+
 namespace rendering::core::utils
 {
 	Window* GetWindow();
@@ -20,4 +22,6 @@ namespace rendering::core::utils
 	void RunSync(jobs::Job* job);
 	void RunAsync(jobs::Job* job);
 	void DisposeBaseObject(BaseObject& baseObject);
+
+	void RunCopyLists(ID3D12CommandList* const* lists, UINT64 numLists);
 }

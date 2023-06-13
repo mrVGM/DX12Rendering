@@ -13,12 +13,16 @@
 
 #include "DXSwapChainMeta.h"
 
+#include "ResourceUtils/DXCopyBuffers.h"
+#include "ResourceUtils/DXCopyBuffersMeta.h"
+
 #include "JobSystem.h"
 
 namespace
 {
 	jobs::JobSystem* m_mainJobSystem = nullptr;
 	jobs::JobSystem* m_loadJobSystem = nullptr;
+	rendering::DXCopyBuffers* m_copyBuffers = nullptr;
 }
 
 namespace rendering::core::utils
@@ -117,6 +121,16 @@ namespace rendering::core::utils
 
 			m_loadJobSystem = static_cast<jobs::JobSystem*>(obj);
 		}
+
+		{
+			BaseObject* obj = container.GetObjectOfClass(DXCopyBuffersMeta::GetInstance());
+			if (!obj)
+			{
+				throw "Can't find Copy Buffers!";
+			}
+
+			m_copyBuffers = static_cast<DXCopyBuffers*>(obj);
+		}
 	}
 
 
@@ -147,5 +161,10 @@ namespace rendering::core::utils
 		};
 
 		utils::RunSync(new Dispose(baseObject));
+	}
+
+	void RunCopyLists(ID3D12CommandList* const* lists, UINT64 numLists)
+	{
+
 	}
 }

@@ -32,5 +32,11 @@ namespace rendering
 			const DXBuffer& src,
 			jobs::Job* done
 		);
+
+		void Execute(
+			ID3D12CommandList*const* lists,
+			UINT64 numLists,
+			jobs::Job* done
+		);
 	};
 }

@@ -163,4 +163,63 @@ void rendering::DXCopyBuffers::Execute(
     m_copyJobSytem->ScheduleJob(new CopyJob(ctx));
 }
 
+void rendering::DXCopyBuffers::Execute(ID3D12CommandList* const* lists, UINT64 numLists, jobs::Job* done)
+{
+    struct JobContext
+    {
+        DXCopyBuffers* m_dxCopyBuffers = nullptr;
+        ID3D12CommandList* const* m_lists = nullptr;
+        UINT64 m_numLists = 0;
+        UINT64 m_signal = -1;
+        jobs::Job* m_done = nullptr;
+    };
+
+    JobContext ctx{ this, lists, numLists, -1, done };
+
+    class WaitJob : public jobs::Job
+    {
+    private:
+        JobContext m_jobContext;
+    public:
+        WaitJob(const JobContext& jobContext) :
+            m_jobContext(jobContext)
+        {
+        }
+
+        void Do() override
+        {
+            WaitFence waitFence(*m_jobContext.m_dxCopyBuffers->m_copyFence);
+            waitFence.Wait(m_jobContext.m_signal);
+
+            core::utils::RunSync(m_jobContext.m_done);
+        }
+    };
+
+    class CopyJob : public jobs::Job
+    {
+    private:
+        JobContext m_jobContext;
+    public:
+        CopyJob(const JobContext& jobContext) :
+            m_jobContext(jobContext)
+        {
+        }
+
+        void Do() override
+        {
+            DXFence* fence = m_jobContext.m_dxCopyBuffers->m_copyFence;
+            DXCopyCommandQueue* commandQueue = m_jobContext.m_dxCopyBuffers->m_copyCommandQueue;
+            UINT64 signal = m_jobContext.m_dxCopyBuffers->m_copyCounter++;
+
+            m_jobContext.m_signal = signal;
+            core::utils::RunAsync(new WaitJob(m_jobContext));
+
+            commandQueue->GetCommandQueue()->ExecuteCommandLists(m_jobContext.m_numLists, m_jobContext.m_lists);
+            commandQueue->GetCommandQueue()->Signal(fence->GetFence(), signal);
+        }
+    };
+
+    m_copyJobSytem->ScheduleJob(new CopyJob(ctx));
+}
+
 #undef THROW_ERROR
