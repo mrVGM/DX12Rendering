@@ -370,7 +370,7 @@ void rendering::CascadedSM::LoadSettingsBuffer(jobs::Job* done)
 	struct Context
 	{
 		CascadedSM* m_cascadedSM = nullptr;
-		DXBuffer* m_buffer = nullptr;
+		DXMutableBuffer* m_buffer = nullptr;
 		DXHeap* m_heap = nullptr;
 
 		jobs::Job* m_done = nullptr;
@@ -380,21 +380,19 @@ void rendering::CascadedSM::LoadSettingsBuffer(jobs::Job* done)
 	ctx.m_cascadedSM = this;
 	ctx.m_done = done;
 
-	class PlaceBuffer : public jobs::Job
+	class BufferLoaded : public jobs::Job
 	{
 	private:
 		Context m_ctx;
 	public:
-		PlaceBuffer(const Context& ctx) :
+		BufferLoaded(const Context& ctx) :
 			m_ctx(ctx)
 		{
 		}
 
 		void Do() override
 		{
-			m_ctx.m_buffer->Place(m_ctx.m_heap, 0);
 			m_ctx.m_cascadedSM->m_smSettingsBuffer = m_ctx.m_buffer;
-
 			core::utils::RunSync(m_ctx.m_done);
 		}
 	};
@@ -414,17 +412,8 @@ void rendering::CascadedSM::LoadSettingsBuffer(jobs::Job* done)
 			UINT size = 3 * 256;
 			UINT stride = size;
 
-			m_ctx.m_buffer = new DXBuffer(DXSMSettingsBufferMeta::GetInstance());
-			m_ctx.m_buffer->SetBufferSizeAndFlags(size, D3D12_RESOURCE_FLAG_NONE);
-			m_ctx.m_buffer->SetBufferStride(stride);
-
-			m_ctx.m_heap = new DXHeap();
-			m_ctx.m_heap->SetHeapSize(size);
-			m_ctx.m_heap->SetHeapType(D3D12_HEAP_TYPE_UPLOAD);
-			m_ctx.m_heap->SetHeapFlags(D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS);
-			m_ctx.m_heap->Create();
-
-			m_ctx.m_heap->MakeResident(new PlaceBuffer(m_ctx));
+			m_ctx.m_buffer = new DXMutableBuffer(DXSMSettingsBufferMeta::GetInstance(), size, stride);
+			m_ctx.m_buffer->Load(new BufferLoaded(m_ctx));
 		}
 	};
 
@@ -869,10 +858,12 @@ void rendering::CascadedSM::UpdateSMSettings()
 	settings.m_saparators[1] = m_cascadeSeparators[1];
 	settings.m_saparators[2] = m_cascadeSeparators[2];
 
-	void* data = m_smSettingsBuffer->Map();
+	void* data = m_smSettingsBuffer->GetUploadBuffer()->Map();
 	ShadowMapSettings* shadowMapSettingsData = static_cast<ShadowMapSettings*>(data);
 	*shadowMapSettingsData = settings;
-	m_smSettingsBuffer->Unmap();
+	m_smSettingsBuffer->GetUploadBuffer()->Unmap();
+
+	m_smSettingsBuffer->SetDirty();
 }
 
 void rendering::CascadedSM::PreparePreSMRenderList()
@@ -1277,7 +1268,7 @@ rendering::DXDescriptorHeap* rendering::CascadedSM::GetSMDescriptorHeap()
 	return m_smDescriptorHeap;
 }
 
-rendering::DXBuffer* rendering::CascadedSM::GetSettingsBuffer()
+rendering::DXMutableBuffer* rendering::CascadedSM::GetSettingsBuffer()
 {
 	return m_smSettingsBuffer;
 }

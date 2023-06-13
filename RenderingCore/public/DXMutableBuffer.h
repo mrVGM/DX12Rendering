@@ -15,6 +15,8 @@ namespace rendering
 	class DXMutableBuffer : public BaseObject
 	{
 	private:
+		bool m_isLoaded = false;
+		bool m_isDirty = false;
 		DXBuffer* m_buffer = nullptr;
 		DXBuffer* m_uploadBuffer = nullptr;
 
@@ -25,6 +27,9 @@ namespace rendering
 	public:
 		DXMutableBuffer(const BaseObjectMeta& meta, UINT64 size, UINT64 stride);
 		virtual ~DXMutableBuffer();
+
+		void SetDirty();
+		bool IsDirty();
 
 		DXBuffer* GetBuffer();
 		DXBuffer* GetUploadBuffer();

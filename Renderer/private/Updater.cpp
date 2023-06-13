@@ -12,6 +12,8 @@
 #include "RenderDataUpdaterMeta.h"
 #include "RenderDataUpdater.h"
 
+#include "DXMutableBufferMeta.h"
+
 #include <corecrt_math_defines.h>
 #include <vector>
 #include <list>
@@ -72,7 +74,7 @@ void rendering::Updater::Proceed()
 		m_state = UpdaterState::Sync;
 		m_updatesToWaitFor = 1;
 
-		RunRDUs();
+		SyncMutableBuffers();
 		return;
 	}
 
@@ -153,7 +155,7 @@ void rendering::Updater::RunTickUpdaters(double dt)
 	utils::RunAsync(new RunTickUpdaters(*ctx));
 }
 
-void rendering::Updater::RunRDUs()
+void rendering::Updater::SyncMutableBuffers()
 {
 	struct Context
 	{
@@ -169,7 +171,7 @@ void rendering::Updater::RunRDUs()
 	std::list<BaseObject*> rdus;
 
 	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-	container.GetAllObjectsOfClass(RenderDataUpdaterMeta::GetInstance(), rdus);
+	container.GetAllObjectsOfClass(DXMutableBufferMeta::GetInstance(), rdus);
 
 	if (rdus.empty())
 	{
@@ -203,29 +205,17 @@ void rendering::Updater::RunRDUs()
 		}
 	};
 
-	class RunRDU : public jobs::Job
-	{
-	private:
-		RenderDataUpdater& m_rdu;
-		Context& m_ctx;
-	public:
-		RunRDU(Context& ctx, RenderDataUpdater& rdu) :
-			m_ctx(ctx),
-			m_rdu(rdu)
-		{
-		}
-
-		void Do() override
-		{
-			m_rdu.Update();
-			utils::RunSync(new RDUDone(m_ctx));
-		}
-	};
-
 	for (auto it = rdus.begin(); it != rdus.end(); ++it)
 	{
-		RenderDataUpdater* rdu = static_cast<RenderDataUpdater*>(*it);
-		utils::RunAsync(new RunRDU(*ctx, *rdu));
+		DXMutableBuffer* rdu = static_cast<DXMutableBuffer*>(*it);
+		if (rdu->IsDirty())
+		{
+			rdu->Upload(new RDUDone(*ctx));
+		}
+		else
+		{
+			--ctx->m_updatersToWaitFor;
+		}
 	}
 }
 

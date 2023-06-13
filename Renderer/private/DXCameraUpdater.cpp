@@ -147,4 +147,5 @@ int rendering::DXCameraUpdater::GetPriority()
 void rendering::DXCameraUpdater::Update(double dt)
 {
 	UpdateCameraPosition(dt);
+	m_camera->UpdateCamBuffer();
 }

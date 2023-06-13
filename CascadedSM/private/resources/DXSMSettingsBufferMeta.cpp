@@ -1,6 +1,6 @@
 #include "DXSMSettingsBufferMeta.h"
 
-#include "DXBufferMeta.h"
+#include "DXMutableBufferMeta.h"
 
 namespace
 {
@@ -8,7 +8,7 @@ namespace
 }
 
 rendering::DXSMSettingsBufferMeta::DXSMSettingsBufferMeta() :
-	BaseObjectMeta(&DXBufferMeta::GetInstance())
+	BaseObjectMeta(&DXMutableBufferMeta::GetInstance())
 {
 }
 

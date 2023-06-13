@@ -167,7 +167,7 @@ ID3D12CommandList* rendering::DXShadowMapMaterial::GenerateCommandList(
 
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
     commandList->SetGraphicsRootConstantBufferView(0, m_cameraBuffer->GetBuffer()->GetBuffer()->GetGPUVirtualAddress());
-    commandList->SetGraphicsRootConstantBufferView(1, m_cascadedSM->GetSettingsBuffer()->GetBuffer()->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootConstantBufferView(1, m_cascadedSM->GetSettingsBuffer()->GetBuffer()->GetBuffer()->GetGPUVirtualAddress());
     commandList->SetGraphicsRootConstantBufferView(2, m_materialSettingsBuffer->GetBuffer()->GetGPUVirtualAddress());
     
     {

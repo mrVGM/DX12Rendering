@@ -12,6 +12,7 @@
 namespace rendering
 {
 	class DXBuffer;
+	class DXMutableBuffer;
 	class DXTexture;
 	class DXDescriptorHeap;
 	class DXMaterial;
@@ -32,7 +33,7 @@ namespace rendering
 
 		const float m_cascadeSeparators[3] = { 20, 50, 200 };
 
-		DXBuffer* m_smSettingsBuffer = nullptr;
+		DXMutableBuffer* m_smSettingsBuffer = nullptr;
 		DXTexture* m_smFilterTex = nullptr;
 
 		std::vector<DXTexture*> m_smTex;
@@ -75,7 +76,7 @@ namespace rendering
 		DXTexture* GetShadowMask(int index);
 		DXDescriptorHeap* GetDSDescriptorHeap();
 		DXDescriptorHeap* GetSMDescriptorHeap();
-		DXBuffer* GetSettingsBuffer();
+		DXMutableBuffer* GetSettingsBuffer();
 
 		const std::list<DXMaterial*>& GetShadowMapMaterials();
 

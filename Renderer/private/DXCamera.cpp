@@ -144,6 +144,8 @@ void rendering::DXCamera::UpdateCamBuffer()
 	*camSettingsData = camSettings;
 
 	camBuff->GetUploadBuffer()->Unmap();
+
+	camBuff->SetDirty();
 }
 
 rendering::DXCamera::DXCamera() :

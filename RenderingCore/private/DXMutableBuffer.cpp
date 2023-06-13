@@ -81,6 +81,7 @@ void rendering::DXMutableBuffer::Load(jobs::Job* done)
 
 			m_ctx.m_mutableBuffer->CreateCommandList();
 
+			m_ctx.m_mutableBuffer->m_isLoaded = true;
 			core::utils::RunSync(m_ctx.m_done);
 			delete &m_ctx;
 		}
@@ -122,6 +123,19 @@ void rendering::DXMutableBuffer::Load(jobs::Job* done)
 void rendering::DXMutableBuffer::Upload(jobs::Job* done)
 {
 	m_uploadBuffer->CopyBuffer(*m_buffer, done);
+}
+
+void rendering::DXMutableBuffer::SetDirty()
+{
+	if (m_isLoaded)
+	{
+		m_isDirty = true;
+	}
+}
+
+bool rendering::DXMutableBuffer::IsDirty()
+{
+	return m_isDirty;
 }
 
 void rendering::DXMutableBuffer::CreateCommandList()

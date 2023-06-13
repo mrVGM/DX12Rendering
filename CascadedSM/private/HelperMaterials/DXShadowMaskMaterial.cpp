@@ -14,8 +14,6 @@
 #include "DXDescriptorHeap.h"
 #include "DXDescriptorHeapMeta.h"
 
-#include "resources/DXSMSettingsBufferMeta.h"
-
 #include "utils.h"
 
 #include "CoreUtils.h"
@@ -28,7 +26,6 @@ if (FAILED(hRes)) {\
 namespace
 {
     rendering::DXMutableBuffer* m_cameraBuffer = nullptr;
-    rendering::DXBuffer* m_smSettingsBuffer = nullptr;
     rendering::DXTexture* m_shadowMap = nullptr;
 
     rendering::DXTexture* m_gBuffPositionTex = nullptr;
@@ -58,18 +55,6 @@ namespace
             }
 
             m_shadowMap = static_cast<DXTexture*>(obj);
-        }
-
-        if (!m_smSettingsBuffer)
-        {
-            BaseObject* obj = container.GetObjectOfClass(DXSMSettingsBufferMeta::GetInstance());
-
-            if (!obj)
-            {
-                throw "Can't find Shadow Map Settings!";
-            }
-
-            m_smSettingsBuffer = static_cast<DXBuffer*>(obj);
         }
 
         if (!m_gBuffPositionTex)
@@ -154,7 +139,7 @@ ID3D12CommandList* rendering::DXShadowMaskMaterial::GenerateCommandList(
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
     commandList->SetGraphicsRootConstantBufferView(0, m_cameraBuffer->GetBuffer()->GetBuffer()->GetGPUVirtualAddress());
-    commandList->SetGraphicsRootConstantBufferView(1, m_smSettingsBuffer->GetBuffer()->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootConstantBufferView(1, m_cascadedSM->GetSettingsBuffer()->GetBuffer()->GetBuffer()->GetGPUVirtualAddress());
     commandList->SetGraphicsRootDescriptorTable(2, descriptorHeaps[0]->GetGPUDescriptorHandleForHeapStart());
 
 

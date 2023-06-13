@@ -14,8 +14,6 @@
 #include "DXDescriptorHeap.h"
 #include "DXDescriptorHeapMeta.h"
 
-#include "resources/DXSMSettingsBufferMeta.h"
-
 #include "utils.h"
 
 #include "CoreUtils.h"
@@ -108,7 +106,7 @@ ID3D12CommandList* rendering::DXShadowMapFilterMaterial::GenerateCommandList(
     ID3D12DescriptorHeap* descriptorHeaps[] = { m_srvHeap->GetDescriptorHeap() };
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-    commandList->SetGraphicsRootConstantBufferView(0, m_cascadedSM->GetSettingsBuffer()->GetBuffer()->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootConstantBufferView(0, m_cascadedSM->GetSettingsBuffer()->GetBuffer()->GetBuffer()->GetGPUVirtualAddress());
     commandList->SetGraphicsRootDescriptorTable(1, descriptorHeaps[0]->GetGPUDescriptorHandleForHeapStart());
 
     UINT64 width = m_dstTex->GetTextureDescription().Width;

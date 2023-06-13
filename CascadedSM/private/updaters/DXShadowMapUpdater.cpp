@@ -4,19 +4,17 @@
 
 #include "utils.h"
 
-#include "BaseObjectContainer.h"
-
 namespace
 {
-	rendering::ILightsManager* m_lightsManager = nullptr;
+	rendering::CascadedSM* m_cascadedSM = nullptr;
 
 	void CacheObjects()
 	{
 		using namespace rendering;
 
-		if (!m_lightsManager)
+		if (!m_cascadedSM)
 		{
-			m_lightsManager = cascaded::GetLightsManager();
+			m_cascadedSM = cascaded::GetCascadedSM();
 		}
 	}
 }
@@ -38,4 +36,5 @@ int rendering::DXShadowMapUpdater::GetPriority()
 
 void rendering::DXShadowMapUpdater::Update(double dt)
 {
+	m_cascadedSM->UpdateSMSettings();
 }
