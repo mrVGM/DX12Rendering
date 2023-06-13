@@ -8,8 +8,6 @@
 #include "DXHeap.h"
 #include "DXBuffer.h"
 
-#include "DXCameraRDU.h"
-
 #include "DXCameraUpdater.h"
 
 #include "RenderUtils.h"
@@ -185,19 +183,6 @@ void rendering::DXCamera::InitBuffer(jobs::Job* done)
 	};
 	JobContext jobContext{ done };
 
-	class CreateRDU : public jobs::Job
-	{
-	public:
-		CreateRDU()
-		{
-		}
-
-		void Do()
-		{
-			new DXCameraRDU();
-		}
-	};
-
 	class BufferLoaded : public jobs::Job
 	{
 	private:
@@ -210,7 +195,6 @@ void rendering::DXCamera::InitBuffer(jobs::Job* done)
 		void Do() override
 		{
 			utils::RunSync(m_jobContext.m_done);
-			utils::RunSync(new CreateRDU());
 		}
 	};
 

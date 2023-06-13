@@ -24,7 +24,6 @@
 #include "resources/DXShadowMaskMeta.h"
 
 #include "updaters/DXShadowMapUpdater.h"
-#include "updaters/DXShadowMapRDU.h"
 
 #include "resources/DXSMSettingsBufferMeta.h"
 
@@ -1061,7 +1060,6 @@ void rendering::CascadedSM::LoadResources(jobs::Job* done)
 			delete& m_ctx;
 
 			new DXShadowMapUpdater();
-			new DXShadowMapRDU();
 		}
 	};
 

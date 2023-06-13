@@ -9,9 +9,6 @@
 #include "TickUpdaterMeta.h"
 #include "TickUpdater.h"
 
-#include "RenderDataUpdaterMeta.h"
-#include "RenderDataUpdater.h"
-
 #include "DXMutableBufferMeta.h"
 
 #include <corecrt_math_defines.h>

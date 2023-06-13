@@ -17,25 +17,16 @@ add_library (Renderer
 	"private/DXCamera.cpp"
 	"private/DXComputeShaderMeta.h"
 	"private/DXComputeShaderMeta.cpp"
-	
 	"public/UpdaterMeta.h"
 	"private/UpdaterMeta.cpp"
 	"public/Updater.h"
 	"private/Updater.cpp"
-	
-	
-	
-	
 	"private/MaterialUtils.h"
 	"private/MaterialUtils.cpp"
 	"private/DXCameraUpdaterMeta.h"
 	"private/DXCameraUpdaterMeta.cpp"
 	"private/DXCameraUpdater.h"
 	"private/DXCameraUpdater.cpp"
-	"private/DXCameraRDUMeta.h"
-	"private/DXCameraRDUMeta.cpp"
-	"private/DXCameraRDU.h"
-	"private/DXCameraRDU.cpp"
 )
 
 target_include_directories(Renderer INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
