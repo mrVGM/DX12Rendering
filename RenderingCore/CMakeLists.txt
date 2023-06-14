@@ -72,12 +72,20 @@ add_library (RenderingCore
 	"private/ILightsManagerMeta.cpp"
 	"public/ILightsManager.h"
 	"private/ILightsManager.cpp"
- "public/ShadowMap.h" "public/ShadowMapMeta.h" "private/ShadowMap.cpp" "private/ShadowMapMeta.cpp" "public/DXMutableBufferMeta.h" "private/DXMutableBufferMeta.cpp" "public/DXMutableBuffer.h" "private/DXMutableBuffer.cpp")
+	"public/ShadowMap.h"
+	"public/ShadowMapMeta.h"
+	"private/ShadowMap.cpp"
+	"private/ShadowMapMeta.cpp"
+	"public/DXMutableBufferMeta.h"
+	"private/DXMutableBufferMeta.cpp"
+	"public/DXMutableBuffer.h"
+	"private/DXMutableBuffer.cpp"
+)
 
 target_include_directories(RenderingCore INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(RenderingCore PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(RenderingCore INTERFACE PUBLIC Base Jobs DataLib CommonResources Notifications)
+target_link_libraries(RenderingCore INTERFACE PUBLIC Base Jobs DataLib Notifications)
 
 target_link_libraries(RenderingCore PRIVATE "d3d12.lib" "dxgi.lib" "d3dcompiler.lib" "dxguid.lib")
 

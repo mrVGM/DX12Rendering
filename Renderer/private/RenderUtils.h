@@ -15,6 +15,8 @@
 #include "DXTexture.h"
 #include "DXMutableBuffer.h"
 
+#include "AppSettings.h"
+
 #include "DXUnlitErrorMaterial.h"
 
 #include "DXDescriptorHeap.h"
@@ -37,6 +39,7 @@ namespace rendering
 		rendering::DXCamera* GetCamera();
 		rendering::DXMutableBuffer* GetCameraBuffer();
 		rendering::DXScene* GetScene();
+		rendering::AppSettings* GetAppSettings();
 
 		rendering::DXMaterialRepo* GetMaterialRepo();
 

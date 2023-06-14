@@ -37,12 +37,17 @@
 #include "DXDepthStencilTextureMeta.h"
 #include "DXDepthStencilDescriptorHeapMeta.h"
 
+#include "AppSettings.h"
+#include "AppSettingsMeta.h"
+
 #include "MaterialUtils.h"
 
 #include <iostream>
 
 namespace
 {
+	rendering::AppSettings* m_appSettings = nullptr;
+
 	struct BootContext
 	{
 		bool m_camBufferLoaded = false;
@@ -164,8 +169,9 @@ namespace
 				new DXScene();
 				DXScene* scene = utils::GetScene();
 
-				std::string cubePath = data::GetLibrary().GetRootDir() + "geo/house_scene.dae";
-				scene->LoadColladaScene(cubePath, new SceneLoaded());
+				const AppSettings::Settings& settings = m_appSettings->GetSettings();
+				std::string scenePath = data::GetLibrary().GetRootDir() + settings.m_sceneName;
+				scene->LoadColladaScene(scenePath, new SceneLoaded());
 			}
 		};
 
@@ -207,6 +213,11 @@ namespace
 
 void rendering::Boot()
 {
+	if (!m_appSettings)
+	{
+		m_appSettings = utils::GetAppSettings();
+	}
+
 	InitBaseObjects();
 
 	LoadScene();

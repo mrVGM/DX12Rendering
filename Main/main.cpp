@@ -6,6 +6,8 @@
 #include <filesystem>
 #include <iostream>
 
+#include "AppSettings.h"
+
 int main(int args, const char** argv)
 {
 	std::string executableName = argv[0];
@@ -33,6 +35,8 @@ int main(int args, const char** argv)
 	{
 		std::cout << "Invalid Path to Data Directory!" << std::endl;
 	}
+
+	new rendering::AppSettings();
 
 	rendering::Boot();
 
