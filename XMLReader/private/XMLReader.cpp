@@ -13,6 +13,7 @@
 #include "BaseObject.h"
 
 #include <map>
+#include <queue>
 
 namespace
 {
@@ -112,4 +113,27 @@ void xml_reader::Boot()
 	
 	std::string grammar = ReadGrammar();
 	m_reader = new XMLReader(grammar);
+}
+
+void xml_reader::FindChildNodes(const Node* rootNode, std::function<bool(const Node*)> predicate, std::list<const Node*>& nodesFound)
+{
+	std::queue<const Node*> nodesToCheck;
+	nodesToCheck.push(rootNode);
+
+	while (!nodesToCheck.empty())
+	{
+		const Node* cur = nodesToCheck.front();
+		nodesToCheck.pop();
+
+		if (predicate(cur))
+		{
+			nodesFound.push_back(cur);
+		}
+
+		for (std::list<Node*>::const_iterator it = cur->m_children.begin();
+			it != cur->m_children.end(); ++it)
+		{
+			nodesToCheck.push(*it);
+		}
+	}
 }

@@ -12,26 +12,6 @@ namespace
 {
 	using namespace collada;
 	using namespace xml_reader;
-	
-	void FindChildNodes(const Node* rootNode, std::function<bool(const Node*)> predicate, std::list<const Node*>& nodesFound)
-	{
-		std::queue<const Node*> nodesToCheck;
-		nodesToCheck.push(rootNode);
-
-		while (!nodesToCheck.empty()) {
-			const Node* cur = nodesToCheck.front();
-			nodesToCheck.pop();
-
-			if (predicate(cur)) {
-				nodesFound.push_back(cur);
-			}
-
-			for (std::list<Node*>::const_iterator it = cur->m_children.begin();
-				it != cur->m_children.end(); ++it) {
-				nodesToCheck.push(*it);
-			}
-		}
-	}
 
 	const Node* FindChildTagByName(const std::string& name, const Node* rootNode)
 	{

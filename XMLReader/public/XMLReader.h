@@ -5,6 +5,7 @@
 #include <map>
 #include <list>
 #include <string>
+#include <functional>
 
 namespace xml_reader
 {
@@ -28,4 +29,6 @@ namespace xml_reader
 
 	IXMLReader* GetReader();
 	void Boot();
+	void FindChildNodes(const Node* rootNode, std::function<bool(const Node*)> predicate, std::list<const Node*>& nodesFound);
+	
 }
