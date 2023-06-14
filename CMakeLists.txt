@@ -30,4 +30,4 @@ add_subdirectory ("Profiling")
 add_subdirectory ("CascadedSM")
 add_subdirectory ("Notifications")
 add_subdirectory ("ShadowMapping")
-
+add_subdirectory ("XMLReader")
