@@ -11,31 +11,32 @@
 namespace
 {
 	using namespace collada;
+	using namespace xml_reader;
 	
-	void FindChildNodes(const ColladaNode* rootNode, std::function<bool(const ColladaNode*)> predicate, std::list<const ColladaNode*>& nodesFound)
+	void FindChildNodes(const Node* rootNode, std::function<bool(const Node*)> predicate, std::list<const Node*>& nodesFound)
 	{
-		std::queue<const ColladaNode*> nodesToCheck;
+		std::queue<const Node*> nodesToCheck;
 		nodesToCheck.push(rootNode);
 
 		while (!nodesToCheck.empty()) {
-			const ColladaNode* cur = nodesToCheck.front();
+			const Node* cur = nodesToCheck.front();
 			nodesToCheck.pop();
 
 			if (predicate(cur)) {
 				nodesFound.push_back(cur);
 			}
 
-			for (std::list<ColladaNode*>::const_iterator it = cur->m_children.begin();
+			for (std::list<Node*>::const_iterator it = cur->m_children.begin();
 				it != cur->m_children.end(); ++it) {
 				nodesToCheck.push(*it);
 			}
 		}
 	}
 
-	const ColladaNode* FindChildTagByName(const std::string& name, const ColladaNode* rootNode)
+	const Node* FindChildTagByName(const std::string& name, const Node* rootNode)
 	{
-		std::list<const ColladaNode*> found;
-		FindChildNodes(rootNode, [name](const ColladaNode* node) {
+		std::list<const Node*> found;
+		FindChildNodes(rootNode, [name](const Node* node) {
 			return node->m_tagName == name;
 		},
 		found);
@@ -49,20 +50,20 @@ namespace
 
 	void FindChildTagsByName(
 		const std::string& name,
-		const ColladaNode* rootNode,
-		std::list<const ColladaNode*>& found)
+		const Node* rootNode,
+		std::list<const Node*>& found)
 	{
-		FindChildNodes(rootNode, [name](const ColladaNode* node) {
+		FindChildNodes(rootNode, [name](const Node* node) {
 			return node->m_tagName == name;
 		},
 		found);
 	}
 
-	const ColladaNode* FindChildTagByID(
-		const std::string& id, const ColladaNode* rootNode)
+	const Node* FindChildTagByID(
+		const std::string& id, const Node* rootNode)
 	{
-		std::list<const ColladaNode*> found;
-		FindChildNodes(rootNode, [id](const ColladaNode* node) {
+		std::list<const Node*> found;
+		FindChildNodes(rootNode, [id](const Node* node) {
 			std::map<std::string, std::string>::const_iterator it = node->m_tagProps.find("id");
 			if (it == node->m_tagProps.end()) {
 				return false;
@@ -78,9 +79,9 @@ namespace
 		return *found.begin();
 	}
 
-	bool ReadMaterialTriangles(const ColladaNode* triangles, const ColladaNode* geometryNode, Geometry& geometry);
+	bool ReadMaterialTriangles(const Node* triangles, const Node* geometryNode, Geometry& geometry);
 
-	bool ReadGeometry(const std::string& id, const ColladaNode* geometry, bool invertAxis, Scene& scene)
+	bool ReadGeometry(const std::string& id, const Node* geometry, bool invertAxis, Scene& scene)
 	{
 		if (scene.m_geometries.find(id) != scene.m_geometries.end()) {
 			return true;
@@ -89,13 +90,13 @@ namespace
 		scene.m_geometries.insert(std::pair<std::string, Geometry>(id, Geometry()));
 		Geometry& object = scene.m_geometries[id];
 
-		std::list<const ColladaNode*> trianglesTags;
+		std::list<const Node*> trianglesTags;
 		FindChildTagsByName("triangles", geometry, trianglesTags);
 
 		int firstFreeIndex = 0;
-		for (std::list<const ColladaNode*>::const_iterator it = trianglesTags.begin();
+		for (std::list<const Node*>::const_iterator it = trianglesTags.begin();
 			it != trianglesTags.end(); ++it) {
-			const ColladaNode* trianglesTag = *it;
+			const Node* trianglesTag = *it;
 
 			const std::string& materialName = trianglesTag->m_tagProps.find("material")->second;
 
@@ -143,9 +144,9 @@ namespace
 		return true;
 	}
 
-	bool ShouldInvertAxis(const ColladaNode* rootDataNode)
+	bool ShouldInvertAxis(const Node* rootDataNode)
 	{
-		const ColladaNode* upAxis = FindChildTagByName("up_axis", rootDataNode);
+		const Node* upAxis = FindChildTagByName("up_axis", rootDataNode);
 
 		if (!upAxis) {
 			return false;
@@ -163,10 +164,10 @@ namespace
 		return false;
 	}
 
-	Object* ReadObjectAndGeometryFromNode(const ColladaNode* node, const ColladaNode* rootDataNode, Scene& scene)
+	Object* ReadObjectAndGeometryFromNode(const Node* node, const Node* rootDataNode, Scene& scene)
 	{
-		std::list<const ColladaNode*> matrixContainer;
-		FindChildNodes(node, [](const ColladaNode* x) {
+		std::list<const Node*> matrixContainer;
+		FindChildNodes(node, [](const Node* x) {
 			if (x->m_tagName != "matrix") {
 				return false;
 			}
@@ -186,7 +187,7 @@ namespace
 		if (matrixContainer.size() == 0) {
 			return nullptr;
 		}
-		const ColladaNode* matrix = *matrixContainer.begin();
+		const Node* matrix = *matrixContainer.begin();
 		const std::string& objectName = node->m_tagProps.find("id")->second;
 
 		scene.m_objects.insert(std::pair<std::string, Object>(objectName, Object()));
@@ -199,7 +200,7 @@ namespace
 			obj.m_transform[index++] = (*it)->m_symbolData.m_number;
 		}
 
-		const ColladaNode* instanceGeometry = FindChildTagByName("instance_geometry", node);
+		const Node* instanceGeometry = FindChildTagByName("instance_geometry", node);
 		if (!instanceGeometry) {
 			return nullptr;
 		}
@@ -218,7 +219,7 @@ namespace
 
 		obj.m_geometry = geometryURL;
 
-		const ColladaNode* geometry = FindChildTagByID(geometryURL, rootDataNode);
+		const Node* geometry = FindChildTagByID(geometryURL, rootDataNode);
 		if (!geometry) {
 			return nullptr;
 		}
@@ -242,21 +243,21 @@ namespace
 		float m_values[2];
 	};
 
-	bool ReadVectors3D(const ColladaNode* verts, std::vector<Vector3>& vectors)
+	bool ReadVectors3D(const Node* verts, std::vector<Vector3>& vectors)
 	{
-		const ColladaNode* arr = FindChildTagByName("float_array", verts);
-		const ColladaNode* acc = FindChildTagByName("accessor", verts);
+		const Node* arr = FindChildTagByName("float_array", verts);
+		const Node* acc = FindChildTagByName("accessor", verts);
 
-		std::list<const ColladaNode*> params;
+		std::list<const Node*> params;
 		FindChildTagsByName("param", acc, params);
 
 		int offsets[3] = {-1, -1, -1};
 
 		int index = 0;
-		for (std::list<const ColladaNode*>::const_iterator it = params.begin();
+		for (std::list<const Node*>::const_iterator it = params.begin();
 			it != params.end(); ++it) {
 			
-			const ColladaNode* cur = *it;
+			const Node* cur = *it;
 			const std::string& name = cur->m_tagProps.find("name")->second;
 			if (name == "X") {
 				offsets[0] = index;
@@ -311,21 +312,21 @@ namespace
 		return true;
 	}
 
-	bool ReadUVs(const ColladaNode* uvs, std::vector<Vector2>& vectors)
+	bool ReadUVs(const Node* uvs, std::vector<Vector2>& vectors)
 	{
-		const ColladaNode* arr = FindChildTagByName("float_array", uvs);
-		const ColladaNode* acc = FindChildTagByName("accessor", uvs);
+		const Node* arr = FindChildTagByName("float_array", uvs);
+		const Node* acc = FindChildTagByName("accessor", uvs);
 
-		std::list<const ColladaNode*> params;
+		std::list<const Node*> params;
 		FindChildTagsByName("param", acc, params);
 
 		int offsets[2] = { -1, -1 };
 
 		int index = 0;
-		for (std::list<const ColladaNode*>::const_iterator it = params.begin();
+		for (std::list<const Node*>::const_iterator it = params.begin();
 			it != params.end(); ++it) {
 
-			const ColladaNode* cur = *it;
+			const Node* cur = *it;
 			const std::string& name = cur->m_tagProps.find("name")->second;
 			if (name == "S") {
 				offsets[0] = index;
@@ -378,9 +379,9 @@ namespace
 		return -1;
 	}
 
-	bool ReadMaterialTriangles(const ColladaNode* triangles, const ColladaNode* geometryNode, Geometry& geometry)
+	bool ReadMaterialTriangles(const Node* triangles, const Node* geometryNode, Geometry& geometry)
 	{
-		std::list<const ColladaNode*> inputs;
+		std::list<const Node*> inputs;
 		FindChildTagsByName("input", triangles, inputs);
 
 		int vertexOffset = -1;
@@ -391,9 +392,9 @@ namespace
 		std::vector<Vector3> normals;
 		std::vector<Vector2> uvs;
 
-		for (std::list<const ColladaNode*>::const_iterator it = inputs.begin();
+		for (std::list<const Node*>::const_iterator it = inputs.begin();
 			it != inputs.end(); ++it) {
-			const ColladaNode* cur = *it;
+			const Node* cur = *it;
 
 			const std::string& semantic = cur->m_tagProps.find("semantic")->second;
 			const std::string& source = cur->m_tagProps.find("source")->second;
@@ -404,13 +405,13 @@ namespace
 			if (semantic == "VERTEX") {
 				ss >> vertexOffset;
 
-				const ColladaNode* vert = FindChildTagByID(source.substr(1), geometryNode);
+				const Node* vert = FindChildTagByID(source.substr(1), geometryNode);
 				if (!vert || vert->m_tagName != "vertices") {
 					return false;
 				}
 
-				std::list<const ColladaNode*> tmp;
-				FindChildNodes(vert, [](const ColladaNode* node) {
+				std::list<const Node*> tmp;
+				FindChildNodes(vert, [](const Node* node) {
 					if (node->m_tagName != "input") {
 						return false;
 					}
@@ -428,12 +429,12 @@ namespace
 				if (tmp.size() == 0) {
 					return false;
 				}
-				const ColladaNode* input = *tmp.begin();
+				const Node* input = *tmp.begin();
 
 				std::map<std::string, std::string>::const_iterator sourceUrlIt = input->m_tagProps.find("source");
 				const std::string& sourceUrl = sourceUrlIt->second;
 
-				const ColladaNode* vertsSource = FindChildTagByID(sourceUrl.substr(1), geometryNode);
+				const Node* vertsSource = FindChildTagByID(sourceUrl.substr(1), geometryNode);
 
 				if (!ReadVectors3D(vertsSource, vertices)) {
 					return false;
@@ -443,7 +444,7 @@ namespace
 			if (semantic == "NORMAL") {
 				ss >> normalOffset;
 
-				const ColladaNode* norm = FindChildTagByID(source.substr(1), geometryNode);
+				const Node* norm = FindChildTagByID(source.substr(1), geometryNode);
 				if (!norm || norm->m_tagName != "source") {
 					return false;
 				}
@@ -456,7 +457,7 @@ namespace
 			if (semantic == "TEXCOORD") {
 				ss >> uvOffset;
 
-				const ColladaNode* uvNode = FindChildTagByID(source.substr(1), geometryNode);
+				const Node* uvNode = FindChildTagByID(source.substr(1), geometryNode);
 				if (!uvNode || uvNode->m_tagName != "source") {
 					return false;
 				}
@@ -471,7 +472,7 @@ namespace
 			return false;
 		}
 
-		const ColladaNode* pTag = FindChildTagByName("p", triangles);
+		const Node* pTag = FindChildTagByName("p", triangles);
 
 		std::vector<int> indices;
 		for (std::list<scripting::ISymbol*>::const_iterator it = pTag->m_data.begin();
@@ -604,12 +605,12 @@ namespace
 		collada::ColladaMaterial m_material;
 	};
 
-	void ReadMaterials(const std::list<collada::ColladaNode*>& nodes, std::list<MaterialInfo>& materials)
+	void ReadMaterials(const std::list<Node*>& nodes, std::list<MaterialInfo>& materials)
 	{
-		const ColladaNode* libraryMaterialsTag = nullptr;
-		const ColladaNode* libraryEffectsTag = nullptr;
+		const Node* libraryMaterialsTag = nullptr;
+		const Node* libraryEffectsTag = nullptr;
 
-		for (std::list<ColladaNode*>::const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
+		for (std::list<Node*>::const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
 			libraryMaterialsTag = FindChildTagByName("library_materials", *it);
 			if (libraryMaterialsTag) {
 				break;
@@ -620,7 +621,7 @@ namespace
 			return;
 		}
 
-		for (std::list<ColladaNode*>::const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
+		for (std::list<Node*>::const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
 			libraryEffectsTag = FindChildTagByName("library_effects", *it);
 			if (libraryEffectsTag) {
 				break;
@@ -631,11 +632,11 @@ namespace
 			return;
 		}
 
-		std::map<std::string, const ColladaNode*> effectsMap;
+		std::map<std::string, const Node*> effectsMap;
 
 		for (auto effectIt = libraryEffectsTag->m_children.begin(); effectIt != libraryEffectsTag->m_children.end(); ++effectIt)
 		{
-			const ColladaNode* curEffect = *effectIt;
+			const Node* curEffect = *effectIt;
 			if (curEffect->m_tagName != "effect")
 			{
 				continue;
@@ -646,20 +647,20 @@ namespace
 
 		for (auto matIt = libraryMaterialsTag->m_children.begin(); matIt != libraryMaterialsTag->m_children.end(); ++matIt)
 		{
-			const ColladaNode* curMat = *matIt;
+			const Node* curMat = *matIt;
 
 			if (curMat->m_tagName != "material")
 			{
 				continue;
 			}
-			const ColladaNode* instance_effect = FindChildTagByName("instance_effect", curMat);
+			const Node* instance_effect = FindChildTagByName("instance_effect", curMat);
 			std::string url = instance_effect->m_tagProps.find("url")->second;
 
 			url = url.substr(1, url.size() - 1);
 
-			const ColladaNode* effect = effectsMap.find(url)->second;
-			const ColladaNode* diffuse = FindChildTagByName("diffuse", effect);
-			const ColladaNode* diffuseColor = FindChildTagByName("color", diffuse);
+			const Node* effect = effectsMap.find(url)->second;
+			const Node* diffuse = FindChildTagByName("diffuse", effect);
+			const Node* diffuseColor = FindChildTagByName("color", diffuse);
 
 			MaterialInfo matInfo;
 			matInfo.m_id = curMat->m_tagProps.find("id")->second;
@@ -677,31 +678,31 @@ namespace
 		}
 	}
 
-	void ReadMaterialsBindings(const collada::ColladaNode& objectNode, std::list<std::pair<std::string, std::string>>& bindings)
+	void ReadMaterialsBindings(const Node& objectNode, std::list<std::pair<std::string, std::string>>& bindings)
 	{
-		const ColladaNode* materialBind = FindChildTagByName("bind_material", &objectNode);
+		const Node* materialBind = FindChildTagByName("bind_material", &objectNode);
 		if (!materialBind)
 		{
 			return;
 		}
 
-		std::list<const ColladaNode*> found;
+		std::list<const Node*> found;
 		FindChildTagsByName("instance_material", materialBind, found);
 
 		for (auto it = found.begin(); it != found.end(); ++it)
 		{
-			const ColladaNode* instanceMaterial = *it;
+			const Node* instanceMaterial = *it;
 			bindings.push_back(std::pair<std::string, std::string>(instanceMaterial->m_tagProps.find("symbol")->second, instanceMaterial->m_tagProps.find("target")->second));
 		}
 	}
 }
 
-bool collada::ConvertToScene(const std::list<collada::ColladaNode*>& nodes, collada::Scene& scene)
+bool collada::ConvertToScene(const std::list<Node*>& nodes, collada::Scene& scene)
 {
-	const ColladaNode* sceneTag = nullptr;
-	const ColladaNode* dataContainerTag = nullptr;
+	const Node* sceneTag = nullptr;
+	const Node* dataContainerTag = nullptr;
 
-	for (std::list<ColladaNode*>::const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
+	for (std::list<Node*>::const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
 		sceneTag = FindChildTagByName("scene", *it);
 		if (sceneTag) {
 			dataContainerTag = *it;
@@ -721,7 +722,7 @@ bool collada::ConvertToScene(const std::list<collada::ColladaNode*>& nodes, coll
 		scene.m_materials[it->m_material.m_name] = it->m_material;
 	}
 
-	const ColladaNode* instanceVisualScene = FindChildTagByName("instance_visual_scene", sceneTag);
+	const Node* instanceVisualScene = FindChildTagByName("instance_visual_scene", sceneTag);
 
 	if (!instanceVisualScene) {
 		return false;
@@ -737,15 +738,15 @@ bool collada::ConvertToScene(const std::list<collada::ColladaNode*>& nodes, coll
 		visualSceneURL = urlIt->second.substr(1);
 	}
 
-	const ColladaNode* visualScene = FindChildTagByID(visualSceneURL, dataContainerTag);
+	const Node* visualScene = FindChildTagByID(visualSceneURL, dataContainerTag);
 	if (!visualScene) {
 		return false;
 	}
 
-	std::list<const ColladaNode*> objectNodes;
+	std::list<const Node*> objectNodes;
 	FindChildTagsByName("node", visualScene, objectNodes);
 
-	for (std::list<const ColladaNode*>::const_iterator it = objectNodes.begin();
+	for (std::list<const Node*>::const_iterator it = objectNodes.begin();
 		it != objectNodes.end(); ++it) 
 	{
 		Object* object = ReadObjectAndGeometryFromNode(*it, dataContainerTag, scene);

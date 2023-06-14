@@ -2,23 +2,14 @@
 
 #include "symbol.h"
 
+#include "XMLReader.h"
+#include "ColladaEntities.h"
+
 #include <map>
 #include <list>
 #include <string>
 
 namespace collada
 {
-	struct ColladaNode;
-	struct Scene;
-
-	struct IColladaReader
-	{
-		virtual scripting::ISymbol* ReadColladaFile(const std::string& file) = 0;
-		virtual bool ConstructColladaTree(scripting::ISymbol* rootSymbol, std::list<collada::ColladaNode*>& nodes, std::list<collada::ColladaNode*>& allNodes) = 0;
-	};
-
-	IColladaReader* GetReader();
-	void ReleaseColladaReader();
-
-	bool ConvertToScene(const std::list<collada::ColladaNode*>& nodes, Scene& scene);
+	bool ConvertToScene(const std::list<xml_reader::Node*>& nodes, Scene& scene);
 }

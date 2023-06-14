@@ -2,13 +2,6 @@
 
 add_library (Collada
 	"private/Collada.h"
-	"private/Collada.cpp"
-	"private/ColladaTreeBuilder.h"
-	"private/ColladaTreeBuilder.cpp"
-	"private/ColladaReaderMeta.h"
-	"private/ColladaReaderMeta.cpp"
-	"private/ColladaReader.h"
-	"private/ColladaReader.cpp"
 	"public/ColladaEntities.h"
 	"private/ColladaSceneBuilder.cpp"
 	"public/ColladaSceneMeta.h"
@@ -21,7 +14,7 @@ target_include_directories(Collada INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}
 target_include_directories(Collada PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
 target_link_libraries(Collada PRIVATE DataLib)
-target_link_libraries(Collada INTERFACE PUBLIC Parser Base)
+target_link_libraries(Collada INTERFACE PUBLIC Parser Base XMLReader)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Collada PROPERTY CXX_STANDARD 20)
