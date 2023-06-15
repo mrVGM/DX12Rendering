@@ -27,6 +27,10 @@ add_library (Renderer
 	"private/DXCameraUpdaterMeta.cpp"
 	"private/DXCameraUpdater.h"
 	"private/DXCameraUpdater.cpp"
+	"private/RendererAppEntryPointMeta.h"
+	"private/RendererAppEntryPointMeta.cpp"
+	"private/RendererEntryPoint.h"
+	"private/RendererEntryPoint.cpp"
 )
 
 target_include_directories(Renderer INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

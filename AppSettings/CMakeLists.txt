@@ -5,6 +5,10 @@ add_library (AppSettings
 	"private/AppSettings.cpp"
 	"public/AppSettingsMeta.h"
 	"private/AppSettingsMeta.cpp"
+	"public/AppEntryPointMeta.h"
+	"private/AppEntryPointMeta.cpp"
+	"public/AppEntryPoint.h"
+	"private/AppEntryPoint.cpp"
 )
 
 target_include_directories(AppSettings INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
