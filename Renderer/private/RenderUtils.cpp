@@ -172,16 +172,7 @@ rendering::DXScene* rendering::utils::GetScene()
 
 settings::AppSettings* rendering::utils::GetAppSettings()
 {
-	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-	BaseObject* obj = container.GetObjectOfClass(settings::AppSettingsMeta::GetInstance());
-
-	if (!obj)
-	{
-		throw "Can't find AppSettings!";
-	}
-
-	settings::AppSettings* appSettings = static_cast<settings::AppSettings*>(obj);
-	return appSettings;
+	return settings::GetSettings();
 }
 
 void rendering::utils::RunSync(jobs::Job* job)

@@ -93,9 +93,45 @@ void settings::AppSettings::ReadSettingFile()
 			break;
 		}
 	}
+
+	for (auto it = rootNodes.begin(); it != rootNodes.end(); ++it)
+	{
+		std::list<const xml_reader::Node*> tmp;
+		xml_reader::FindChildNodes(*it, [](const xml_reader::Node* node) {
+			if (node->m_tagName == "shadow_map_type")
+			{
+				return true;
+			}
+		return false;
+			}, tmp);
+
+		if (tmp.size() > 0)
+		{
+			const std::string& shadpwMapType = tmp.front()->m_data.front()->m_symbolData.m_string;
+			m_settings.m_shadowMapType = shadpwMapType;
+
+			break;
+		}
+	}
 }
 
 const settings::AppSettings::Settings& settings::AppSettings::GetSettings() const
 {
 	return m_settings;
+}
+
+
+settings::AppSettings* settings::GetSettings()
+{
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+	BaseObject* obj = container.GetObjectOfClass(AppSettingsMeta::GetInstance());
+
+	if (!obj)
+	{
+		throw "Can't find App Settings!";
+	}
+
+	AppSettings* settings = static_cast<AppSettings*>(obj);
+
+	return settings;
 }

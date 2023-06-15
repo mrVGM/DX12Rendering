@@ -8,7 +8,7 @@ add_library (ShadowMapping
 target_include_directories(ShadowMapping INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(ShadowMapping PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(ShadowMapping PRIVATE CascadedSM PSM)
+target_link_libraries(ShadowMapping PRIVATE CascadedSM PSM AppSettings)
 target_link_libraries(ShadowMapping INTERFACE PUBLIC Base Jobs)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

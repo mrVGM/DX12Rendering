@@ -2,4 +2,5 @@
 <settings>
 	<scene>"geo/house_scene.dae"</scene>
 	<entry_point>"Renderer"</entry_point>
+	<shadow_map_type>"Cascaded"</shadow_map_type>
 </settings>
