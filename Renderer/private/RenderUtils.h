@@ -39,7 +39,7 @@ namespace rendering
 		rendering::DXCamera* GetCamera();
 		rendering::DXMutableBuffer* GetCameraBuffer();
 		rendering::DXScene* GetScene();
-		rendering::AppSettings* GetAppSettings();
+		settings::AppSettings* GetAppSettings();
 
 		rendering::DXMaterialRepo* GetMaterialRepo();
 

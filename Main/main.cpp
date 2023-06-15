@@ -36,7 +36,7 @@ int main(int args, const char** argv)
 		std::cout << "Invalid Path to Data Directory!" << std::endl;
 	}
 
-	new rendering::AppSettings();
+	new settings::AppSettings();
 
 	rendering::Boot();
 

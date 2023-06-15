@@ -6,19 +6,19 @@
 
 #include "DataLib.h"
 
-rendering::AppSettings::AppSettings() :
-	BaseObject(rendering::AppSettingsMeta::GetInstance())
+settings::AppSettings::AppSettings() :
+	BaseObject(settings::AppSettingsMeta::GetInstance())
 {
 	xml_reader::Boot();
 
 	ReadSettingFile();
 }
 
-rendering::AppSettings::~AppSettings()
+settings::AppSettings::~AppSettings()
 {
 }
 
-void rendering::AppSettings::ReadSettingFile()
+void settings::AppSettings::ReadSettingFile()
 {
 	data::DataLib& lib = data::GetLibrary();
 
@@ -69,7 +69,7 @@ void rendering::AppSettings::ReadSettingFile()
 	}
 }
 
-const rendering::AppSettings::Settings& rendering::AppSettings::GetSettings() const
+const settings::AppSettings::Settings& settings::AppSettings::GetSettings() const
 {
 	return m_settings;
 }

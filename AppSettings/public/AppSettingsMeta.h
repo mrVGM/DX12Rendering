@@ -2,7 +2,7 @@
 
 #include "BaseObjectMeta.h"
 
-namespace rendering
+namespace settings
 {
 	class AppSettingsMeta : public BaseObjectMeta
 	{

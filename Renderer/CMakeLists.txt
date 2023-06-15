@@ -27,10 +27,6 @@ add_library (Renderer
 	"private/DXCameraUpdaterMeta.cpp"
 	"private/DXCameraUpdater.h"
 	"private/DXCameraUpdater.cpp"
-	"public/AppSettingsMeta.h"
-	"private/AppSettingsMeta.cpp"
-	"public/AppSettings.h"
-	"private/AppSettings.cpp"
 )
 
 target_include_directories(Renderer INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
@@ -47,6 +43,7 @@ target_link_libraries(Renderer INTERFACE PUBLIC
 	UnlitRP 
 	DeferredRP
 	CommonResources
+	AppSettings
 )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

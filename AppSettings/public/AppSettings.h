@@ -4,7 +4,7 @@
 
 #include <string>
 
-namespace rendering
+namespace settings
 {
 	class AppSettings : public BaseObject
 	{

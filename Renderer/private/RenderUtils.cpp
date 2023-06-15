@@ -170,17 +170,17 @@ rendering::DXScene* rendering::utils::GetScene()
 	return m_scene;
 }
 
-rendering::AppSettings* rendering::utils::GetAppSettings()
+settings::AppSettings* rendering::utils::GetAppSettings()
 {
 	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-	BaseObject* obj = container.GetObjectOfClass(AppSettingsMeta::GetInstance());
+	BaseObject* obj = container.GetObjectOfClass(settings::AppSettingsMeta::GetInstance());
 
 	if (!obj)
 	{
 		throw "Can't find AppSettings!";
 	}
 
-	AppSettings* appSettings = static_cast<AppSettings*>(obj);
+	settings::AppSettings* appSettings = static_cast<settings::AppSettings*>(obj);
 	return appSettings;
 }
 

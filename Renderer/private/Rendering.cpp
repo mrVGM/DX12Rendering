@@ -46,7 +46,7 @@
 
 namespace
 {
-	rendering::AppSettings* m_appSettings = nullptr;
+	settings::AppSettings* m_appSettings = nullptr;
 
 	struct BootContext
 	{
@@ -169,7 +169,7 @@ namespace
 				new DXScene();
 				DXScene* scene = utils::GetScene();
 
-				const AppSettings::Settings& settings = m_appSettings->GetSettings();
+				const settings::AppSettings::Settings& settings = m_appSettings->GetSettings();
 				std::string scenePath = data::GetLibrary().GetRootDir() + settings.m_sceneName;
 				scene->LoadColladaScene(scenePath, new SceneLoaded());
 			}
