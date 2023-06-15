@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include "AppSettings.h"
+#include "SceneConverter.h"
 
 int main(int args, const char** argv)
 {
@@ -39,6 +40,7 @@ int main(int args, const char** argv)
 	new settings::AppSettings();
 
 	rendering::RegisterLib();
+	scene_converter::RegisterLib();
 
 	settings::BootApp();
 
