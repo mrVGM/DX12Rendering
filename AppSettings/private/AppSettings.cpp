@@ -15,9 +15,6 @@
 settings::AppSettings::AppSettings() :
 	BaseObject(settings::AppSettingsMeta::GetInstance())
 {
-	m_appEntryPoints["Renderer"] = &RendererEntryPointMetaTag::GetInstance();
-	m_appEntryPoints["SceneConverter"] = &SceneConverterEntryPointMetaTag::GetInstance();
-
 	xml_reader::Boot();
 
 	ReadSettingFile();
@@ -91,9 +88,8 @@ void settings::AppSettings::ReadSettingFile()
 		if (tmp.size() > 0)
 		{
 			const std::string& appEntryPointName = tmp.front()->m_data.front()->m_symbolData.m_string;
-			const BaseObjectMetaTag* tag = m_appEntryPoints.find(appEntryPointName)->second;
+			m_settings.m_appEntryPoint = appEntryPointName;
 
-			m_settings.m_appEntryPointTag = tag;
 			break;
 		}
 	}
@@ -102,30 +98,4 @@ void settings::AppSettings::ReadSettingFile()
 const settings::AppSettings::Settings& settings::AppSettings::GetSettings() const
 {
 	return m_settings;
-}
-
-void settings::BootApp()
-{
-
-	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-	const AppSettings* settings = nullptr;
-	{
-		BaseObject* tmp = container.GetObjectOfClass(settings::AppSettingsMeta::GetInstance());
-		settings = static_cast<AppSettings*>(tmp);
-	}
-	
-	std::list<BaseObject*> tmp;
-	container.GetAllObjectsOfClass(settings::AppEntryPointMeta::GetInstance(), tmp);
-
-	const BaseObjectMetaTag* entryTag = settings->GetSettings().m_appEntryPointTag;
-
-	for (auto it = tmp.begin(); it != tmp.end(); ++it)
-	{
-		AppEntryPoint* entryPoint = static_cast<AppEntryPoint*>(*it);
-		if (entryPoint->GetMeta().HasTag(*entryTag))
-		{
-			entryPoint->Boot();
-			return;
-		}
-	}
 }

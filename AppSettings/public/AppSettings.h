@@ -14,11 +14,11 @@ namespace settings
 		struct Settings
 		{
 			std::string m_sceneName;
-			const BaseObjectMetaTag* m_appEntryPointTag = nullptr;
+			std::string m_appEntryPoint;
 		};
 	private:
 		Settings m_settings;
-		std::map<std::string, const BaseObjectMetaTag*> m_appEntryPoints;
+		std::map<std::string, std::string> m_appEntryPoints;
 
 		void ReadSettingFile();
 	public:
@@ -27,6 +27,4 @@ namespace settings
 
 		const Settings& GetSettings() const;
 	};
-
-	void BootApp();
 }

@@ -1,13 +1,13 @@
 ﻿#include "BaseFramework.h"
 
 #include "DataLib.h"
-#include "Renderer.h"
 
 #include <filesystem>
 #include <iostream>
 
 #include "AppSettings.h"
-#include "SceneConverter.h"
+
+#include "App.h"
 
 int main(int args, const char** argv)
 {
@@ -37,15 +37,12 @@ int main(int args, const char** argv)
 		std::cout << "Invalid Path to Data Directory!" << std::endl;
 	}
 
-	rendering::RegisterLib();
-	scene_converter::RegisterLib();
-
 	new settings::AppSettings();
-	settings::BootApp();
+	app::BootApp();
 
 	std::cin.get();
 
-	BaseFrameworkShutdown();
+	app::ShutdownApp();
 
 	return 0;
 }

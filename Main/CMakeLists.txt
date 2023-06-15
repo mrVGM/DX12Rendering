@@ -5,11 +5,9 @@ add_executable (Main
 )
 
 target_link_libraries(Main PRIVATE
-	Renderer
-	Collada
 	DataLib
+	App
 	AppSettings
-	SceneConverter
 )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
