@@ -42,5 +42,6 @@ namespace rendering::psm
 		void RenderShadowMask() override;
 
 		DXMutableBuffer* GetSettingsBuffer();
+		void UpdateSMSettings();
 	};
 }

@@ -13,6 +13,12 @@ add_library (PSM
 	"private/resources/DXShadowMaskMeta.cpp"
 	"private/resources/DXSMSettingsBufferMeta.h"
 	"private/resources/DXSMSettingsBufferMeta.cpp"
+	"private/updaters/DXShadowMapUpdater.cpp"
+	"private/updaters/DXShadowMapUpdater.h"
+	"private/updaters/DXShadowMapUpdaterMeta.cpp"
+	"private/updaters/DXShadowMapUpdaterMeta.h"
+	"private/utils.cpp"
+	"private/utils.h"
 )
 
 target_include_directories(PSM INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

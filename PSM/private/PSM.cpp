@@ -301,3 +301,8 @@ rendering::DXMutableBuffer* rendering::psm::PSM::GetSettingsBuffer()
 {
 	return m_settingsBuffer;
 }
+
+void rendering::psm::PSM::UpdateSMSettings()
+{
+
+}
