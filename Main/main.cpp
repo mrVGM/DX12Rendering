@@ -37,11 +37,10 @@ int main(int args, const char** argv)
 		std::cout << "Invalid Path to Data Directory!" << std::endl;
 	}
 
-	new settings::AppSettings();
-
 	rendering::RegisterLib();
 	scene_converter::RegisterLib();
 
+	new settings::AppSettings();
 	settings::BootApp();
 
 	std::cin.get();

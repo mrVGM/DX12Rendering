@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <settings>
 	<scene>"geo/house_scene.dae"</scene>
+	<entry_point>"Renderer"</entry_point>
 </settings>

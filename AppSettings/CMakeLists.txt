@@ -9,7 +9,7 @@ add_library (AppSettings
 	"private/AppEntryPointMeta.cpp"
 	"public/AppEntryPoint.h"
 	"private/AppEntryPoint.cpp"
-)
+ "private/RendererEntryPointMetaTag.cpp" "public/RendererEntryPointMetaTag.h" "public/SceneConverterEntryPointMetaTag.h" "private/SceneConverterEntryPointMetaTag.cpp")
 
 target_include_directories(AppSettings INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(AppSettings PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")

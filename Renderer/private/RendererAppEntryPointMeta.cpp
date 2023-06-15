@@ -1,6 +1,7 @@
 #include "RendererAppEntryPointMeta.h"
 
 #include "AppEntryPointMeta.h"
+#include "RendererEntryPointMetaTag.h"
 
 namespace
 {
@@ -10,6 +11,7 @@ namespace
 rendering::RendererAppEntryPointMeta::RendererAppEntryPointMeta() :
 	BaseObjectMeta(&settings::AppEntryPointMeta::GetInstance())
 {
+	m_metaTags.insert(&settings::RendererEntryPointMetaTag::GetInstance());
 }
 
 const rendering::RendererAppEntryPointMeta& rendering::RendererAppEntryPointMeta::GetInstance()

@@ -31,7 +31,7 @@ add_library (Renderer
 	"private/RendererAppEntryPointMeta.cpp"
 	"private/RendererEntryPoint.h"
 	"private/RendererEntryPoint.cpp"
-)
+  )
 
 target_include_directories(Renderer INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Renderer PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")

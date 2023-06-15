@@ -7,11 +7,17 @@
 #include "AppEntryPoint.h"
 #include "AppEntryPointMeta.h"
 
+#include "RendererEntryPointMetaTag.h"
+#include "SceneConverterEntryPointMetaTag.h"
+
 #include "BaseObjectContainer.h"
 
 settings::AppSettings::AppSettings() :
 	BaseObject(settings::AppSettingsMeta::GetInstance())
 {
+	m_appEntryPoints["Renderer"] = &RendererEntryPointMetaTag::GetInstance();
+	m_appEntryPoints["SceneConverter"] = &SceneConverterEntryPointMetaTag::GetInstance();
+
 	xml_reader::Boot();
 
 	ReadSettingFile();
@@ -70,6 +76,27 @@ void settings::AppSettings::ReadSettingFile()
 			break;
 		}
 	}
+
+	for (auto it = rootNodes.begin(); it != rootNodes.end(); ++it)
+	{
+		std::list<const xml_reader::Node*> tmp;
+		xml_reader::FindChildNodes(*it, [](const xml_reader::Node* node) {
+			if (node->m_tagName == "entry_point")
+			{
+				return true;
+			}
+			return false;
+		}, tmp);
+
+		if (tmp.size() > 0)
+		{
+			const std::string& appEntryPointName = tmp.front()->m_data.front()->m_symbolData.m_string;
+			const BaseObjectMetaTag* tag = m_appEntryPoints.find(appEntryPointName)->second;
+
+			m_settings.m_appEntryPointTag = tag;
+			break;
+		}
+	}
 }
 
 const settings::AppSettings::Settings& settings::AppSettings::GetSettings() const
@@ -79,9 +106,26 @@ const settings::AppSettings::Settings& settings::AppSettings::GetSettings() cons
 
 void settings::BootApp()
 {
-	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-	BaseObject* entry = container.GetObjectOfClass(settings::AppEntryPointMeta::GetInstance());
 
-	AppEntryPoint* entryPoint = static_cast<AppEntryPoint*>(entry);
-	entryPoint->Boot();
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+	const AppSettings* settings = nullptr;
+	{
+		BaseObject* tmp = container.GetObjectOfClass(settings::AppSettingsMeta::GetInstance());
+		settings = static_cast<AppSettings*>(tmp);
+	}
+	
+	std::list<BaseObject*> tmp;
+	container.GetAllObjectsOfClass(settings::AppEntryPointMeta::GetInstance(), tmp);
+
+	const BaseObjectMetaTag* entryTag = settings->GetSettings().m_appEntryPointTag;
+
+	for (auto it = tmp.begin(); it != tmp.end(); ++it)
+	{
+		AppEntryPoint* entryPoint = static_cast<AppEntryPoint*>(*it);
+		if (entryPoint->GetMeta().HasTag(*entryTag))
+		{
+			entryPoint->Boot();
+			return;
+		}
+	}
 }

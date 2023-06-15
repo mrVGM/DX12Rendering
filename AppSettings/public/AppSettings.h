@@ -1,8 +1,10 @@
 #pragma once
 
 #include "BaseObject.h"
+#include "BaseObjectMetaTag.h"
 
 #include <string>
+#include <map>
 
 namespace settings
 {
@@ -12,9 +14,11 @@ namespace settings
 		struct Settings
 		{
 			std::string m_sceneName;
+			const BaseObjectMetaTag* m_appEntryPointTag = nullptr;
 		};
 	private:
 		Settings m_settings;
+		std::map<std::string, const BaseObjectMetaTag*> m_appEntryPoints;
 
 		void ReadSettingFile();
 	public:
