@@ -13,6 +13,7 @@ namespace rendering
 {
 	class DXTexture;
 	class DXMutableBuffer;
+	class DXDescriptorHeap;
 }
 
 namespace rendering::psm
@@ -23,16 +24,29 @@ namespace rendering::psm
 		static const UINT64 m_resolution;
 
 	private:
+		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocator;
+		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_preSMRenderList;
+		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_postSMRenderList;
+
 		DXTexture* m_sm = nullptr;
 		DXTexture* m_smDS = nullptr;
 		DXTexture* m_shadowMask = nullptr;
 		DXMutableBuffer* m_settingsBuffer = nullptr;
+		DXDescriptorHeap* m_smDescriptorHeap = nullptr;
 
 		void LoadSMTex(jobs::Job* done);
 		void LoadSMDSTex(jobs::Job* done);
 		void LoadShadowMaskTex(jobs::Job* done);
 		void LoadSettingsBuffer(jobs::Job* done);
 
+		void LoadResourcesInternal(jobs::Job* done);
+
+		void CreateDescriptorHeap();
+
+		bool m_preSMRenderListPrepared = false;
+		bool m_postSMRenderListPrepared = false;
+		void PreparePreSMRenderList();
+		void PreparePostSMRenderList();
 	public:
 		PSM();
 		virtual ~PSM();

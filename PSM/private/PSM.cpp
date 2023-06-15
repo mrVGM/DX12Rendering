@@ -6,23 +6,42 @@
 #include "resources/DXShadowMapDSMeta.h"
 #include "resources/DXShadowMaskMeta.h"
 #include "resources/DXSMSettingsBufferMeta.h"
+#include "resources/DXSMDescriptorHeapMeta.h"
 
 #include "DXHeap.h"
 #include "DXTexture.h"
 
 #include "DXMutableBuffer.h"
+#include "DXDescriptorHeap.h"
 
 #include "CoreUtils.h"
+
+#define THROW_ERROR(hRes, error) \
+if (FAILED(hRes)) {\
+    throw error;\
+}
 
 namespace
 {
 	rendering::Window* m_wnd = nullptr;
+	rendering::DXDevice* m_device = nullptr;
+	rendering::DXCommandQueue* m_commandQueue = nullptr;
 
 	void CacheObjects()
 	{
 		if (!m_wnd)
 		{
 			m_wnd = rendering::core::utils::GetWindow();
+		}
+
+		if (!m_device)
+		{
+			m_device = rendering::core::utils::GetDevice();
+		}
+
+		if (!m_commandQueue)
+		{
+			m_commandQueue = rendering::core::utils::GetCommandQueue();
 		}
 	}
 }
@@ -34,6 +53,28 @@ rendering::psm::PSM::PSM() :
 	shadow_mapping::ShadowMap(rendering::psm::PSMMeta::GetInstance())
 {
 	CacheObjects();
+
+	{
+		THROW_ERROR(
+			m_device->GetDevice().CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator)),
+			"Can't create Command Allocator!")
+
+		THROW_ERROR(
+			m_device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&m_preSMRenderList)),
+			"Can't reset Command List!")
+
+		THROW_ERROR(
+			m_preSMRenderList->Close(),
+			"Can't close Command List!")
+
+		THROW_ERROR(
+			m_device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&m_postSMRenderList)),
+			"Can't reset Command List!")
+
+		THROW_ERROR(
+			m_postSMRenderList->Close(),
+			"Can't close Command List!")
+	}
 }
 
 rendering::psm::PSM::~PSM()
@@ -87,6 +128,7 @@ void rendering::psm::PSM::LoadSMTex(jobs::Job* done)
 			m_ctx.m_heap->SetHeapSize(m_ctx.m_tex->GetTextureAllocationInfo().SizeInBytes);
 			m_ctx.m_heap->SetHeapType(D3D12_HEAP_TYPE_DEFAULT);
 			m_ctx.m_heap->SetHeapFlags(D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES);
+			m_ctx.m_heap->Create();
 
 			m_ctx.m_heap->MakeResident(new HeapReady(m_ctx));
 		}
@@ -143,6 +185,7 @@ void rendering::psm::PSM::LoadSMDSTex(jobs::Job* done)
 			m_ctx.m_heap->SetHeapSize(m_ctx.m_tex->GetTextureAllocationInfo().SizeInBytes);
 			m_ctx.m_heap->SetHeapType(D3D12_HEAP_TYPE_DEFAULT);
 			m_ctx.m_heap->SetHeapFlags(D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES);
+			m_ctx.m_heap->Create();
 
 			m_ctx.m_heap->MakeResident(new HeapReady(m_ctx));
 		}
@@ -199,6 +242,7 @@ void rendering::psm::PSM::LoadShadowMaskTex(jobs::Job* done)
 			m_ctx.m_heap->SetHeapSize(m_ctx.m_tex->GetTextureAllocationInfo().SizeInBytes);
 			m_ctx.m_heap->SetHeapType(D3D12_HEAP_TYPE_DEFAULT);
 			m_ctx.m_heap->SetHeapFlags(D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES);
+			m_ctx.m_heap->Create();
 
 			m_ctx.m_heap->MakeResident(new HeapReady(m_ctx));
 		}
@@ -256,8 +300,37 @@ void rendering::psm::PSM::LoadSettingsBuffer(jobs::Job* done)
 	core::utils::RunSync(new CreateBuffer(ctx));
 }
 
-
 void rendering::psm::PSM::LoadResources(jobs::Job* done)
+{
+	struct Context
+	{
+		PSM* m_psm = nullptr;
+		jobs::Job* m_done = nullptr;
+	};
+
+	Context ctx{ this, done };
+
+	class Ready : public jobs::Job
+	{
+	private:
+		Context m_ctx;
+	public:
+		Ready(Context ctx) :
+			m_ctx(ctx)
+		{
+		}
+
+		void Do() override
+		{
+			m_ctx.m_psm->CreateDescriptorHeap();
+			core::utils::RunSync(m_ctx.m_done);
+		}
+	};
+
+	LoadResourcesInternal(new Ready(ctx));
+}
+
+void rendering::psm::PSM::LoadResourcesInternal(jobs::Job* done)
 {
 	struct Context
 	{
@@ -306,3 +379,100 @@ void rendering::psm::PSM::UpdateSMSettings()
 {
 
 }
+
+void rendering::psm::PSM::CreateDescriptorHeap()
+{
+	std::list<DXTexture*> textures;
+	textures.push_back(m_sm);
+	textures.push_back(m_shadowMask);
+
+	m_smDescriptorHeap = DXDescriptorHeap::CreateRTVDescriptorHeap(DXSMDescriptorHeapMeta::GetInstance(), textures);
+}
+
+
+
+void rendering::psm::PSM::PreparePreSMRenderList()
+{
+	if (m_preSMRenderListPrepared)
+	{
+		return;
+	}
+
+	THROW_ERROR(
+		m_preSMRenderList->Reset(m_commandAllocator.Get(), nullptr),
+		"Can't reset Command List!")
+
+	{
+		CD3DX12_RESOURCE_BARRIER barrier[] =
+		{
+			CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_sm->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
+			CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_shadowMask->GetTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
+		};
+		m_preSMRenderList->ResourceBarrier(_countof(barrier), barrier);
+	}
+
+	{
+		const float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+		m_preSMRenderList->ClearRenderTargetView(m_smDescriptorHeap->GetDescriptorHandle(0), clearColor, 0, nullptr);
+		m_preSMRenderList->ClearRenderTargetView(m_smDescriptorHeap->GetDescriptorHandle(1), clearColor, 0, nullptr);
+	}
+
+	THROW_ERROR(
+		m_preSMRenderList->Close(),
+		"Can't close Command List!")
+
+	m_preSMRenderListPrepared = true;
+}
+
+void rendering::psm::PSM::PreparePostSMRenderList()
+{
+	if (m_postSMRenderListPrepared)
+	{
+		return;
+	}
+
+	THROW_ERROR(
+		m_postSMRenderList->Reset(m_commandAllocator.Get(), nullptr),
+		"Can't reset Command List!")
+
+	{
+		CD3DX12_RESOURCE_BARRIER barrier[] =
+		{
+			CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_sm->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
+			CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_shadowMask->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
+		};
+		m_postSMRenderList->ResourceBarrier(_countof(barrier), barrier);
+	}
+
+	THROW_ERROR(
+		m_postSMRenderList->Close(),
+		"Can't close Command List!")
+
+	m_postSMRenderListPrepared = true;
+}
+
+
+void rendering::psm::PSM::RenderShadowMask()
+{
+	PreparePreSMRenderList();
+	PreparePostSMRenderList();
+
+	{
+		ID3D12CommandList* ppCommandLists[] = { m_preSMRenderList.Get() };
+		m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+	}
+
+
+	{
+		ID3D12CommandList* ppCommandLists[] = { m_postSMRenderList.Get() };
+		m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+	}
+}
+
+rendering::DXTexture* rendering::psm::PSM::GetShadowMask()
+{
+	return m_shadowMask;
+}
+
+#undef THROW_ERROR
