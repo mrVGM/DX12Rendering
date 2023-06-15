@@ -38,7 +38,9 @@ int main(int args, const char** argv)
 
 	new settings::AppSettings();
 
-	rendering::Boot();
+	rendering::RegisterLib();
+
+	settings::BootApp();
 
 	std::cin.get();
 

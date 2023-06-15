@@ -3,8 +3,11 @@
 #include "AppSettingsMeta.h"
 
 #include "XMLReader.h"
-
 #include "DataLib.h"
+#include "AppEntryPoint.h"
+#include "AppEntryPointMeta.h"
+
+#include "BaseObjectContainer.h"
 
 settings::AppSettings::AppSettings() :
 	BaseObject(settings::AppSettingsMeta::GetInstance())
@@ -72,4 +75,13 @@ void settings::AppSettings::ReadSettingFile()
 const settings::AppSettings::Settings& settings::AppSettings::GetSettings() const
 {
 	return m_settings;
+}
+
+void settings::BootApp()
+{
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+	BaseObject* entry = container.GetObjectOfClass(settings::AppEntryPointMeta::GetInstance());
+
+	AppEntryPoint* entryPoint = static_cast<AppEntryPoint*>(entry);
+	entryPoint->Boot();
 }

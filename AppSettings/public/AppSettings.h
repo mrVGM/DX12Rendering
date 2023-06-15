@@ -23,4 +23,6 @@ namespace settings
 
 		const Settings& GetSettings() const;
 	};
+
+	void BootApp();
 }

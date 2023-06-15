@@ -42,6 +42,8 @@
 
 #include "MaterialUtils.h"
 
+#include "RendererEntryPoint.h"
+
 #include <iostream>
 
 namespace
@@ -222,4 +224,9 @@ void rendering::Boot()
 
 	LoadScene();
 	LoadRenderPipepine();
+}
+
+void rendering::RegisterLib()
+{
+	new RendererEntryPoint();
 }

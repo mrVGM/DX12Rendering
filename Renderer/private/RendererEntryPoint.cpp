@@ -1,9 +1,11 @@
 #include "RendererEntryPoint.h"
 
+#include "RendererAppEntryPointMeta.h"
+
 #include "Renderer.h"
 
-rendering::RendererEntryPoint::RendererEntryPoint(const BaseObjectMeta& meta) :
-	settings::AppEntryPoint(meta)
+rendering::RendererEntryPoint::RendererEntryPoint() :
+	settings::AppEntryPoint(RendererAppEntryPointMeta::GetInstance())
 {
 }
 

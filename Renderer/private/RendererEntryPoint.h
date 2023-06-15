@@ -7,7 +7,7 @@ namespace rendering
 	class RendererEntryPoint : public settings::AppEntryPoint
 	{
 	public:
-		RendererEntryPoint(const BaseObjectMeta& meta);
+		RendererEntryPoint();
 		virtual ~RendererEntryPoint();
 
 		void Boot() override;

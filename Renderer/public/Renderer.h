@@ -3,4 +3,5 @@
 namespace rendering
 {
 	void Boot();
+	void RegisterLib();
 }
