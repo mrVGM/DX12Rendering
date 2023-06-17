@@ -8,6 +8,7 @@
 #include <wrl.h>
 #include <list>
 #include <vector>
+#include <DirectXMath.h>
 
 namespace rendering
 {
@@ -47,6 +48,8 @@ namespace rendering::psm
 		bool m_postSMRenderListPrepared = false;
 		void PreparePreSMRenderList();
 		void PreparePostSMRenderList();
+
+		DirectX::XMVECTOR GetLightPerspectiveOrigin();
 	public:
 		PSM();
 		virtual ~PSM();

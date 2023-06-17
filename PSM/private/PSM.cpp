@@ -59,6 +59,171 @@ namespace
 			m_lightsManager = rendering::psm::GetLightsManager();
 		}
 	}
+
+	struct SMSettings
+	{
+		float m_lightPerspectiveMatrix[16];
+	};
+
+	DirectX::XMVECTOR OrientTowards(
+		const DirectX::XMVECTOR& origin,
+		const std::list<DirectX::XMVECTOR>& points,
+		const DirectX::XMVECTOR& pole)
+	{
+		using namespace DirectX;
+
+		const float eps = 0.000000001f;
+
+		XMVECTOR X, Y;
+
+		{
+			X = XMVectorSet(1, 0, 0, 0);
+			Y = XMVector3Cross(X, pole);
+
+			if (XMVectorGetX(XMVector3LengthSq(Y)) < eps)
+			{
+				X = XMVectorSet(0, 1, 0, 0);
+				Y = XMVector3Cross(X, pole);
+			}
+
+			Y = XMVector3Normalize(Y);
+			X = XMVector3Cross(pole, Y);
+			X = XMVector3Normalize(X);
+		}
+
+		std::list<XMVECTOR> ptsRelative;
+		for (auto it = points.begin(); it != points.end(); ++it)
+		{
+			XMVECTOR cur = *it - origin;
+			cur = XMVector3Dot(X, cur) * X + XMVector3Dot(Y, cur) * Y;
+
+			ptsRelative.push_back(cur);
+		}
+
+		XMVECTOR minV, maxV;
+		minV = maxV = ptsRelative.front();
+
+		for (auto it = ptsRelative.begin(); it != ptsRelative.end(); ++it)
+		{
+			XMVECTOR crossMin = XMVector3Cross(minV, *it);
+			XMVECTOR crossMax = XMVector3Cross(maxV, *it);
+
+			XMVECTOR dotMin = XMVector3Dot(crossMin, pole);
+			XMVECTOR dotMax = XMVector3Dot(crossMax, pole);
+
+			if (XMVectorGetX(dotMin) < 0)
+			{
+				minV = *it;
+			}
+
+			if (XMVectorGetX(dotMin) > 0)
+			{
+				maxV = *it;
+			}
+		}
+
+		minV = XMVector3Normalize(minV);
+		maxV = XMVector3Normalize(maxV);
+
+		XMVECTOR res = minV + maxV;
+		res = XMVector3Normalize(res);
+		return res;
+	}
+
+	void OrientVertically(
+		DirectX::XMVECTOR& right,
+		DirectX::XMVECTOR& fwd,
+		DirectX::XMVECTOR& up,
+		const DirectX::XMVECTOR& origin,
+		const std::list<DirectX::XMVECTOR>& corners)
+	{
+		using namespace DirectX;
+
+		float nearPlane, farPlane;
+
+		{
+			bool firstIteration = true;
+			for (auto it = corners.begin(); it != corners.end(); ++it)
+			{
+				const XMVECTOR& cur = *it - origin;
+				float d = XMVectorGetX(XMVector3Dot(cur, fwd));
+
+				if (firstIteration)
+				{
+					firstIteration = false;
+					nearPlane = farPlane = d;
+					continue;
+				}
+
+				if (d < nearPlane)
+				{
+					nearPlane = d;
+				}
+				if (d > farPlane)
+				{
+					farPlane = d;
+				}
+			}
+		}
+
+		XMMATRIX mat = rendering::cam_utils::MakePerspectiveProjectionMatrix(
+			right,
+			fwd,
+			up,
+			origin,
+			nearPlane,
+			farPlane,
+			60,
+			1
+		);
+
+		XMVECTOR minYV, maxYV;
+		{
+			float minY, maxY;
+			bool firstIteration = true;
+
+			for (auto it = corners.begin(); it != corners.end(); ++it)
+			{
+				XMVECTOR cur = XMVector4Transform(*it, mat);
+				cur /= XMVectorGetW(cur);
+				float y = XMVectorGetY(cur);
+
+				if (firstIteration)
+				{
+					firstIteration = false;
+					minY = maxY = y;
+					minYV = maxYV = *it;
+					continue;
+				}
+
+				if (y < minY)
+				{
+					minY = y;
+					minYV = *it;
+				}
+				if (y > maxY)
+				{
+					maxY = y;
+					maxYV = *it;
+				}
+			}
+		}
+
+		minYV = XMVector3Dot(minYV, fwd) * fwd + XMVector3Dot(minYV, up) * up;
+		minYV = XMVector3Normalize(minYV);
+
+		maxYV = XMVector3Dot(maxYV, fwd) * fwd + XMVector3Dot(maxYV, up) * up;
+		maxYV = XMVector3Normalize(maxYV);
+
+		fwd = 0.5 * (minYV + maxYV);
+		fwd = XMVector3Normalize(fwd);
+
+		up = XMVector3Cross(fwd, right);
+		up = XMVector3Normalize(up);
+
+		right = XMVector3Cross(up, fwd);
+		right = XMVector3Normalize(right);
+	}
 }
 
 
@@ -391,7 +556,7 @@ rendering::DXMutableBuffer* rendering::psm::PSM::GetSettingsBuffer()
 	return m_settingsBuffer;
 }
 
-void rendering::psm::PSM::UpdateSMSettings()
+DirectX::XMVECTOR rendering::psm::PSM::GetLightPerspectiveOrigin()
 {
 	using namespace DirectX;
 
@@ -434,8 +599,100 @@ void rendering::psm::PSM::UpdateSMSettings()
 
 	float coef = XMVectorGetX(p3Offset) / XMVectorGetX(ray2Offset);
 	XMVECTOR crossPoint = p3 - coef * ray2;
-	
-	bool t = true;
+
+	return crossPoint;
+}
+
+void rendering::psm::PSM::UpdateSMSettings()
+{
+	using namespace DirectX;
+
+	XMVECTOR lightPerspectiveOrigin = GetLightPerspectiveOrigin();
+	XMVECTOR right, fwd, up;
+	XMMATRIX mvp = m_camera->GetMVPMatrix(right, fwd, up);
+
+	right = -right;
+	fwd = -fwd;
+
+	std::list<XMVECTOR> corners;
+	corners.push_back(XMVectorSet(-1, -1, 0, 1));
+	corners.push_back(XMVectorSet( 1, -1, 0, 1));
+	corners.push_back(XMVectorSet( 1,  1, 0, 1));
+	corners.push_back(XMVectorSet(-1,  1, 0, 1));
+
+	corners.push_back(XMVectorSet(-1, -1, 1, 1));
+	corners.push_back(XMVectorSet( 1, -1, 1, 1));
+	corners.push_back(XMVectorSet( 1,  1, 1, 1));
+	corners.push_back(XMVectorSet(-1,  1, 1, 1));
+
+	XMVECTOR lpFwd = OrientTowards(lightPerspectiveOrigin, corners, up);
+	XMVECTOR lpRight = XMVector3Cross(up, lpFwd);
+	lpRight = XMVector3Normalize(lpRight);
+	lpFwd = OrientTowards(lightPerspectiveOrigin, corners, lpRight);
+	XMVECTOR lpUp = XMVector3Cross(lpFwd, lpRight);
+	lpUp = XMVector3Normalize(lpUp);
+
+	float nearPlane, farPlane;
+	{
+		bool firstIteration = true;
+		for (auto it = corners.begin(); it != corners.end(); ++it)
+		{
+			XMVECTOR cur = *it - lightPerspectiveOrigin;
+			XMVECTOR dot = XMVector3Dot(cur, lpFwd);
+			float d = XMVectorGetX(dot);
+
+			if (firstIteration)
+			{
+				firstIteration = false;
+				nearPlane = farPlane = d;
+				continue;
+			}
+
+			if (d < nearPlane)
+			{
+				nearPlane = d;
+			}
+			if (d > farPlane)
+			{
+				farPlane = d;
+			}
+		}
+	}
+
+	XMMATRIX mat = rendering::cam_utils::MakePerspectiveProjectionMatrix(lpRight, lpFwd, lpUp, lightPerspectiveOrigin, nearPlane, farPlane, 90, 1);
+
+	float maxCoords = 0;
+	for (auto it = corners.begin(); it != corners.end(); ++it)
+	{
+		XMVECTOR cur = XMVector4Transform(*it, mat);
+		cur /= XMVectorGetW(cur);
+
+		float tmp = max(abs(XMVectorGetX(cur)), abs(XMVectorGetY(cur)));
+		maxCoords = max(maxCoords, tmp);
+	}
+
+	float fov = atan(maxCoords);
+	fov *= 2;
+	fov = XMConvertToDegrees(fov);
+
+
+	mat = rendering::cam_utils::MakePerspectiveProjectionMatrix(lpRight, lpFwd, lpUp, lightPerspectiveOrigin, nearPlane, farPlane, fov, 1);
+
+	SMSettings smSettings;
+	{
+		int index = 0;
+		for (int r = 0; r < 4; ++r) {
+			float x = DirectX::XMVectorGetX(mat.r[r]);
+			float y = DirectX::XMVectorGetY(mat.r[r]);
+			float z = DirectX::XMVectorGetZ(mat.r[r]);
+			float w = DirectX::XMVectorGetW(mat.r[r]);
+
+			smSettings.m_lightPerspectiveMatrix[index++] = x;
+			smSettings.m_lightPerspectiveMatrix[index++] = y;
+			smSettings.m_lightPerspectiveMatrix[index++] = z;
+			smSettings.m_lightPerspectiveMatrix[index++] = w;
+		}
+	}
 }
 
 void rendering::psm::PSM::CreateDescriptorHeap()
