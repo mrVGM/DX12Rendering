@@ -14,7 +14,10 @@
 #include "DXMutableBuffer.h"
 #include "DXDescriptorHeap.h"
 
+#include "updaters/DXShadowMapUpdater.h"
+
 #include "CoreUtils.h"
+#include "utils.h"
 
 #define THROW_ERROR(hRes, error) \
 if (FAILED(hRes)) {\
@@ -26,6 +29,8 @@ namespace
 	rendering::Window* m_wnd = nullptr;
 	rendering::DXDevice* m_device = nullptr;
 	rendering::DXCommandQueue* m_commandQueue = nullptr;
+	rendering::ICamera* m_camera = nullptr;
+	rendering::ILightsManager* m_lightsManager = nullptr;
 
 	void CacheObjects()
 	{
@@ -42,6 +47,16 @@ namespace
 		if (!m_commandQueue)
 		{
 			m_commandQueue = rendering::core::utils::GetCommandQueue();
+		}
+
+		if (!m_camera)
+		{
+			m_camera = rendering::psm::GetCamera();
+		}
+
+		if (!m_lightsManager)
+		{
+			m_lightsManager = rendering::psm::GetLightsManager();
 		}
 	}
 }
@@ -322,6 +337,7 @@ void rendering::psm::PSM::LoadResources(jobs::Job* done)
 
 		void Do() override
 		{
+			new DXShadowMapUpdater();
 			m_ctx.m_psm->CreateDescriptorHeap();
 			core::utils::RunSync(m_ctx.m_done);
 		}
@@ -377,7 +393,49 @@ rendering::DXMutableBuffer* rendering::psm::PSM::GetSettingsBuffer()
 
 void rendering::psm::PSM::UpdateSMSettings()
 {
+	using namespace DirectX;
 
+	XMVECTOR right, fwd, up;
+	XMMATRIX mvp = m_camera->GetMVPMatrix(right, fwd, up);
+	const rendering::DirectionalLight& light = m_lightsManager->GetPrimaryDirectionalLight();
+
+	XMVECTOR lightDir = light.m_direction;
+	lightDir = XMVectorSetW(lightDir, 0);
+
+	XMVECTOR p1 = m_camera->GetPosition() + m_camera->GetNearPlane() * fwd;
+	XMVECTOR p2 = p1 + lightDir;
+
+	XMVECTOR p3 = m_camera->GetPosition() + m_camera->GetNearPlane() * fwd + up;
+	XMVECTOR p4 = p3 + lightDir;
+
+	p1 = XMVectorSetW(p1, 1);
+	p2 = XMVectorSetW(p2, 1);
+	p3 = XMVectorSetW(p3, 1);
+	p4 = XMVectorSetW(p4, 1);
+
+	p1 = XMVector4Transform(p1, mvp);
+	p2 = XMVector4Transform(p2, mvp);
+	p3 = XMVector4Transform(p3, mvp);
+	p4 = XMVector4Transform(p4, mvp);
+
+	p1 /= XMVectorGetW(p1);
+	p2 /= XMVectorGetW(p2);
+	p3 /= XMVectorGetW(p3);
+	p4 /= XMVectorGetW(p4);
+
+	XMVECTOR ray1 = p2 - p1;
+	XMVECTOR ray2 = p4 - p3;
+
+	XMVECTOR perp = XMVector3Cross(ray1, ray2);
+	perp = XMVector3Cross(perp, ray1);
+
+	XMVECTOR p3Offset = XMVector3Dot(p3, perp);
+	XMVECTOR ray2Offset = XMVector3Dot(ray2, perp);
+
+	float coef = XMVectorGetX(p3Offset) / XMVectorGetX(ray2Offset);
+	XMVECTOR crossPoint = p3 - coef * ray2;
+	
+	bool t = true;
 }
 
 void rendering::psm::PSM::CreateDescriptorHeap()

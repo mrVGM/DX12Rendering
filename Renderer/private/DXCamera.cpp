@@ -49,37 +49,9 @@ namespace
 DirectX::XMMATRIX rendering::DXCamera::GetMVPMatrix(DirectX::XMVECTOR& right, DirectX::XMVECTOR& fwd, DirectX::XMVECTOR& up) const
 {
 	GetCoordinateVectors(right, fwd, up);
-	
-	float fovRad = DirectX::XMConvertToRadians(m_fov);
+	DirectX::XMMATRIX mvp = rendering::cam_utils::MakePerspectiveProjectionMatrix(right, fwd, up, m_position, m_nearPlane, m_farPlane, m_fov, m_aspect);
 
-	float h = tan(fovRad / 2);
-	float w = m_aspect * h;
-
-	DirectX::XMMATRIX translate(
-		DirectX::XMVECTOR{ 1, 0, 0, -DirectX::XMVectorGetX(m_position) },
-		DirectX::XMVECTOR{ 0, 1, 0, -DirectX::XMVectorGetY(m_position) },
-		DirectX::XMVECTOR{ 0, 0, 1, -DirectX::XMVectorGetZ(m_position) },
-		DirectX::XMVECTOR{ 0, 0, 0, 1 }
-	);
-
-	DirectX::XMMATRIX view(
-		DirectX::XMVECTOR{ DirectX::XMVectorGetX(right), DirectX::XMVectorGetY(right), DirectX::XMVectorGetZ(right), 0 },
-		DirectX::XMVECTOR{ DirectX::XMVectorGetX(up), DirectX::XMVectorGetY(up), DirectX::XMVectorGetZ(up), 0 },
-		DirectX::XMVECTOR{ DirectX::XMVectorGetX(fwd), DirectX::XMVectorGetY(fwd), DirectX::XMVectorGetZ(fwd), 0 },
-		DirectX::XMVECTOR{ 0, 0, 0, 1 }
-	);
-
-
-	DirectX::XMMATRIX project(
-		DirectX::XMVECTOR{ 1 / w, 0, 0, 0 },
-		DirectX::XMVECTOR{ 0, 1 / h, 0, 0 },
-		DirectX::XMVECTOR{ 0, 0, m_farPlane / (m_farPlane - m_nearPlane), -m_farPlane * m_nearPlane / (m_farPlane - m_nearPlane)},
-		DirectX::XMVECTOR{ 0, 0, 1, 0 }
-	);
-
-
-	DirectX::XMMATRIX mvp = project * view * translate;
-	return DirectX::XMMatrixTranspose(mvp);
+	return mvp;
 }
 
 void rendering::DXCamera::GetCoordinateVectors(DirectX::XMVECTOR& right, DirectX::XMVECTOR& fwd, DirectX::XMVECTOR& up) const
@@ -270,4 +242,35 @@ float rendering::DXCamera::GetNearPlane() const
 float rendering::DXCamera::GetFarPlane() const
 {
 	return m_farPlane;
+}
+
+DirectX::XMMATRIX rendering::DXCamera::CamCoordinates() const
+{
+	using namespace DirectX;
+
+	XMVECTOR right, fwd, up;
+	GetCoordinateVectors(right, fwd, up);
+
+	float fovRad = DirectX::XMConvertToRadians(m_fov);
+
+	float h = tan(fovRad / 2);
+	float w = m_aspect * h;
+
+	DirectX::XMMATRIX translate(
+		DirectX::XMVECTOR{ 1, 0, 0, -DirectX::XMVectorGetX(m_position) },
+		DirectX::XMVECTOR{ 0, 1, 0, -DirectX::XMVectorGetY(m_position) },
+		DirectX::XMVECTOR{ 0, 0, 1, -DirectX::XMVectorGetZ(m_position) },
+		DirectX::XMVECTOR{ 0, 0, 0, 1 }
+	);
+
+	DirectX::XMMATRIX view(
+		DirectX::XMVECTOR{ DirectX::XMVectorGetX(right), DirectX::XMVectorGetY(right), DirectX::XMVectorGetZ(right), 0 },
+		DirectX::XMVECTOR{ DirectX::XMVectorGetX(up), DirectX::XMVectorGetY(up), DirectX::XMVectorGetZ(up), 0 },
+		DirectX::XMVECTOR{ DirectX::XMVectorGetX(fwd), DirectX::XMVectorGetY(fwd), DirectX::XMVectorGetZ(fwd), 0 },
+		DirectX::XMVECTOR{ 0, 0, 0, 1 }
+	);
+
+	XMMATRIX mat = view * translate;
+	mat = XMMatrixTranspose(mat);
+	return mat;
 }

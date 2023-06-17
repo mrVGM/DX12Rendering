@@ -19,7 +19,6 @@ namespace rendering
 		float m_nearPlane = 0.1;
 		float m_farPlane = 1000;
 
-		DirectX::XMMATRIX GetMVPMatrix(DirectX::XMVECTOR& right, DirectX::XMVECTOR& fwd, DirectX::XMVECTOR& up) const;
 		void GetCoordinateVectors(DirectX::XMVECTOR& right, DirectX::XMVECTOR& fwd, DirectX::XMVECTOR& up) const;
 
 	public:
@@ -43,6 +42,8 @@ namespace rendering
 		DirectX::XMVECTOR GetTarget() const override;
 		float GetNearPlane() const override;
 		float GetFarPlane() const override;
+		DirectX::XMMATRIX CamCoordinates() const override;
+		DirectX::XMMATRIX GetMVPMatrix(DirectX::XMVECTOR& right, DirectX::XMVECTOR& fwd, DirectX::XMVECTOR& up) const override;
 
 		void InitBuffer(jobs::Job* done);
 		void UpdateCamBuffer();
