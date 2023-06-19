@@ -4,7 +4,7 @@ SamplerState p_sampler  : register(s0);
 
 float4 PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
 {
-    float d = tex.Sample(p_sampler, uv);
+    float4 d = tex.Sample(p_sampler, uv);
 
-return float4(d, d, d, 1);
+    return d;
 }
