@@ -22,5 +22,6 @@ namespace rendering::shadow_mapping
 		virtual void RenderShadowMask() = 0;
 
 		virtual DXTexture* GetShadowMask() = 0;
+		virtual DXTexture* GetShadowMap(int index) = 0;
 	};
 }

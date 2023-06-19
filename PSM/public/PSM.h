@@ -64,7 +64,7 @@ namespace rendering::psm
 		DXTexture* GetShadowMask() override;
 		void RenderShadowMask() override;
 
-		DXTexture* GetShadowMap();
+		DXTexture* GetShadowMap(int index) override;
 		DXDescriptorHeap* GetSMDescriptorHeap();
 		DXDescriptorHeap* GetSMDSDescriptorHeap();
 		DXMutableBuffer* GetSettingsBuffer();

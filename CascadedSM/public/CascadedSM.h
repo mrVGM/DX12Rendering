@@ -71,7 +71,7 @@ namespace rendering
 		void RenderShadowMask() override;
 
 		void UpdateSMSettings();
-		DXTexture* GetShadowMap(int index);
+		DXTexture* GetShadowMap(int index) override;
 		DXTexture* GetShadowMapFilterTex();
 		DXTexture* GetShadowMask(int index);
 		DXDescriptorHeap* GetDSDescriptorHeap();

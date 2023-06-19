@@ -19,6 +19,7 @@
 #include "HelperMaterials/DXLightsCalculationsMaterial.h"
 #include "HelperMaterials/DXPostLightsCalculationsMaterial.h"
 #include "HelperMaterials/DXPostProcessMaterial.h"
+#include "HelperMaterials/DXDisplaySMMaterial.h"
 
 #include "LightsManager.h"
 #include "LightsManagerMeta.h"
@@ -56,6 +57,7 @@ namespace
     rendering::DXMaterial* m_lightCalculationsMat = nullptr;
     rendering::DXMaterial* m_postLightCalculationsMat = nullptr;
     rendering::DXMaterial* m_edgeOutlineFilterMat = nullptr;
+    rendering::DXMaterial* m_displayTexMaterial = nullptr;
 
     rendering::LightsManager* m_lightsManager = nullptr;
 
@@ -405,6 +407,17 @@ void rendering::DXDeferredRP::Execute()
         ID3D12CommandList* ppCommandLists[] = { commandList };
         m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
     }
+
+    if (true)
+    {
+        m_displayTexMaterial->ResetCommandLists();
+        DXBuffer* dummy = nullptr;
+        ID3D12CommandList* commandList = m_displayTexMaterial->GenerateCommandList(
+            *deferred::GetRenderTextureVertexBuffer(),
+            *dummy, *dummy, 0, 0, 0);
+        ID3D12CommandList* ppCommandLists[] = { commandList };
+        m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+    }
 }
 
 void rendering::DXDeferredRP::LoadLightsBuffer(jobs::Job* done)
@@ -451,6 +464,11 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
                 *shader_repo::GetDeferredRPVertexShader(),
                 *shader_repo::GetEdgeOutlinePixelShader()
             );
+
+            m_displayTexMaterial = new DXDisplaySMMaterial(
+                *shader_repo::GetDeferredRPVertexShader(),
+                *shader_repo::GetDisplayShadowMapPixelShader(),
+                m_shadowMap->GetShadowMap(0));
 
             core::utils::RunSync(m_ctx.m_done);
         }

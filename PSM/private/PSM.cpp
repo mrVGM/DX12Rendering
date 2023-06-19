@@ -592,7 +592,7 @@ rendering::DXMutableBuffer* rendering::psm::PSM::GetSettingsBuffer()
 	return m_settingsBuffer;
 }
 
-rendering::DXTexture* rendering::psm::PSM::GetShadowMap()
+rendering::DXTexture* rendering::psm::PSM::GetShadowMap(int index)
 {
 	return m_sm;
 }
