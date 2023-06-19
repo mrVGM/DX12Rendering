@@ -11,6 +11,7 @@
 #include "resources/DXSMDSDescriptorHeapMeta.h"
 
 #include "HelperMaterials/DXShadowMapMaterial.h"
+#include "HelperMaterials/DXShadowMaskMaterial.h"
 
 #include "DXHeap.h"
 #include "DXTexture.h"
@@ -40,8 +41,10 @@ namespace
 	rendering::ILightsManager* m_lightsManager = nullptr;
 	rendering::DXScene* m_scene = nullptr;
 	rendering::DXMaterialRepo* m_materialRepo = nullptr;
+	rendering::DXBuffer* m_renderTextureBuffer = nullptr;
 
 	rendering::psm::DXShadowMapMaterial* m_shadowMapMaterial = nullptr;
+	rendering::psm::DXShadowMaskMaterial* m_shadowMaskMaterial = nullptr;
 
 	void CacheObjects()
 	{
@@ -78,6 +81,11 @@ namespace
 		if (!m_materialRepo)
 		{
 			m_materialRepo = rendering::psm::GetMaterialRepo();
+		}
+
+		if (!m_renderTextureBuffer)
+		{
+			m_renderTextureBuffer = rendering::psm::GetRenderTextureBuffer();
 		}
 	}
 
@@ -530,6 +538,7 @@ void rendering::psm::PSM::LoadResources(jobs::Job* done)
 			m_ctx.m_psm->CreateDescriptorHeap();
 
 			m_shadowMapMaterial = new DXShadowMapMaterial(*shader_repo::GetPSMVertexShader(), *shader_repo::GetPSMPixelShader());
+			m_shadowMaskMaterial = new DXShadowMaskMaterial(*shader_repo::GetDeferredRPVertexShader(), *shader_repo::GetPSMShadowMaskPixelShader());
 
 			core::utils::RunSync(m_ctx.m_done);
 		}
@@ -833,6 +842,15 @@ void rendering::psm::PSM::RenderShadowMask()
 
 	{
 		ID3D12CommandList* ppCommandLists[] = { m_postSMRenderList.Get() };
+		m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+	}
+
+	{
+		DXBuffer* dummy = nullptr;
+		ID3D12CommandList* commandList = m_shadowMaskMaterial->GenerateCommandList(
+			*m_renderTextureBuffer,
+			*dummy, *dummy, 0, 0, 0);
+		ID3D12CommandList* ppCommandLists[] = { commandList };
 		m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 	}
 }

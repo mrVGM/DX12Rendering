@@ -38,6 +38,7 @@ namespace rendering
 		
 		DXShader* GetPSMVertexShader();
 		DXShader* GetPSMPixelShader();
+		DXShader* GetPSMShadowMaskPixelShader();
 
 		void LoadShaderPrograms();
 	}

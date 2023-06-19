@@ -32,6 +32,7 @@ namespace
 
 	rendering::DXShader* m_psmVertexShader = nullptr;
 	rendering::DXShader* m_psmPixelShader = nullptr;
+	rendering::DXShader* m_psmShadowMaskPixelShader = nullptr;
 }
 
 rendering::DXShader* rendering::shader_repo::GetMainVertexShader()
@@ -123,6 +124,11 @@ rendering::DXShader* rendering::shader_repo::GetPSMPixelShader()
 	return m_psmPixelShader;
 }
 
+rendering::DXShader* rendering::shader_repo::GetPSMShadowMaskPixelShader()
+{
+	return m_psmShadowMaskPixelShader;
+}
+
 void rendering::shader_repo::LoadShaderPrograms()
 {
 	m_mainVertexShader = new DXShader(DXVertexShaderMeta::GetInstance(), "shaders/bin/vs_mainVS.fxc");
@@ -150,4 +156,5 @@ void rendering::shader_repo::LoadShaderPrograms()
 
 	m_psmVertexShader = new DXShader(DXVertexShaderMeta::GetInstance(), "shaders/bin/vs_psmVS.fxc");
 	m_psmPixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_psmPS.fxc");
+	m_psmShadowMaskPixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_psmShadowMaskPS.fxc");
 }

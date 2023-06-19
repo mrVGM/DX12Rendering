@@ -29,6 +29,8 @@ add_library (PSM
 	"private/resources/DXSMDSDescriptorHeapMeta.cpp"
 	"private/HelperMaterials/DXShadowMaskMaterialMeta.h"
 	"private/HelperMaterials/DXShadowMaskMaterialMeta.cpp"
+	"private/HelperMaterials/DXShadowMaskMaterial.cpp"
+	"private/HelperMaterials/DXShadowMaskMaterial.h"
 )
 
 target_include_directories(PSM INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
