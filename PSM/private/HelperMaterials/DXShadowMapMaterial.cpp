@@ -29,7 +29,9 @@ namespace
 
     rendering::DXDevice* m_device = nullptr;
     rendering::DXSwapChain* m_swapChain = nullptr;
+    rendering::ILightsManager* m_lightsManager = nullptr;
     rendering::DXMutableBuffer* m_cameraBuffer = nullptr;
+    rendering::ICamera* m_camera = nullptr;
 
     void CacheObjects()
     {
@@ -53,6 +55,16 @@ namespace
         if (!m_cameraBuffer)
         {
             m_cameraBuffer = psm::GetCameraBuffer();
+        }
+
+        if (!m_lightsManager)
+        {
+            m_lightsManager = rendering::psm::GetLightsManager();
+        }
+
+        if (!m_camera)
+        {
+            m_camera = rendering::psm::GetCamera();
         }
     }
 }
@@ -129,6 +141,11 @@ rendering::psm::DXShadowMapMaterial::DXShadowMapMaterial(const rendering::DXShad
         psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
         psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
         psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+
+        {
+            psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+        }
+
         psoDesc.SampleMask = UINT_MAX;
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         psoDesc.NumRenderTargets = 1;
@@ -136,7 +153,46 @@ rendering::psm::DXShadowMapMaterial::DXShadowMapMaterial(const rendering::DXShad
         psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
         psoDesc.SampleDesc.Count = 1;
         THROW_ERROR(
-            device->GetDevice().CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)),
+            device->GetDevice().CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_invertedLightPipelineState)),
+            "Can't create Graphics Pipeline State!")
+    }
+
+    // Create the pipeline state, which includes compiling and loading shaders.
+    {
+        // Define the vertex input layout.
+        D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
+        {
+            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+            { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+            { "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+
+            { "OBJECT_POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 0 },
+            { "OBJECT_ROTATION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 12, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 0 },
+            { "OBJECT_SCALE", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 28, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 0 },
+        };
+
+        // Describe and create the graphics pipeline state object (PSO).
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+        psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
+        psoDesc.pRootSignature = m_rootSignature.Get();
+        psoDesc.VS = CD3DX12_SHADER_BYTECODE(m_vertexShader.GetCompiledShader());
+        psoDesc.PS = CD3DX12_SHADER_BYTECODE(m_pixelShader.GetCompiledShader());
+        psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+        psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+        psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+
+        {
+            psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;
+        }
+
+        psoDesc.SampleMask = UINT_MAX;
+        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        psoDesc.NumRenderTargets = 1;
+        psoDesc.RTVFormats[0] = DXGI_FORMAT_R32G32B32A32_FLOAT;
+        psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+        psoDesc.SampleDesc.Count = 1;
+        THROW_ERROR(
+            device->GetDevice().CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_straightLightPipelineState)),
             "Can't create Graphics Pipeline State!")
     }
 
@@ -159,8 +215,30 @@ ID3D12CommandList* rendering::psm::DXShadowMapMaterial::GenerateCommandList(
     m_commandLists.push_back(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>());
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList = m_commandLists.back();
 
+    const rendering::DirectionalLight& light = m_lightsManager->GetPrimaryDirectionalLight();
+    
+    bool invertedLight = true;
+    {
+        using namespace DirectX;
+        XMVECTOR dir = light.m_direction;
+        XMVECTOR camDir = m_camera->GetTarget() - m_camera->GetPosition();
+
+        XMVECTOR dot = XMVector3Dot(dir, camDir);
+
+        if (XMVectorGetX(dot) < 0)
+        {
+            invertedLight = false;
+        }
+    }
+
+
     THROW_ERROR(
-        m_device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), m_pipelineState.Get(), IID_PPV_ARGS(&commandList)),
+        m_device->GetDevice().CreateCommandList(
+            0,
+            D3D12_COMMAND_LIST_TYPE_DIRECT,
+            m_commandAllocator.Get(),
+            invertedLight ? m_invertedLightPipelineState.Get() : m_straightLightPipelineState.Get(),
+            IID_PPV_ARGS(&commandList)),
         "Can't reset Command List!")
 
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());

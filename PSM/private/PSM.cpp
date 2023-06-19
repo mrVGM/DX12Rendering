@@ -84,6 +84,9 @@ namespace
 	struct SMSettings
 	{
 		float m_lightPerspectiveMatrix[16];
+
+		int m_straightLight = 1;
+		int m_placeholder[3];
 	};
 
 	DirectX::XMVECTOR OrientTowards(
@@ -715,7 +718,7 @@ void rendering::psm::PSM::UpdateSMSettings()
 	fov = XMConvertToDegrees(fov);
 
 
-	mat = rendering::cam_utils::MakePerspectiveProjectionMatrix(lpRight, lpFwd, lpUp, lightPerspectiveOrigin, nearPlane, farPlane, fov, 1);
+	mat = rendering::cam_utils::MakePerspectiveProjectionMatrix(lpRight, lpFwd, lpUp, lightPerspectiveOrigin, -nearPlane, nearPlane, fov, 1);
 
 	SMSettings smSettings;
 	{

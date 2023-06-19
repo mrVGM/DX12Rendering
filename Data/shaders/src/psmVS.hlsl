@@ -1,6 +1,5 @@
 #include "objects_lib.hlsl"
-#include "common_buffers_lib.hlsl"
-#include "shadow_map_lib.hlsl"
+#include "psm_lib.hlsl"
 
 cbuffer CamBuff : register(b0)
 {
@@ -40,7 +39,7 @@ PSInput VSMain(
         worldPos,
         worldNormal);
 
-    result.position = mul(m_camBuff.m_matrix, float4(worldPos, 1));
+    result.position = CalculatePSM(m_camBuff, m_psmBuff, worldPos);
     result.world_position = worldPos;
     
     return result;

@@ -14,7 +14,8 @@ namespace rendering::psm
 	class DXShadowMapMaterial : public rendering::DXMaterial
 	{
 	private:
-		Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pipelineState;
+		Microsoft::WRL::ComPtr<ID3D12PipelineState> m_straightLightPipelineState;
+		Microsoft::WRL::ComPtr<ID3D12PipelineState> m_invertedLightPipelineState;
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature;
 
 	public:
