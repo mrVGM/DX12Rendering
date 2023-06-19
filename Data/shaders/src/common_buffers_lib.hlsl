@@ -60,4 +60,9 @@ struct SMBuffer1
     float3 m_placeholder2[3];
 };
 
+struct PSMBuffer
+{
+    float4x4 m_matrix;
+};
+
 #endif // __COMMON_BUFFERS_LIB_HLSL__

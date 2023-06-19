@@ -35,6 +35,9 @@ namespace rendering
 		DXShader* GetGaussBlurFilterPixelShader();
 
 		DXShader* GetEdgeOutlinePixelShader();
+		
+		DXShader* GetPSMVertexShader();
+		DXShader* GetPSMPixelShader();
 
 		void LoadShaderPrograms();
 	}

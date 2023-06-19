@@ -25,6 +25,9 @@ namespace rendering::psm
 		static const UINT64 m_resolution;
 
 	private:
+		ID3D12CommandList** m_commandListsCache = nullptr;
+		UINT64 m_numCommandLists = 0;
+
 		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocator;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_preSMRenderList;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_postSMRenderList;
@@ -34,6 +37,7 @@ namespace rendering::psm
 		DXTexture* m_shadowMask = nullptr;
 		DXMutableBuffer* m_settingsBuffer = nullptr;
 		DXDescriptorHeap* m_smDescriptorHeap = nullptr;
+		DXDescriptorHeap* m_smDSDescriptorHeap = nullptr;
 
 		void LoadSMTex(jobs::Job* done);
 		void LoadSMDSTex(jobs::Job* done);
@@ -50,6 +54,8 @@ namespace rendering::psm
 		void PreparePostSMRenderList();
 
 		DirectX::XMVECTOR GetLightPerspectiveOrigin();
+
+		void RenderScene();
 	public:
 		PSM();
 		virtual ~PSM();
@@ -58,6 +64,9 @@ namespace rendering::psm
 		DXTexture* GetShadowMask() override;
 		void RenderShadowMask() override;
 
+		DXTexture* GetShadowMap();
+		DXDescriptorHeap* GetSMDescriptorHeap();
+		DXDescriptorHeap* GetSMDSDescriptorHeap();
 		DXMutableBuffer* GetSettingsBuffer();
 		void UpdateSMSettings();
 	};

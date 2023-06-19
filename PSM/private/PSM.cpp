@@ -6,7 +6,11 @@
 #include "resources/DXShadowMapDSMeta.h"
 #include "resources/DXShadowMaskMeta.h"
 #include "resources/DXSMSettingsBufferMeta.h"
+
 #include "resources/DXSMDescriptorHeapMeta.h"
+#include "resources/DXSMDSDescriptorHeapMeta.h"
+
+#include "HelperMaterials/DXShadowMapMaterial.h"
 
 #include "DXHeap.h"
 #include "DXTexture.h"
@@ -16,6 +20,9 @@
 
 #include "updaters/DXShadowMapUpdater.h"
 
+#include "DXDeferredMaterialMetaTag.h"
+
+#include "ShaderRepo.h"
 #include "CoreUtils.h"
 #include "utils.h"
 
@@ -31,6 +38,10 @@ namespace
 	rendering::DXCommandQueue* m_commandQueue = nullptr;
 	rendering::ICamera* m_camera = nullptr;
 	rendering::ILightsManager* m_lightsManager = nullptr;
+	rendering::DXScene* m_scene = nullptr;
+	rendering::DXMaterialRepo* m_materialRepo = nullptr;
+
+	rendering::psm::DXShadowMapMaterial* m_shadowMapMaterial = nullptr;
 
 	void CacheObjects()
 	{
@@ -57,6 +68,16 @@ namespace
 		if (!m_lightsManager)
 		{
 			m_lightsManager = rendering::psm::GetLightsManager();
+		}
+
+		if (!m_scene)
+		{
+			m_scene = rendering::psm::GetScene();
+		}
+
+		if (!m_materialRepo)
+		{
+			m_materialRepo = rendering::psm::GetMaterialRepo();
 		}
 	}
 
@@ -504,6 +525,9 @@ void rendering::psm::PSM::LoadResources(jobs::Job* done)
 		{
 			new DXShadowMapUpdater();
 			m_ctx.m_psm->CreateDescriptorHeap();
+
+			m_shadowMapMaterial = new DXShadowMapMaterial(*shader_repo::GetPSMVertexShader(), *shader_repo::GetPSMPixelShader());
+
 			core::utils::RunSync(m_ctx.m_done);
 		}
 	};
@@ -554,6 +578,21 @@ void rendering::psm::PSM::LoadResourcesInternal(jobs::Job* done)
 rendering::DXMutableBuffer* rendering::psm::PSM::GetSettingsBuffer()
 {
 	return m_settingsBuffer;
+}
+
+rendering::DXTexture* rendering::psm::PSM::GetShadowMap()
+{
+	return m_sm;
+}
+
+rendering::DXDescriptorHeap* rendering::psm::PSM::GetSMDescriptorHeap()
+{
+	return m_smDescriptorHeap;
+}
+
+rendering::DXDescriptorHeap* rendering::psm::PSM::GetSMDSDescriptorHeap()
+{
+	return m_smDSDescriptorHeap;
 }
 
 DirectX::XMVECTOR rendering::psm::PSM::GetLightPerspectiveOrigin()
@@ -697,11 +736,20 @@ void rendering::psm::PSM::UpdateSMSettings()
 
 void rendering::psm::PSM::CreateDescriptorHeap()
 {
-	std::list<DXTexture*> textures;
-	textures.push_back(m_sm);
-	textures.push_back(m_shadowMask);
+	{
+		std::list<DXTexture*> textures;
+		textures.push_back(m_sm);
+		textures.push_back(m_shadowMask);
 
-	m_smDescriptorHeap = DXDescriptorHeap::CreateRTVDescriptorHeap(DXSMDescriptorHeapMeta::GetInstance(), textures);
+		m_smDescriptorHeap = DXDescriptorHeap::CreateRTVDescriptorHeap(DXSMDescriptorHeapMeta::GetInstance(), textures);
+	}
+
+	{
+		std::list<DXTexture*> textures;
+		textures.push_back(m_smDS);
+
+		m_smDSDescriptorHeap = DXDescriptorHeap::CreateDSVDescriptorHeap(DXSMDSDescriptorHeapMeta::GetInstance(), textures);
+	}
 }
 
 
@@ -778,6 +826,7 @@ void rendering::psm::PSM::RenderShadowMask()
 		m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 	}
 
+	RenderScene();
 
 	{
 		ID3D12CommandList* ppCommandLists[] = { m_postSMRenderList.Get() };
@@ -788,6 +837,87 @@ void rendering::psm::PSM::RenderShadowMask()
 rendering::DXTexture* rendering::psm::PSM::GetShadowMask()
 {
 	return m_shadowMask;
+}
+
+
+void rendering::psm::PSM::RenderScene()
+{
+	DXScene* scene = m_scene;
+	DXMaterialRepo* repo = m_materialRepo;
+
+	m_shadowMapMaterial->ResetCommandLists();
+
+	std::list<ID3D12CommandList*> deferredLists;
+	for (int i = 0; i < scene->GetScenesCount(); ++i)
+	{
+		collada::ColladaScene& curColladaScene = *scene->m_colladaScenes[i];
+		const DXScene::SceneResources& curSceneResources = scene->m_sceneResources[i];
+
+		collada::Scene& s = curColladaScene.GetScene();
+
+		for (auto it = s.m_objects.begin(); it != s.m_objects.end(); ++it)
+		{
+			collada::Object& obj = it->second;
+			collada::Geometry& geo = s.m_geometries[obj.m_geometry];
+			int instanceIndex = s.m_objectInstanceMap[it->first];
+
+			const std::string& objectName = it->first;
+
+			auto matOverrideIt = obj.m_materialOverrides.begin();
+
+			for (auto it = geo.m_materials.begin(); it != geo.m_materials.end(); ++it)
+			{
+				const std::string matOverrideName = *matOverrideIt;
+				++matOverrideIt;
+
+				DXMaterial* mat = repo->GetMaterial(matOverrideName);
+
+				const DXScene::GeometryResources& geometryResources = curSceneResources.m_geometryResources.find(obj.m_geometry)->second;
+				DXBuffer* vertBuf = geometryResources.m_vertexBuffer;
+				DXBuffer* indexBuf = geometryResources.m_indexBuffer;
+				DXBuffer* instanceBuf = geometryResources.m_instanceBuffer->GetBuffer();
+
+				if (!mat)
+				{
+					continue;
+				}
+
+				if (!mat->GetMeta().HasTag(DXDeferredMaterialMetaTag::GetInstance()))
+				{
+					continue;
+				}
+
+				ID3D12CommandList* cl = m_shadowMapMaterial->GenerateCommandList(
+					*vertBuf,
+					*indexBuf,
+					*instanceBuf,
+					(*it).indexOffset,
+					(*it).indexCount,
+					instanceIndex);
+
+				deferredLists.push_back(cl);
+			}
+		}
+	}
+
+	int numLists = deferredLists.size();
+	if (m_numCommandLists < numLists)
+	{
+		if (m_numCommandLists)
+		{
+			delete[] m_commandListsCache;
+		}
+		m_commandListsCache = new ID3D12CommandList * [numLists];
+		m_numCommandLists = numLists;
+	}
+
+	int index = 0;
+	for (auto it = deferredLists.begin(); it != deferredLists.end(); ++it)
+	{
+		m_commandListsCache[index++] = *it;
+	}
+
+	m_commandQueue->GetCommandQueue()->ExecuteCommandLists(numLists, m_commandListsCache);
 }
 
 #undef THROW_ERROR
