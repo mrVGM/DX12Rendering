@@ -744,6 +744,11 @@ void rendering::psm::PSM::UpdateSMSettings()
 			smSettings.m_lightPerspectiveMatrix[index++] = w;
 		}
 	}
+
+	void* data = m_settingsBuffer->GetUploadBuffer()->Map();
+	SMSettings* settingsData = static_cast<SMSettings*>(data);
+	*settingsData = smSettings;
+	m_settingsBuffer->GetUploadBuffer()->Unmap();
 }
 
 void rendering::psm::PSM::CreateDescriptorHeap()
@@ -785,6 +790,8 @@ void rendering::psm::PSM::PreparePreSMRenderList()
 		};
 		m_preSMRenderList->ResourceBarrier(_countof(barrier), barrier);
 	}
+
+	m_preSMRenderList->ClearDepthStencilView(m_smDSDescriptorHeap->GetDescriptorHandle(0), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
 	{
 		const float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };

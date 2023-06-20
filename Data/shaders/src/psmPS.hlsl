@@ -12,6 +12,8 @@ cbuffer PSMSettings : register(b1)
 
 float4 PSMain(float4 position : SV_POSITION, float3 worldPos : WORLD_POSITION) : SV_Target
 {
+    return float4(1, 1, 1, 1);
+
     float4 smValue = CalculatePSM(m_camBuff, m_psmBuff, worldPos);
     smValue /= smValue.w;
 

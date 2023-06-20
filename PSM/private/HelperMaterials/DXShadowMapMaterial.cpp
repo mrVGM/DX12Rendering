@@ -182,7 +182,7 @@ rendering::psm::DXShadowMapMaterial::DXShadowMapMaterial(const rendering::DXShad
         psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 
         {
-            psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;
+            psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
         }
 
         psoDesc.SampleMask = UINT_MAX;
