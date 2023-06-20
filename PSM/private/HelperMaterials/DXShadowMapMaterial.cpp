@@ -210,7 +210,7 @@ ID3D12CommandList* rendering::psm::DXShadowMapMaterial::GenerateCommandList(
     UINT indexCount,
     UINT instanceIndex)
 {
-    DXTexture* shadowMapTexture = m_psm->GetShadowMask();
+    DXTexture* shadowMapTexture = m_psm->GetShadowMap(0);
 
     m_commandLists.push_back(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>());
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList = m_commandLists.back();
