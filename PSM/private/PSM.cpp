@@ -749,6 +749,7 @@ void rendering::psm::PSM::UpdateSMSettings()
 	SMSettings* settingsData = static_cast<SMSettings*>(data);
 	*settingsData = smSettings;
 	m_settingsBuffer->GetUploadBuffer()->Unmap();
+	m_settingsBuffer->SetDirty();
 }
 
 void rendering::psm::PSM::CreateDescriptorHeap()
