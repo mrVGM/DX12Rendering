@@ -2,4 +2,7 @@
 <settings>
 	<scene>"geo/house_scene.dae"</scene>
 	<entry_point>"Renderer"</entry_point>
+	<other_settings>
+		<shader_repo>"shader_repo.xml"</shader_repo>
+	</other_settings>
 </settings>

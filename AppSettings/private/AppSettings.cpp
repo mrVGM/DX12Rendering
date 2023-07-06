@@ -56,10 +56,26 @@ void settings::AppSettings::ReadSettingFile()
 		throw "Can't Read Settings File!";
 	}
 
+	xml_reader::Node* settingsNode = nullptr;
+
 	for (auto it = rootNodes.begin(); it != rootNodes.end(); ++it)
 	{
+		xml_reader::Node* cur = *it;
+		if (cur->m_tagName == "settings")
+		{
+			settingsNode = cur;
+			break;
+		}
+	}
+
+	if (!settingsNode)
+	{
+		throw "Can't Find the 'settings' Node!";
+	}
+
+	{
 		std::list<const xml_reader::Node*> tmp;
-		xml_reader::FindChildNodes(*it, [](const xml_reader::Node* node) {
+		xml_reader::FindChildNodes(settingsNode, [](const xml_reader::Node* node) {
 			if (node->m_tagName == "scene")
 			{
 				return true;
@@ -70,14 +86,12 @@ void settings::AppSettings::ReadSettingFile()
 		if (tmp.size() > 0)
 		{
 			m_settings.m_sceneName = tmp.front()->m_data.front()->m_symbolData.m_string;
-			break;
 		}
 	}
 
-	for (auto it = rootNodes.begin(); it != rootNodes.end(); ++it)
 	{
 		std::list<const xml_reader::Node*> tmp;
-		xml_reader::FindChildNodes(*it, [](const xml_reader::Node* node) {
+		xml_reader::FindChildNodes(settingsNode, [](const xml_reader::Node* node) {
 			if (node->m_tagName == "entry_point")
 			{
 				return true;
@@ -87,10 +101,36 @@ void settings::AppSettings::ReadSettingFile()
 
 		if (tmp.size() > 0)
 		{
-			const std::string& appEntryPointName = tmp.front()->m_data.front()->m_symbolData.m_string;
-			m_settings.m_appEntryPoint = appEntryPointName;
+			m_settings.m_appEntryPoint = tmp.front()->m_data.front()->m_symbolData.m_string;
+		}
+	}
 
-			break;
+	const xml_reader::Node* otherSettingsNode = nullptr;
+	{
+		std::list<const xml_reader::Node*> tmp;
+		xml_reader::FindChildNodes(settingsNode, [](const xml_reader::Node* node) {
+			if (node->m_tagName == "other_settings")
+			{
+				return true;
+			}
+			return false;
+		}, tmp);
+
+		if (tmp.size() > 0)
+		{
+			otherSettingsNode = tmp.front();
+		}
+	}
+
+	if (otherSettingsNode)
+	{
+		for (auto it = otherSettingsNode->m_children.begin(); it != otherSettingsNode->m_children.end(); ++it)
+		{
+			xml_reader::Node* cur = *it;
+			const std::string& name = cur->m_tagName;
+			const std::string& path = cur->m_data.front()->m_symbolData.m_string;
+
+			m_settings.m_otherSettings[name] = path;
 		}
 	}
 }
