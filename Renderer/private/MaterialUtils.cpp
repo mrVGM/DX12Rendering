@@ -23,7 +23,7 @@ namespace
 	{
 		using namespace rendering;
 
-		DXShader* ps = rendering::shader_repo::GetErrorPixelShader();
+		DXShader* ps = rendering::shader_repo::GetShaderSetByName("error").m_pixelShader;
 		DXShader* vs = rendering::shader_repo::GetMainVertexShader();
 
 		DXMaterial* errorMat = new DXUnlitErrorMaterial(*vs, *ps);

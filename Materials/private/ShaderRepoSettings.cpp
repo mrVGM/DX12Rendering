@@ -34,7 +34,7 @@ rendering::DXShader* rendering::ShaderRepoSettings::GetShaderByName(const std::s
 	return it->second;
 }
 
-const rendering::ShaderRepoSettings::ShaderSet& rendering::ShaderRepoSettings::GetShaderSetByName(const std::string& name)
+const rendering::shader_repo::ShaderSet& rendering::ShaderRepoSettings::GetShaderSetByName(const std::string& name)
 {
 	return m_settings.m_shaderSets[name];
 }
@@ -88,7 +88,7 @@ void rendering::ShaderRepoSettings::LoadShaders()
 		const xml_reader::Node* cur = *it;
 
 		std::string name = cur->m_tagName;
-		ShaderSet& shaderSet = m_settings.m_shaderSets[name];
+		shader_repo::ShaderSet& shaderSet = m_settings.m_shaderSets[name];
 
 		const xml_reader::Node* vertexShader = xml_reader::FindChildNode(cur, [](const xml_reader::Node* node) {
 			return node->m_tagName == "vertex";

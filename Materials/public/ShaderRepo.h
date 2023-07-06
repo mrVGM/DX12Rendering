@@ -13,8 +13,13 @@ namespace rendering
 	class DXShader;
 	namespace shader_repo
 	{
+		struct ShaderSet
+		{
+			DXShader* m_vertexShader = nullptr;
+			DXShader* m_pixelShader = nullptr;
+		};
+
 		DXShader* GetMainVertexShader();
-		DXShader* GetErrorPixelShader();
 		DXShader* GetUnlitPixelShader();
 		DXShader* GetDeferredPixelShader();
 
@@ -37,5 +42,7 @@ namespace rendering
 		DXShader* GetEdgeOutlinePixelShader();
 
 		void LoadShaderPrograms();
+		DXShader* GetShaderByName(const std::string& name);
+		const ShaderSet& GetShaderSetByName(const std::string& name);
 	}
 }

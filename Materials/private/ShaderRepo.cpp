@@ -13,7 +13,6 @@ namespace
 	rendering::ShaderRepoSettings* m_shaderRepoSettings = nullptr;
 
 	rendering::DXShader* m_mainVertexShader = nullptr;
-	rendering::DXShader* m_errorPixelShader = nullptr;
 	rendering::DXShader* m_unlitPixelShader = nullptr;
 	rendering::DXShader* m_deferredPixelShader = nullptr;
 
@@ -38,11 +37,6 @@ namespace
 rendering::DXShader* rendering::shader_repo::GetMainVertexShader()
 {
 	return m_mainVertexShader;
-}
-
-rendering::DXShader* rendering::shader_repo::GetErrorPixelShader()
-{
-	return m_errorPixelShader;
 }
 
 rendering::DXShader* rendering::shader_repo::GetUnlitPixelShader()
@@ -123,7 +117,6 @@ void rendering::shader_repo::LoadShaderPrograms()
 	}
 
 	m_mainVertexShader = new DXShader(DXVertexShaderMeta::GetInstance(), "shaders/bin/vs_mainVS.fxc");
-	m_errorPixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_error.fxc");
 	m_unlitPixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_unlit.fxc");
 	m_deferredPixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_deferred.fxc");
 
@@ -144,4 +137,14 @@ void rendering::shader_repo::LoadShaderPrograms()
 	m_gaussBlurFilterPixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_gaussianBlurFilterPS.fxc");
 
 	m_edgeOutlinePixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_edgeOutlinePS.fxc");
+}
+
+rendering::DXShader* rendering::shader_repo::GetShaderByName(const std::string& name)
+{
+	return m_shaderRepoSettings->GetShaderByName(name);
+}
+
+const rendering::shader_repo::ShaderSet& rendering::shader_repo::GetShaderSetByName(const std::string& name)
+{
+	return m_shaderRepoSettings->GetShaderSetByName(name);
 }
