@@ -3,4 +3,7 @@
 	<scene>"geo/house_scene.dae"</scene>
 	<entry_point>"Renderer"</entry_point>
 	<shadow_map_type>"PSM"</shadow_map_type>
+	<psm>
+		<near>1</near>
+	</psm>
 </settings>

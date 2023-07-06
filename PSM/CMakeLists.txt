@@ -36,6 +36,7 @@ add_library (PSM
 target_include_directories(PSM INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(PSM PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
+target_link_libraries(PSM PRIVATE AppSettings)
 target_link_libraries(PSM INTERFACE PUBLIC RenderingCore CommonResources Scene Materials ShadowMapping)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

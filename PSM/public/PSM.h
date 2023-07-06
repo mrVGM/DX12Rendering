@@ -69,5 +69,6 @@ namespace rendering::psm
 		DXDescriptorHeap* GetSMDSDescriptorHeap();
 		DXMutableBuffer* GetSettingsBuffer();
 		void UpdateSMSettings();
+		void UpdateSMSettings1();
 	};
 }

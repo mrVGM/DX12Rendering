@@ -27,6 +27,8 @@
 #include "CoreUtils.h"
 #include "utils.h"
 
+#include "AppSettings.h"
+
 #define THROW_ERROR(hRes, error) \
 if (FAILED(hRes)) {\
     throw error;\
@@ -45,6 +47,8 @@ namespace
 
 	rendering::psm::DXShadowMapMaterial* m_shadowMapMaterial = nullptr;
 	rendering::psm::DXShadowMaskMaterial* m_shadowMaskMaterial = nullptr;
+
+	settings::AppSettings* m_appSettings = nullptr;
 
 	void CacheObjects()
 	{
@@ -87,6 +91,11 @@ namespace
 		{
 			m_renderTextureBuffer = rendering::psm::GetRenderTextureBuffer();
 		}
+
+		if (!m_appSettings)
+		{
+			m_appSettings = settings::GetSettings();
+		}
 	}
 
 	struct SMSettings
@@ -95,6 +104,12 @@ namespace
 
 		int m_straightLight = 1;
 		int m_placeholder[3];
+	};
+
+	struct SMSettings1
+	{
+		float m_perspMatrix[16];
+		float m_orthoMatrix[16];
 	};
 
 	DirectX::XMVECTOR OrientTowards(
@@ -750,6 +765,119 @@ void rendering::psm::PSM::UpdateSMSettings()
 	*settingsData = smSettings;
 	m_settingsBuffer->GetUploadBuffer()->Unmap();
 	m_settingsBuffer->SetDirty();
+}
+
+void rendering::psm::PSM::UpdateSMSettings1()
+{
+	using namespace DirectX;
+
+	const rendering::DirectionalLight& light = m_lightsManager->GetPrimaryDirectionalLight();
+
+	XMVECTOR up = -light.m_direction;
+	up = XMVector3Normalize(up);
+	XMVECTOR fwd = m_camera->GetTarget() - m_camera->GetPosition();
+	XMVECTOR right = XMVector3Cross(up, fwd);
+	right = XMVector3Normalize(right);
+	fwd = XMVector3Cross(right, up);
+
+	std::list<XMVECTOR> corners;
+	float maxDist;
+	m_camera->GetFrustrumCorners(corners, maxDist, m_camera->GetNearPlane(), m_camera->GetFarPlane());
+
+	XMVECTOR bbMin, bbMax;
+	{
+		const XMVECTOR& cur = corners.front();
+		XMVECTOR xV = XMVector3Dot(cur, right);
+		XMVECTOR yV = XMVector3Dot(cur, up);
+		XMVECTOR zV = XMVector3Dot(cur, fwd);
+
+		float x = XMVectorGetX(xV);
+		float y = XMVectorGetX(yV);
+		float z = XMVectorGetX(zV);
+
+		bbMin = bbMax = XMVectorSet(x, y, z, 0);
+	}
+
+	for (auto it = corners.begin(); it != corners.end(); ++it)
+	{
+		const XMVECTOR& cur = *it;
+		XMVECTOR xV = XMVector3Dot(cur, right);
+		XMVECTOR yV = XMVector3Dot(cur, up);
+		XMVECTOR zV = XMVector3Dot(cur, fwd);
+
+		float x = XMVectorGetX(xV);
+		float y = XMVectorGetX(yV);
+		float z = XMVectorGetX(zV);
+
+		XMVECTOR tmp = XMVectorSet(x, y, z, 0);
+
+		bbMin = XMVectorMin(bbMin, tmp);
+		bbMax = XMVectorMax(bbMax, tmp);
+	}
+
+	float psmNear = m_appSettings->GetSettings().m_psmNear;
+
+	XMVECTOR origin = 0.5 * (bbMin + bbMax);
+	origin = XMVectorSetZ(origin, XMVectorGetZ(bbMin) - psmNear);
+
+	origin = XMVectorGetX(origin) * right + XMVectorGetY(origin) * up + XMVectorGetZ(origin) * fwd;
+
+	XMVECTOR dV = bbMax - bbMin;
+	float d = XMVectorGetZ(dV);
+
+	// TODO: Fix the origin calculation
+	XMMATRIX perspMat = cam_utils::MakePerspectiveProjectionMatrix(right, fwd, up, origin, 1000, 1000 + d, 90, 1);
+	XMVECTOR det;
+	XMMATRIX perspInvMat = XMMatrixInverse(&det, perspMat);
+
+	XMVECTOR pMin, pMax;
+
+	{
+		const XMVECTOR& cur = corners.front();
+
+		XMVECTOR tmp = XMVector4Transform(cur, perspMat);
+		tmp /= XMVectorGetW(tmp);
+
+		pMin = pMax = tmp;
+	}
+
+	for (auto it = corners.begin(); it != corners.end(); ++it)
+	{
+		const XMVECTOR& cur = *it;
+
+		XMVECTOR tmp = XMVector4Transform(cur, perspMat);
+		tmp /= XMVectorGetW(tmp);
+
+		pMin = XMVectorMin(pMin, tmp);
+		pMax = XMVectorMax(pMax, tmp);
+	}
+
+	XMVECTOR center = 0.5 * (pMin + pMax);
+	center = XMVectorSetZ(center, 0);
+	center = XMVectorSetW(center, 1000);
+
+	center = XMVector4Transform(center, perspInvMat);
+
+	origin = center - psmNear * fwd;
+
+	XMVECTOR r = XMVector3Dot(origin, fwd);
+
+	perspMat = cam_utils::MakePerspectiveProjectionMatrix(right, fwd, up, origin, psmNear, psmNear + d, 90, 1);
+
+	std::vector<float> xs, ys;
+
+	for (auto it = corners.begin(); it != corners.end(); ++it)
+	{
+		const XMVECTOR& cur = *it;
+
+		XMVECTOR tmp = XMVector4Transform(cur, perspMat);
+		tmp /= XMVectorGetW(tmp);
+
+		xs.push_back(XMVectorGetX(tmp));
+		ys.push_back(XMVectorGetY(tmp));
+
+		bool t = true;
+	}
 }
 
 void rendering::psm::PSM::CreateDescriptorHeap()

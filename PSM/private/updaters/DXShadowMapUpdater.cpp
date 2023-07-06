@@ -37,4 +37,5 @@ int rendering::psm::DXShadowMapUpdater::GetPriority()
 void rendering::psm::DXShadowMapUpdater::Update(double dt)
 {
 	m_psm->UpdateSMSettings();
+	m_psm->UpdateSMSettings1();
 }

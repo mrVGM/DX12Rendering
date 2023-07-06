@@ -16,6 +16,8 @@ namespace settings
 			std::string m_sceneName;
 			std::string m_appEntryPoint;
 			std::string m_shadowMapType;
+
+			float m_psmNear = 0;
 		};
 	private:
 		Settings m_settings;

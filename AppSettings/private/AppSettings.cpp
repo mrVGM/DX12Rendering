@@ -113,6 +113,37 @@ void settings::AppSettings::ReadSettingFile()
 			break;
 		}
 	}
+
+	for (auto it = rootNodes.begin(); it != rootNodes.end(); ++it)
+	{
+		std::list<const xml_reader::Node*> psms;
+		xml_reader::FindChildNodes(*it, [](const xml_reader::Node* node) {
+			if (node->m_tagName == "psm")
+			{
+				return true;
+			}
+			return false;
+		}, psms);
+
+		if (psms.size() > 0)
+		{
+			std::list<const xml_reader::Node*> near;
+			xml_reader::FindChildNodes(psms.front(), [](const xml_reader::Node* node) {
+				if (node->m_tagName == "near")
+				{
+					return true;
+				}
+
+				return false;
+			}, near);
+
+			if (near.size() > 0)
+			{
+				m_settings.m_psmNear = near.front()->m_data.front()->m_symbolData.m_number;
+				break;
+			}
+		}
+	}
 }
 
 const settings::AppSettings::Settings& settings::AppSettings::GetSettings() const

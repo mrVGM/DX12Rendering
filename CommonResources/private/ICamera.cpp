@@ -49,5 +49,6 @@ DirectX::XMMATRIX rendering::cam_utils::MakePerspectiveProjectionMatrix(
 
 
 	DirectX::XMMATRIX mvp = project * view * translate;
+	//DirectX::XMMATRIX mvp = view * translate;
 	return DirectX::XMMatrixTranspose(mvp);
 }
