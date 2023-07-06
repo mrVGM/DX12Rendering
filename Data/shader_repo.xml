@@ -21,5 +21,10 @@
 		<ps_shadowMaskPS>"shaders/bin/ps_shadowMaskPS.fxc"</ps_shadowMaskPS>
 		<ps_unlit>"shaders/bin/ps_unlit.fxc"</ps_unlit>
 	</pixel_shaders>
-	<shader_sets>placeholder</shader_sets>
+	<shader_sets>
+		<error>
+			<vertex>vs_mainVS</vertex>
+			<pixel>ps_error</pixel>
+		</error>
+	</shader_sets>
 </settings>

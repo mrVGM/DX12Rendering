@@ -32,5 +32,8 @@ namespace rendering
 	public:
 		ShaderRepoSettings();
 		virtual ~ShaderRepoSettings();
+
+		DXShader* GetShaderByName(const std::string& name);
+		const ShaderSet& GetShaderSetByName(const std::string& name);
 	};
 }

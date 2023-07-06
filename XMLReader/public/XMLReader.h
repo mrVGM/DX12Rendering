@@ -30,5 +30,6 @@ namespace xml_reader
 	IXMLReader* GetReader();
 	void Boot();
 	void FindChildNodes(const Node* rootNode, std::function<bool(const Node*)> predicate, std::list<const Node*>& nodesFound);
+	const Node* FindChildNode(const Node* rootNode, std::function<bool(const Node*)> predicate);
 	
 }

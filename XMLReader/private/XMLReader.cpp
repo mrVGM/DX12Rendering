@@ -137,3 +137,26 @@ void xml_reader::FindChildNodes(const Node* rootNode, std::function<bool(const N
 		}
 	}
 }
+
+const xml_reader::Node* xml_reader::FindChildNode(const Node* rootNode, std::function<bool(const Node*)> predicate)
+{
+	std::queue<const Node*> nodesToCheck;
+	nodesToCheck.push(rootNode);
+
+	while (!nodesToCheck.empty())
+	{
+		const Node* cur = nodesToCheck.front();
+		nodesToCheck.pop();
+
+		if (predicate(cur))
+		{
+			return cur;
+		}
+
+		for (std::list<Node*>::const_iterator it = cur->m_children.begin();
+			it != cur->m_children.end(); ++it)
+		{
+			nodesToCheck.push(*it);
+		}
+	}
+}
