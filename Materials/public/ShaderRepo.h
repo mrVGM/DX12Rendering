@@ -19,7 +19,6 @@ namespace rendering
 			DXShader* m_pixelShader = nullptr;
 		};
 
-		DXShader* GetMainVertexShader();
 		DXShader* GetUnlitPixelShader();
 		DXShader* GetDeferredPixelShader();
 

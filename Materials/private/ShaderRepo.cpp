@@ -12,7 +12,6 @@ namespace
 {
 	rendering::ShaderRepoSettings* m_shaderRepoSettings = nullptr;
 
-	rendering::DXShader* m_mainVertexShader = nullptr;
 	rendering::DXShader* m_unlitPixelShader = nullptr;
 	rendering::DXShader* m_deferredPixelShader = nullptr;
 
@@ -32,11 +31,6 @@ namespace
 	rendering::DXShader* m_gaussBlurFilterPixelShader = nullptr;
 
 	rendering::DXShader* m_edgeOutlinePixelShader = nullptr;
-}
-
-rendering::DXShader* rendering::shader_repo::GetMainVertexShader()
-{
-	return m_mainVertexShader;
 }
 
 rendering::DXShader* rendering::shader_repo::GetUnlitPixelShader()
@@ -116,7 +110,6 @@ void rendering::shader_repo::LoadShaderPrograms()
 		m_shaderRepoSettings = new rendering::ShaderRepoSettings();
 	}
 
-	m_mainVertexShader = new DXShader(DXVertexShaderMeta::GetInstance(), "shaders/bin/vs_mainVS.fxc");
 	m_unlitPixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_unlit.fxc");
 	m_deferredPixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_deferred.fxc");
 

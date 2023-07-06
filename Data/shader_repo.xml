@@ -26,5 +26,9 @@
 			<vertex>vs_mainVS</vertex>
 			<pixel>ps_error</pixel>
 		</error>
+		<deferred_mat>
+			<vertex>vs_mainVS</vertex>
+			<pixel>ps_deferred</pixel>
+		</deferred_mat>
 	</shader_sets>
 </settings>
