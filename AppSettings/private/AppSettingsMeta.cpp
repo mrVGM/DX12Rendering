@@ -1,12 +1,14 @@
 #include "AppSettingsMeta.h"
 
+#include "SettingsReaderMeta.h"
+
 namespace
 {
 	settings::AppSettingsMeta m_meta;
 }
 
 settings::AppSettingsMeta::AppSettingsMeta() :
-	BaseObjectMeta(nullptr)
+	BaseObjectMeta(&SettingsReaderMeta::GetInstance())
 {
 }
 

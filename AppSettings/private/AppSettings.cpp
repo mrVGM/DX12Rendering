@@ -13,7 +13,7 @@
 #include "BaseObjectContainer.h"
 
 settings::AppSettings::AppSettings() :
-	BaseObject(settings::AppSettingsMeta::GetInstance())
+	SettingsReader(settings::AppSettingsMeta::GetInstance())
 {
 	xml_reader::Boot();
 
@@ -29,36 +29,12 @@ void settings::AppSettings::ReadSettingFile()
 	data::DataLib& lib = data::GetLibrary();
 
 	std::string settingsPath = lib.GetFileEntry("settings").value("path", "");
-	settingsPath = lib.GetRootDir() + settingsPath;
-
-	xml_reader::IXMLReader* reader = xml_reader::GetReader();
-
-	scripting::ISymbol* s = reader->ReadColladaFile(settingsPath);
-
-	struct XMLNodes
-	{
-		std::list<xml_reader::Node*> m_allNodes;
-		~XMLNodes()
-		{
-			for (auto it = m_allNodes.begin(); it != m_allNodes.end(); ++it)
-			{
-				delete *it;
-			}
-		}
-	};
-
-	XMLNodes nodes;
-	std::list<xml_reader::Node*> rootNodes;
-	reader->ConstructColladaTree(s, rootNodes, nodes.m_allNodes);
-
-	if (!s)
-	{
-		throw "Can't Read Settings File!";
-	}
+	XMLNodes xmlNodes;
+	ParseSettingFile(settingsPath, xmlNodes);
 
 	xml_reader::Node* settingsNode = nullptr;
 
-	for (auto it = rootNodes.begin(); it != rootNodes.end(); ++it)
+	for (auto it = xmlNodes.m_rootNodes.begin(); it != xmlNodes.m_rootNodes.end(); ++it)
 	{
 		xml_reader::Node* cur = *it;
 		if (cur->m_tagName == "settings")

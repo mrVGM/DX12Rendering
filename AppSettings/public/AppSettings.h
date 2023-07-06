@@ -1,6 +1,7 @@
 #pragma once
 
-#include "BaseObject.h"
+#include "SettingsReader.h"
+
 #include "BaseObjectMetaTag.h"
 
 #include <string>
@@ -8,7 +9,7 @@
 
 namespace settings
 {
-	class AppSettings : public BaseObject
+	class AppSettings : public SettingsReader
 	{
 	public:
 		struct Settings
