@@ -115,3 +115,18 @@ const settings::AppSettings::Settings& settings::AppSettings::GetSettings() cons
 {
 	return m_settings;
 }
+
+settings::AppSettings* settings::AppSettings::GetAppSettings()
+{
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+
+	BaseObject* obj = container.GetObjectOfClass(AppSettingsMeta::GetInstance());
+
+	if (!obj)
+	{
+		throw "Can't find AppSettings!";
+	}
+
+	AppSettings* settings = static_cast<AppSettings*>(obj);
+	return settings;
+}

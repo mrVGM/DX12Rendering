@@ -38,3 +38,17 @@ void settings::SettingsReader::ParseSettingFile(const std::string& settingFilePa
 		throw "Can't Read Settings File!";
 	}
 }
+
+const xml_reader::Node* settings::SettingsReader::FindSettingRootNode(const XMLNodes& XMLNodes)
+{
+	for (auto it = XMLNodes.m_rootNodes.begin(); it != XMLNodes.m_rootNodes.end(); ++it)
+	{
+		xml_reader::Node* cur = *it;
+
+		if (cur->m_tagName == "settings")
+		{
+			return cur;
+		}
+	}
+	return nullptr;
+}

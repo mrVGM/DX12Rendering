@@ -23,6 +23,7 @@ namespace settings
 		};
 	
 		void ParseSettingFile(const std::string& settingFilePath, XMLNodes& XMLNodes);
+		const xml_reader::Node* FindSettingRootNode(const XMLNodes& XMLNodes);
 	public:
 		SettingsReader(const BaseObjectMeta& meta);
 		virtual ~SettingsReader();

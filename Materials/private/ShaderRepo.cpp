@@ -6,8 +6,12 @@
 #include "DXVertexShaderMeta.h"
 #include "DXPixelShaderMeta.h"
 
+#include "ShaderRepoSettings.h"
+
 namespace
 {
+	rendering::ShaderRepoSettings* m_shaderRepoSettings = nullptr;
+
 	rendering::DXShader* m_mainVertexShader = nullptr;
 	rendering::DXShader* m_errorPixelShader = nullptr;
 	rendering::DXShader* m_unlitPixelShader = nullptr;
@@ -113,6 +117,11 @@ rendering::DXShader* rendering::shader_repo::GetEdgeOutlinePixelShader()
 
 void rendering::shader_repo::LoadShaderPrograms()
 {
+	if (!m_shaderRepoSettings)
+	{
+		m_shaderRepoSettings = new rendering::ShaderRepoSettings();
+	}
+
 	m_mainVertexShader = new DXShader(DXVertexShaderMeta::GetInstance(), "shaders/bin/vs_mainVS.fxc");
 	m_errorPixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_error.fxc");
 	m_unlitPixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_unlit.fxc");

@@ -27,6 +27,8 @@ namespace settings
 		AppSettings();
 		virtual ~AppSettings();
 
+		static AppSettings* GetAppSettings();
+
 		const Settings& GetSettings() const;
 	};
 }
