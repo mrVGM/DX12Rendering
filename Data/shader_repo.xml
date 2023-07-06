@@ -1,2 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<settings>placeholder</settings>
+<settings>
+	<vertex_shaders>
+		<vs_deferredRPVS>"shaders/bin/vs_deferredRPVS.fxc"</vs_deferredRPVS>
+		<vs_mainVS>"shaders/bin/vs_mainVS.fxc"</vs_mainVS>
+		<vs_shadowMapVS>"shaders/bin/vs_shadowMapVS.fxc"</vs_shadowMapVS>
+	</vertex_shaders>
+	<pixel_shaders>
+		<ps_deferred>"shaders/bin/ps_deferred.fxc"</ps_deferred>
+		<ps_deferredRPPostLightingPS>"shaders/bin/ps_deferredRPPostLightingPS.fxc"</ps_deferredRPPostLightingPS>
+		<ps_deferredRPPS>"shaders/bin/ps_deferredRPPS.fxc"</ps_deferredRPPS>
+		<ps_displayDepthPS>"shaders/bin/ps_displayDepthPS.fxc"</ps_displayDepthPS>
+		<ps_displayShadowMap>"shaders/bin/ps_displayShadowMap.fxc"</ps_displayShadowMap>
+		<ps_edgeOutlinePS>"shaders/bin/ps_edgeOutlinePS.fxc"</ps_edgeOutlinePS>
+		<ps_error>"shaders/bin/ps_error.fxc"</ps_error>
+		<ps_gaussianBlurFilterPS>"shaders/bin/ps_gaussianBlurFilterPS.fxc"</ps_gaussianBlurFilterPS>
+		<ps_identityFilterPS>"shaders/bin/ps_identityFilterPS.fxc"</ps_identityFilterPS>
+		<ps_shadowMap>"shaders/bin/ps_shadowMap.fxc"</ps_shadowMap>
+		<ps_shadowMaskDitherFilterPS>"shaders/bin/ps_shadowMaskDitherFilterPS.fxc"</ps_shadowMaskDitherFilterPS>
+		<ps_shadowMaskPCFFilterPS>"shaders/bin/ps_shadowMaskPCFFilterPS.fxc"</ps_shadowMaskPCFFilterPS>
+		<ps_shadowMaskPS>"shaders/bin/ps_shadowMaskPS.fxc"</ps_shadowMaskPS>
+		<ps_unlit>"shaders/bin/ps_unlit.fxc"</ps_unlit>
+	</pixel_shaders>
+	<shader_sets>placeholder</shader_sets>
+</settings>
