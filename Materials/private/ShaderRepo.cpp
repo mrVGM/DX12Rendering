@@ -14,8 +14,6 @@ namespace
 
 	rendering::DXShader* m_deferredRPVertexShader = nullptr;
 
-	rendering::DXShader* m_shadowMaskPixelShader = nullptr;
-
 	rendering::DXShader* m_identityFilterPixelShader = nullptr;
 	rendering::DXShader* m_gaussBlurFilterPixelShader = nullptr;
 
@@ -26,11 +24,6 @@ namespace
 rendering::DXShader* rendering::shader_repo::GetDeferredRPVertexShader()
 {
 	return m_deferredRPVertexShader;
-}
-
-rendering::DXShader* rendering::shader_repo::GetShadowMaskPixelShader()
-{
-	return m_shadowMaskPixelShader;
 }
 
 rendering::DXShader* rendering::shader_repo::GetIdentityFilterPixelShader()
@@ -56,8 +49,6 @@ void rendering::shader_repo::LoadShaderPrograms()
 	}
 
 	m_deferredRPVertexShader = new DXShader(DXVertexShaderMeta::GetInstance(), "shaders/bin/vs_deferredRPVS.fxc");
-
-	m_shadowMaskPixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_shadowMaskPS.fxc");
 
 	m_identityFilterPixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_identityFilterPS.fxc");
 	m_gaussBlurFilterPixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_gaussianBlurFilterPS.fxc");

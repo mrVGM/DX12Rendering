@@ -20,8 +20,6 @@ namespace rendering
 		};
 
 		DXShader* GetDeferredRPVertexShader();
-
-		DXShader* GetShadowMaskPixelShader();
 		
 		DXShader* GetIdentityFilterPixelShader();
 		DXShader* GetGaussBlurFilterPixelShader();

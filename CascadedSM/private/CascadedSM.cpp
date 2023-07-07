@@ -1024,9 +1024,10 @@ void rendering::CascadedSM::LoadResources(jobs::Job* done)
 
 			core::utils::RunSync(m_ctx.m_done);
 
+			const shader_repo::ShaderSet& shadowMaskShaderSet = shader_repo::GetShaderSetByName("shadow_mask");
 			m_shadowMaskMat = new DXShadowMaskMaterial(
-				*shader_repo::GetDeferredRPVertexShader(),
-				*shader_repo::GetShadowMaskPixelShader()
+				*shadowMaskShaderSet.m_vertexShader,
+				*shadowMaskShaderSet.m_pixelShader
 			);
 
 			for (int i = 0; i < 4; ++i)

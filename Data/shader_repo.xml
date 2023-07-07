@@ -58,5 +58,9 @@
 			<vertex>vs_deferredRPVS</vertex>
 			<pixel>ps_shadowMaskDitherFilterPS</pixel>
 		</csm_dither_filter>
+		<shadow_mask>
+			<vertex>vs_deferredRPVS</vertex>
+			<pixel>ps_shadowMaskPS</pixel>
+		</shadow_mask>
 	</shader_sets>
 </settings>
