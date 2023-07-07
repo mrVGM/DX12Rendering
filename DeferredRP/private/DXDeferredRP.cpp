@@ -438,13 +438,16 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
         {
             m_ctx.m_deferredRP->CreateRTVHeap();
 
+            const shader_repo::ShaderSet& deferredRPShaderSet = shader_repo::GetShaderSetByName("deferred_rp");
+
             m_lightCalculationsMat = new DXLightsCalculationsMaterial(
                 *shader_repo::GetDeferredRPVertexShader(),
-                *shader_repo::GetDeferredRPPixelShader());
+                *deferredRPShaderSet.m_pixelShader);
 
+            const shader_repo::ShaderSet& deferredRPPostLightingShaderSet = shader_repo::GetShaderSetByName("deferred_rp_post_lighting");
             m_postLightCalculationsMat = new DXPostLightsCalculationsMaterial(
                 *shader_repo::GetDeferredRPVertexShader(),
-                *shader_repo::GetDeferredRPPostLightingPixelShader());
+                *deferredRPPostLightingShaderSet.m_pixelShader);
 
 
             m_edgeOutlineFilterMat = new DXPostProcessMaterial(

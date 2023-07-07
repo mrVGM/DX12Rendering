@@ -30,5 +30,17 @@
 			<vertex>vs_mainVS</vertex>
 			<pixel>ps_deferred</pixel>
 		</deferred_mat>
+		<unlit_mat>
+			<vertex>vs_mainVS</vertex>
+			<pixel>ps_unlit</pixel>
+		</unlit_mat>
+		<deferred_rp>
+			<vertex>vs_deferredRPVS</vertex>
+			<pixel>ps_deferredRPPS</pixel>
+		</deferred_rp>
+		<deferred_rp_post_lighting>
+			<vertex>vs_deferredRPVS</vertex>
+			<pixel>ps_deferredRPPostLightingPS</pixel>
+		</deferred_rp_post_lighting>
 	</shader_sets>
 </settings>

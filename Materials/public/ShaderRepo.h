@@ -19,12 +19,7 @@ namespace rendering
 			DXShader* m_pixelShader = nullptr;
 		};
 
-		DXShader* GetUnlitPixelShader();
-		DXShader* GetDeferredPixelShader();
-
-		DXShader* GetDeferredRPPixelShader();
 		DXShader* GetDeferredRPVertexShader();
-		DXShader* GetDeferredRPPostLightingPixelShader();
 
 		DXShader* GetShadowMapVertexShader();
 		DXShader* GetShadowMapPixelShader();
