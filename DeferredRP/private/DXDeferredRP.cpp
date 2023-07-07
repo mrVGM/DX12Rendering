@@ -441,12 +441,12 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
             const shader_repo::ShaderSet& deferredRPShaderSet = shader_repo::GetShaderSetByName("deferred_rp");
 
             m_lightCalculationsMat = new DXLightsCalculationsMaterial(
-                *shader_repo::GetDeferredRPVertexShader(),
+                *deferredRPShaderSet.m_vertexShader,
                 *deferredRPShaderSet.m_pixelShader);
 
             const shader_repo::ShaderSet& deferredRPPostLightingShaderSet = shader_repo::GetShaderSetByName("deferred_rp_post_lighting");
             m_postLightCalculationsMat = new DXPostLightsCalculationsMaterial(
-                *shader_repo::GetDeferredRPVertexShader(),
+                *deferredRPPostLightingShaderSet.m_vertexShader,
                 *deferredRPPostLightingShaderSet.m_pixelShader);
 
             const shader_repo::ShaderSet& outlineShaderSet = shader_repo::GetShaderSetByName("outline_mat");

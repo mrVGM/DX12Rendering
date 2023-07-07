@@ -11,14 +11,6 @@
 namespace
 {
 	rendering::ShaderRepoSettings* m_shaderRepoSettings = nullptr;
-
-	rendering::DXShader* m_deferredRPVertexShader = nullptr;
-}
-
-
-rendering::DXShader* rendering::shader_repo::GetDeferredRPVertexShader()
-{
-	return m_deferredRPVertexShader;
 }
 
 void rendering::shader_repo::LoadShaderPrograms()
@@ -27,8 +19,6 @@ void rendering::shader_repo::LoadShaderPrograms()
 	{
 		m_shaderRepoSettings = new rendering::ShaderRepoSettings();
 	}
-
-	m_deferredRPVertexShader = new DXShader(DXVertexShaderMeta::GetInstance(), "shaders/bin/vs_deferredRPVS.fxc");
 }
 
 rendering::DXShader* rendering::shader_repo::GetShaderByName(const std::string& name)

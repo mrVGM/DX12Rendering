@@ -19,8 +19,6 @@ namespace rendering
 			DXShader* m_pixelShader = nullptr;
 		};
 
-		DXShader* GetDeferredRPVertexShader();
-
 		void LoadShaderPrograms();
 		DXShader* GetShaderByName(const std::string& name);
 		const ShaderSet& GetShaderSetByName(const std::string& name);
