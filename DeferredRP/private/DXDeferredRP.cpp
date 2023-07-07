@@ -449,10 +449,10 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
                 *shader_repo::GetDeferredRPVertexShader(),
                 *deferredRPPostLightingShaderSet.m_pixelShader);
 
-
+            const shader_repo::ShaderSet& outlineShaderSet = shader_repo::GetShaderSetByName("outline_mat");
             m_edgeOutlineFilterMat = new DXPostProcessMaterial(
-                *shader_repo::GetDeferredRPVertexShader(),
-                *shader_repo::GetEdgeOutlinePixelShader()
+                *outlineShaderSet.m_vertexShader,
+                *outlineShaderSet.m_pixelShader
             );
 
             core::utils::RunSync(m_ctx.m_done);

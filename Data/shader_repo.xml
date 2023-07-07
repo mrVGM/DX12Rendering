@@ -70,5 +70,9 @@
 			<vertex>vs_deferredRPVS</vertex>
 			<pixel>ps_gaussianBlurFilterPS</pixel>
 		</gauss_blur_filter>
+		<outline_mat>
+			<vertex>vs_deferredRPVS</vertex>
+			<pixel>ps_edgeOutlinePS</pixel>
+		</outline_mat>
 	</shader_sets>
 </settings>

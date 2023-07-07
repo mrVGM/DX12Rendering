@@ -21,8 +21,6 @@ namespace rendering
 
 		DXShader* GetDeferredRPVertexShader();
 
-		DXShader* GetEdgeOutlinePixelShader();
-
 		void LoadShaderPrograms();
 		DXShader* GetShaderByName(const std::string& name);
 		const ShaderSet& GetShaderSetByName(const std::string& name);

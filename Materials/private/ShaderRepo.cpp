@@ -13,19 +13,12 @@ namespace
 	rendering::ShaderRepoSettings* m_shaderRepoSettings = nullptr;
 
 	rendering::DXShader* m_deferredRPVertexShader = nullptr;
-
-	rendering::DXShader* m_edgeOutlinePixelShader = nullptr;
 }
 
 
 rendering::DXShader* rendering::shader_repo::GetDeferredRPVertexShader()
 {
 	return m_deferredRPVertexShader;
-}
-
-rendering::DXShader* rendering::shader_repo::GetEdgeOutlinePixelShader()
-{
-	return m_edgeOutlinePixelShader;
 }
 
 void rendering::shader_repo::LoadShaderPrograms()
@@ -36,8 +29,6 @@ void rendering::shader_repo::LoadShaderPrograms()
 	}
 
 	m_deferredRPVertexShader = new DXShader(DXVertexShaderMeta::GetInstance(), "shaders/bin/vs_deferredRPVS.fxc");
-
-	m_edgeOutlinePixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_edgeOutlinePS.fxc");
 }
 
 rendering::DXShader* rendering::shader_repo::GetShaderByName(const std::string& name)
