@@ -1030,18 +1030,21 @@ void rendering::CascadedSM::LoadResources(jobs::Job* done)
 				*shadowMaskShaderSet.m_pixelShader
 			);
 
+			const shader_repo::ShaderSet& gaussBlurFilter = shader_repo::GetShaderSetByName("gauss_blur_filter");
+			const shader_repo::ShaderSet& identityFilter = shader_repo::GetShaderSetByName("identity_filter");
+
 			for (int i = 0; i < 4; ++i)
 			{
 				m_shadowMapGaussBlurFilterMat.push_back(new rendering::DXShadowMapFilterMaterial(
-					*shader_repo::GetDeferredRPVertexShader(),
-					*shader_repo::GetGaussBlurFilterPixelShader(),
+					*gaussBlurFilter.m_vertexShader,
+					*gaussBlurFilter.m_pixelShader,
 					m_ctx.m_cascadedSM->GetShadowMap(i),
 					m_ctx.m_cascadedSM->GetShadowMapFilterTex()
 				));
 
 				m_shadowMapIdentityFilterMat.push_back(new DXShadowMapFilterMaterial(
-					*shader_repo::GetDeferredRPVertexShader(),
-					*shader_repo::GetIdentityFilterPixelShader(),
+					*identityFilter.m_vertexShader,
+					*identityFilter.m_pixelShader,
 					m_ctx.m_cascadedSM->GetShadowMapFilterTex(),
 					m_ctx.m_cascadedSM->GetShadowMap(i)
 				));

@@ -62,5 +62,13 @@
 			<vertex>vs_deferredRPVS</vertex>
 			<pixel>ps_shadowMaskPS</pixel>
 		</shadow_mask>
+		<identity_filter>
+			<vertex>vs_deferredRPVS</vertex>
+			<pixel>ps_identityFilterPS</pixel>
+		</identity_filter>
+		<gauss_blur_filter>
+			<vertex>vs_deferredRPVS</vertex>
+			<pixel>ps_gaussianBlurFilterPS</pixel>
+		</gauss_blur_filter>
 	</shader_sets>
 </settings>
