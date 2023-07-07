@@ -21,8 +21,6 @@ namespace rendering
 
 		DXShader* GetDeferredRPVertexShader();
 
-		DXShader* GetDisplayShadowMapPixelShader();
-
 		DXShader* GetShadowMaskPixelShader();
 
 		DXShader* GetShadowMaskPCFFilterPixelShader();

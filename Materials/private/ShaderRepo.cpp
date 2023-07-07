@@ -14,8 +14,6 @@ namespace
 
 	rendering::DXShader* m_deferredRPVertexShader = nullptr;
 
-	rendering::DXShader* m_displayShadowMapPixelShader = nullptr;
-
 	rendering::DXShader* m_shadowMaskPixelShader = nullptr;
 	rendering::DXShader* m_shadowMaskPCFFilterPixelShader = nullptr;
 	rendering::DXShader* m_shadowMaskDitherFilterPixelShader = nullptr;
@@ -30,11 +28,6 @@ namespace
 rendering::DXShader* rendering::shader_repo::GetDeferredRPVertexShader()
 {
 	return m_deferredRPVertexShader;
-}
-
-rendering::DXShader* rendering::shader_repo::GetDisplayShadowMapPixelShader()
-{
-	return m_displayShadowMapPixelShader;
 }
 
 rendering::DXShader* rendering::shader_repo::GetShadowMaskPixelShader()
@@ -75,8 +68,6 @@ void rendering::shader_repo::LoadShaderPrograms()
 	}
 
 	m_deferredRPVertexShader = new DXShader(DXVertexShaderMeta::GetInstance(), "shaders/bin/vs_deferredRPVS.fxc");
-
-	m_displayShadowMapPixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_displayShadowMap.fxc");
 
 	m_shadowMaskPixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_shadowMaskPS.fxc");
 	m_shadowMaskPCFFilterPixelShader = new DXShader(DXPixelShaderMeta::GetInstance(), "shaders/bin/ps_shadowMaskPCFFilterPS.fxc");
