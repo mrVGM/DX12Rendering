@@ -42,13 +42,21 @@
 			<vertex>vs_deferredRPVS</vertex>
 			<pixel>ps_deferredRPPostLightingPS</pixel>
 		</deferred_rp_post_lighting>
-		<psm_shadow_map>
+		<csm_shadow_map>
 			<vertex>vs_shadowMapVS</vertex>
 			<pixel>ps_shadowMap</pixel>
-		</psm_shadow_map>
+		</csm_shadow_map>
 		<display_shadow_map>
 			<vertex>vs_deferredRPVS</vertex>
 			<pixel>ps_displayShadowMap</pixel>
 		</display_shadow_map>
+		<csm_pcf_filter>
+			<vertex>vs_deferredRPVS</vertex>
+			<pixel>ps_shadowMaskPCFFilterPS</pixel>
+		</csm_pcf_filter>
+		<csm_dither_filter>
+			<vertex>vs_deferredRPVS</vertex>
+			<pixel>ps_shadowMaskDitherFilterPS</pixel>
+		</csm_dither_filter>
 	</shader_sets>
 </settings>

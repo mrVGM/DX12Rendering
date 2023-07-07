@@ -709,7 +709,7 @@ void rendering::CascadedSM::LoadSMMaterials(jobs::Job* done)
 		}
 	};
 
-	const shader_repo::ShaderSet& shadowMapShaderSet = shader_repo::GetShaderSetByName("psm_shadow_map");
+	const shader_repo::ShaderSet& shadowMapShaderSet = shader_repo::GetShaderSetByName("csm_shadow_map");
 	for (int i = 0; i < _countof(ctx->m_materials); ++i)
 	{
 		ctx->m_materials[i] = new DXShadowMapMaterial(
@@ -1046,15 +1046,17 @@ void rendering::CascadedSM::LoadResources(jobs::Job* done)
 				));
 			}
 
+			const shader_repo::ShaderSet& pcfFilter = shader_repo::GetShaderSetByName("csm_pcf_filter");
 			m_shadowMaskPCFFilterMat = new DXShadowMaskFilterMaterial(
-				*shader_repo::GetDeferredRPVertexShader(),
-				*shader_repo::GetShadowMaskPCFFilterPixelShader(),
+				*pcfFilter.m_vertexShader,
+				*pcfFilter.m_pixelShader,
 				1
 			);
 
+			const shader_repo::ShaderSet& ditherFilter = shader_repo::GetShaderSetByName("csm_dither_filter");
 			m_shadowMaskDitherFilterMat = new DXShadowMaskFilterMaterial(
-				*shader_repo::GetDeferredRPVertexShader(),
-				*shader_repo::GetShadowMaskDitherFilterPixelShader(),
+				*ditherFilter.m_vertexShader,
+				*ditherFilter.m_pixelShader,
 				0
 			);
 
