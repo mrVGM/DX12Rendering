@@ -709,11 +709,12 @@ void rendering::CascadedSM::LoadSMMaterials(jobs::Job* done)
 		}
 	};
 
+	const shader_repo::ShaderSet& shadowMapShaderSet = shader_repo::GetShaderSetByName("psm_shadow_map");
 	for (int i = 0; i < _countof(ctx->m_materials); ++i)
 	{
 		ctx->m_materials[i] = new DXShadowMapMaterial(
-			*shader_repo::GetShadowMapVertexShader(),
-			*shader_repo::GetShadowMapPixelShader(),
+			*shadowMapShaderSet.m_vertexShader,
+			*shadowMapShaderSet.m_pixelShader,
 			i);
 
 		ctx->m_materials[i]->LoadBuffer(new BufferLoaded(*ctx));

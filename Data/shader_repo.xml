@@ -42,5 +42,9 @@
 			<vertex>vs_deferredRPVS</vertex>
 			<pixel>ps_deferredRPPostLightingPS</pixel>
 		</deferred_rp_post_lighting>
+		<psm_shadow_map>
+			<vertex>vs_shadowMapVS</vertex>
+			<pixel>ps_shadowMap</pixel>
+		</psm_shadow_map>
 	</shader_sets>
 </settings>
