@@ -172,7 +172,7 @@ rendering::DXScene* rendering::utils::GetScene()
 
 settings::AppSettings* rendering::utils::GetAppSettings()
 {
-	return settings::GetSettings();
+	return settings::AppSettings::GetAppSettings();
 }
 
 void rendering::utils::RunSync(jobs::Job* job)

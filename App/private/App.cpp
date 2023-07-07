@@ -37,7 +37,7 @@ void app::BootApp()
 	RegisterLibs();
 
 	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-	const settings::AppSettings* settings = settings::GetSettings();
+	const settings::AppSettings* settings = settings::AppSettings::GetAppSettings();
 
 	std::list<BaseObject*> tmp;
 	container.GetAllObjectsOfClass(settings::AppEntryPointMeta::GetInstance(), tmp);

@@ -6,4 +6,8 @@
 	<psm>
 		<near>1</near>
 	</psm>
+	
+	<other_settings>
+		<shader_repo>"shader_repo.xml"</shader_repo>
+	</other_settings>
 </settings>

@@ -451,23 +451,27 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
         {
             m_ctx.m_deferredRP->CreateRTVHeap();
 
+            const shader_repo::ShaderSet& deferredRPShaderSet = shader_repo::GetShaderSetByName("deferred_rp");
+
             m_lightCalculationsMat = new DXLightsCalculationsMaterial(
-                *shader_repo::GetDeferredRPVertexShader(),
-                *shader_repo::GetDeferredRPPixelShader());
+                *deferredRPShaderSet.m_vertexShader,
+                *deferredRPShaderSet.m_pixelShader);
 
+            const shader_repo::ShaderSet& deferredRPPostLightingShaderSet = shader_repo::GetShaderSetByName("deferred_rp_post_lighting");
             m_postLightCalculationsMat = new DXPostLightsCalculationsMaterial(
-                *shader_repo::GetDeferredRPVertexShader(),
-                *shader_repo::GetDeferredRPPostLightingPixelShader());
+                *deferredRPPostLightingShaderSet.m_vertexShader,
+                *deferredRPPostLightingShaderSet.m_pixelShader);
 
-
+            const shader_repo::ShaderSet& outlineShaderSet = shader_repo::GetShaderSetByName("outline_mat");
             m_edgeOutlineFilterMat = new DXPostProcessMaterial(
-                *shader_repo::GetDeferredRPVertexShader(),
-                *shader_repo::GetEdgeOutlinePixelShader()
+                *outlineShaderSet.m_vertexShader,
+                *outlineShaderSet.m_pixelShader
             );
 
+            const shader_repo::ShaderSet& displayShadowMap = shader_repo::GetShaderSetByName("display_shadow_map");
             m_displayTexMaterial = new DXDisplaySMMaterial(
-                *shader_repo::GetDeferredRPVertexShader(),
-                *shader_repo::GetDisplayShadowMapPixelShader(),
+                *displayShadowMap.m_vertexShader,
+                *displayShadowMap.m_pixelShader,
                 m_shadowMap->GetShadowMap(0));
 
             core::utils::RunSync(m_ctx.m_done);

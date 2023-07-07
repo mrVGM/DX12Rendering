@@ -23,8 +23,8 @@ namespace
 	{
 		using namespace rendering;
 
-		DXShader* ps = rendering::shader_repo::GetErrorPixelShader();
-		DXShader* vs = rendering::shader_repo::GetMainVertexShader();
+		DXShader* ps = rendering::shader_repo::GetShaderSetByName("error").m_pixelShader;
+		DXShader* vs = rendering::shader_repo::GetShaderSetByName("error").m_vertexShader;
 
 		DXMaterial* errorMat = new DXUnlitErrorMaterial(*vs, *ps);
 		DXMaterialRepo* repo = utils::GetMaterialRepo();
@@ -91,7 +91,8 @@ void rendering::material_utils::LoadMaterial(const collada::ColladaMaterial& mat
 		}
 		void Do() override
 		{
-			m_ctx.m_material = new DXDeferredMaterial(*shader_repo::GetMainVertexShader(), *shader_repo::GetDeferredPixelShader());
+			const shader_repo::ShaderSet& deferredShaderSet = shader_repo::GetShaderSetByName("deferred_mat");
+			m_ctx.m_material = new DXDeferredMaterial(*deferredShaderSet.m_vertexShader, *deferredShaderSet.m_pixelShader);
 			m_ctx.m_material->CreateSettingsBuffer(new SettingsBufferReady(m_ctx));
 		}
 	};

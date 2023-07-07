@@ -94,7 +94,7 @@ namespace
 
 		if (!m_appSettings)
 		{
-			m_appSettings = settings::GetSettings();
+			m_appSettings = settings::AppSettings::GetAppSettings();
 		}
 	}
 
@@ -552,8 +552,11 @@ void rendering::psm::PSM::LoadResources(jobs::Job* done)
 			new DXShadowMapUpdater();
 			m_ctx.m_psm->CreateDescriptorHeap();
 
-			m_shadowMapMaterial = new DXShadowMapMaterial(*shader_repo::GetPSMVertexShader(), *shader_repo::GetPSMPixelShader());
-			m_shadowMaskMaterial = new DXShadowMaskMaterial(*shader_repo::GetDeferredRPVertexShader(), *shader_repo::GetPSMShadowMaskPixelShader());
+			const shader_repo::ShaderSet& shadowMapShaderSet = shader_repo::GetShaderSetByName("psm_shadow_map");
+			m_shadowMapMaterial = new DXShadowMapMaterial(*shadowMapShaderSet.m_vertexShader, *shadowMapShaderSet.m_pixelShader);
+
+			const shader_repo::ShaderSet& shadowMaskShaderSet = shader_repo::GetShaderSetByName("psm_shadow_mask");
+			m_shadowMaskMaterial = new DXShadowMaskMaterial(*shadowMaskShaderSet.m_vertexShader, *shadowMaskShaderSet.m_pixelShader);
 
 			core::utils::RunSync(m_ctx.m_done);
 		}

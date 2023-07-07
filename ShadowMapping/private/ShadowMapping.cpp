@@ -17,7 +17,7 @@ rendering::shadow_mapping::ShadowMap* rendering::shadow_mapping::GetShadowMap()
 		return m_shadowMap;
 	}
 
-	settings::AppSettings* appSettings = settings::GetSettings();
+	settings::AppSettings* appSettings = settings::AppSettings::GetAppSettings();
 
 	const settings::AppSettings::Settings& settings = appSettings->GetSettings();
 	if (settings.m_shadowMapType == "Cascaded")

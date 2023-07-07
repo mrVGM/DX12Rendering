@@ -21,11 +21,16 @@ add_library (Materials
 	"private/DXPixelShaderMeta.h"
 	"public/MaterialResisteredNotificationMeta.h"
 	"private/MaterialResisteredNotificationMeta.cpp"
+	"private/ShaderRepoSettingsMeta.h"
+	"private/ShaderRepoSettingsMeta.cpp"
+	"private/ShaderRepoSettings.h"
+	"private/ShaderRepoSettings.cpp"
 )
 
 target_include_directories(Materials INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Materials PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
+target_link_libraries(Materials PRIVATE AppSettings)
 target_link_libraries(Materials INTERFACE PUBLIC RenderingCore Collada Notifications)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

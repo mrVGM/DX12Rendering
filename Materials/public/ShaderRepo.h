@@ -13,33 +13,14 @@ namespace rendering
 	class DXShader;
 	namespace shader_repo
 	{
-		DXShader* GetMainVertexShader();
-		DXShader* GetErrorPixelShader();
-		DXShader* GetUnlitPixelShader();
-		DXShader* GetDeferredPixelShader();
-
-		DXShader* GetDeferredRPPixelShader();
-		DXShader* GetDeferredRPVertexShader();
-		DXShader* GetDeferredRPPostLightingPixelShader();
-
-		DXShader* GetShadowMapVertexShader();
-		DXShader* GetShadowMapPixelShader();
-		DXShader* GetDisplayShadowMapPixelShader();
-
-		DXShader* GetShadowMaskPixelShader();
-
-		DXShader* GetShadowMaskPCFFilterPixelShader();
-		DXShader* GetShadowMaskDitherFilterPixelShader();
-		
-		DXShader* GetIdentityFilterPixelShader();
-		DXShader* GetGaussBlurFilterPixelShader();
-
-		DXShader* GetEdgeOutlinePixelShader();
-		
-		DXShader* GetPSMVertexShader();
-		DXShader* GetPSMPixelShader();
-		DXShader* GetPSMShadowMaskPixelShader();
+		struct ShaderSet
+		{
+			DXShader* m_vertexShader = nullptr;
+			DXShader* m_pixelShader = nullptr;
+		};
 
 		void LoadShaderPrograms();
+		DXShader* GetShaderByName(const std::string& name);
+		const ShaderSet& GetShaderSetByName(const std::string& name);
 	}
 }

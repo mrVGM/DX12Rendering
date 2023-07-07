@@ -13,7 +13,7 @@
 #include "BaseObjectContainer.h"
 
 settings::AppSettings::AppSettings() :
-	BaseObject(settings::AppSettingsMeta::GetInstance())
+	SettingsReader(settings::AppSettingsMeta::GetInstance())
 {
 	xml_reader::Boot();
 
@@ -29,37 +29,29 @@ void settings::AppSettings::ReadSettingFile()
 	data::DataLib& lib = data::GetLibrary();
 
 	std::string settingsPath = lib.GetFileEntry("settings").value("path", "");
-	settingsPath = lib.GetRootDir() + settingsPath;
+	XMLNodes xmlNodes;
+	ParseSettingFile(settingsPath, xmlNodes);
 
-	xml_reader::IXMLReader* reader = xml_reader::GetReader();
+	xml_reader::Node* settingsNode = nullptr;
 
-	scripting::ISymbol* s = reader->ReadColladaFile(settingsPath);
-
-	struct XMLNodes
+	for (auto it = xmlNodes.m_rootNodes.begin(); it != xmlNodes.m_rootNodes.end(); ++it)
 	{
-		std::list<xml_reader::Node*> m_allNodes;
-		~XMLNodes()
+		xml_reader::Node* cur = *it;
+		if (cur->m_tagName == "settings")
 		{
-			for (auto it = m_allNodes.begin(); it != m_allNodes.end(); ++it)
-			{
-				delete *it;
-			}
+			settingsNode = cur;
+			break;
 		}
-	};
-
-	XMLNodes nodes;
-	std::list<xml_reader::Node*> rootNodes;
-	reader->ConstructColladaTree(s, rootNodes, nodes.m_allNodes);
-
-	if (!s)
-	{
-		throw "Can't Read Settings File!";
 	}
 
-	for (auto it = rootNodes.begin(); it != rootNodes.end(); ++it)
+	if (!settingsNode)
+	{
+		throw "Can't Find the 'settings' Node!";
+	}
+
 	{
 		std::list<const xml_reader::Node*> tmp;
-		xml_reader::FindChildNodes(*it, [](const xml_reader::Node* node) {
+		xml_reader::FindChildNodes(settingsNode, [](const xml_reader::Node* node) {
 			if (node->m_tagName == "scene")
 			{
 				return true;
@@ -70,14 +62,12 @@ void settings::AppSettings::ReadSettingFile()
 		if (tmp.size() > 0)
 		{
 			m_settings.m_sceneName = tmp.front()->m_data.front()->m_symbolData.m_string;
-			break;
 		}
 	}
 
-	for (auto it = rootNodes.begin(); it != rootNodes.end(); ++it)
 	{
 		std::list<const xml_reader::Node*> tmp;
-		xml_reader::FindChildNodes(*it, [](const xml_reader::Node* node) {
+		xml_reader::FindChildNodes(settingsNode, [](const xml_reader::Node* node) {
 			if (node->m_tagName == "entry_point")
 			{
 				return true;
@@ -87,61 +77,74 @@ void settings::AppSettings::ReadSettingFile()
 
 		if (tmp.size() > 0)
 		{
-			const std::string& appEntryPointName = tmp.front()->m_data.front()->m_symbolData.m_string;
-			m_settings.m_appEntryPoint = appEntryPointName;
-
-			break;
+			m_settings.m_appEntryPoint = tmp.front()->m_data.front()->m_symbolData.m_string;
 		}
 	}
 
-	for (auto it = rootNodes.begin(); it != rootNodes.end(); ++it)
+	const xml_reader::Node* otherSettingsNode = nullptr;
 	{
 		std::list<const xml_reader::Node*> tmp;
-		xml_reader::FindChildNodes(*it, [](const xml_reader::Node* node) {
+		xml_reader::FindChildNodes(settingsNode, [](const xml_reader::Node* node) {
+			if (node->m_tagName == "other_settings")
+			{
+				return true;
+			}
+			return false;
+		}, tmp);
+
+		if (tmp.size() > 0)
+		{
+			otherSettingsNode = tmp.front();
+		}
+	}
+
+	if (otherSettingsNode)
+	{
+		for (auto it = otherSettingsNode->m_children.begin(); it != otherSettingsNode->m_children.end(); ++it)
+		{
+			xml_reader::Node* cur = *it;
+			const std::string& name = cur->m_tagName;
+			const std::string& path = cur->m_data.front()->m_symbolData.m_string;
+
+			m_settings.m_otherSettings[name] = path;
+		}
+	}
+
+	{
+		const xml_reader::Node* smType = xml_reader::FindChildNode(settingsNode, [](const xml_reader::Node* node) {
 			if (node->m_tagName == "shadow_map_type")
 			{
 				return true;
 			}
-		return false;
-			}, tmp);
+			return false;
+		});
 
-		if (tmp.size() > 0)
+		if (smType)
 		{
-			const std::string& shadpwMapType = tmp.front()->m_data.front()->m_symbolData.m_string;
-			m_settings.m_shadowMapType = shadpwMapType;
-
-			break;
+			m_settings.m_shadowMapType = smType->m_data.front()->m_symbolData.m_string;
 		}
 	}
 
-	for (auto it = rootNodes.begin(); it != rootNodes.end(); ++it)
 	{
-		std::list<const xml_reader::Node*> psms;
-		xml_reader::FindChildNodes(*it, [](const xml_reader::Node* node) {
+		const xml_reader::Node* psm = xml_reader::FindChildNode(settingsNode, [](const xml_reader::Node* node) {
 			if (node->m_tagName == "psm")
 			{
 				return true;
 			}
 			return false;
-		}, psms);
+		});
 
-		if (psms.size() > 0)
+		if (psm)
 		{
-			std::list<const xml_reader::Node*> near;
-			xml_reader::FindChildNodes(psms.front(), [](const xml_reader::Node* node) {
+			const xml_reader::Node* near = xml_reader::FindChildNode(psm, [](const xml_reader::Node* node) {
 				if (node->m_tagName == "near")
 				{
 					return true;
 				}
-
 				return false;
-			}, near);
+			});
 
-			if (near.size() > 0)
-			{
-				m_settings.m_psmNear = near.front()->m_data.front()->m_symbolData.m_number;
-				break;
-			}
+			m_settings.m_psmNear = near->m_data.front()->m_symbolData.m_number;
 		}
 	}
 }
@@ -151,18 +154,17 @@ const settings::AppSettings::Settings& settings::AppSettings::GetSettings() cons
 	return m_settings;
 }
 
-
-settings::AppSettings* settings::GetSettings()
+settings::AppSettings* settings::AppSettings::GetAppSettings()
 {
 	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+
 	BaseObject* obj = container.GetObjectOfClass(AppSettingsMeta::GetInstance());
 
 	if (!obj)
 	{
-		throw "Can't find App Settings!";
+		throw "Can't find AppSettings!";
 	}
 
 	AppSettings* settings = static_cast<AppSettings*>(obj);
-
 	return settings;
 }

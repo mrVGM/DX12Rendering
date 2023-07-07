@@ -1,6 +1,7 @@
 #pragma once
 
-#include "BaseObject.h"
+#include "SettingsReader.h"
+
 #include "BaseObjectMetaTag.h"
 
 #include <string>
@@ -8,16 +9,16 @@
 
 namespace settings
 {
-	class AppSettings : public BaseObject
+	class AppSettings : public SettingsReader
 	{
 	public:
 		struct Settings
 		{
 			std::string m_sceneName;
 			std::string m_appEntryPoint;
+			std::map<std::string, std::string> m_otherSettings;
 			std::string m_shadowMapType;
-
-			float m_psmNear = 0;
+			float m_psmNear;
 		};
 	private:
 		Settings m_settings;
@@ -28,8 +29,8 @@ namespace settings
 		AppSettings();
 		virtual ~AppSettings();
 
+		static AppSettings* GetAppSettings();
+
 		const Settings& GetSettings() const;
 	};
-
-	AppSettings* GetSettings();
 }

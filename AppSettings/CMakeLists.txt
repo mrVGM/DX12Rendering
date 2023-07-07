@@ -13,6 +13,10 @@ add_library (AppSettings
 	"public/RendererEntryPointMetaTag.h"
 	"public/SceneConverterEntryPointMetaTag.h"
 	"private/SceneConverterEntryPointMetaTag.cpp"
+	"public/SettingsReaderMeta.h"
+	"private/SettingsReaderMeta.cpp"
+	"public/SettingsReader.h"
+	"private/SettingsReader.cpp"
 )
 
 target_include_directories(AppSettings INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
