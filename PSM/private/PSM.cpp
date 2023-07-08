@@ -278,7 +278,6 @@ namespace
 		DirectX::XMVECTOR m_fwd;
 		DirectX::XMVECTOR m_up;
 		std::list<DirectX::XMVECTOR> m_corners;
-		float m_psmNearPlane = 1;
 
 		DirectX::XMVECTOR m_bbMin;
 		DirectX::XMVECTOR m_bbMax;
@@ -340,14 +339,13 @@ namespace
 			}
 
 			XMVECTOR origin = 0.5 * (m_bbMin + m_bbMax);
-			origin = XMVectorSetZ(origin, XMVectorGetZ(m_bbMin) - m_psmNearPlane);
-			m_near = m_psmNearPlane;
+			origin = XMVectorSetZ(origin, XMVectorGetZ(m_bbMin) - m_near);
 
 			origin = XMVectorGetX(origin) * m_right + XMVectorGetY(origin) * m_up + XMVectorGetZ(origin) * m_fwd;
 			m_origin = origin;
 
 			float d = GetDepth();
-			m_matrix = rendering::cam_utils::MakePerspectiveProjectionMatrix(m_right, m_fwd, m_up, m_origin, m_psmNearPlane, m_psmNearPlane + d, 90, 1);
+			m_matrix = rendering::cam_utils::MakePerspectiveProjectionMatrix(m_right, m_fwd, m_up, m_origin, m_near, m_near + d, 90, 1);
 		}
 
 		void Check()
@@ -394,6 +392,63 @@ namespace
 			
 			m_origin = center - m_near * m_fwd;
 			m_matrix = rendering::cam_utils::MakePerspectiveProjectionMatrix(m_right, m_fwd, m_up, m_origin, m_near, m_near + GetDepth(), 90, 1);
+		}
+
+		void GetFlatPlanePoints(std::list<DirectX::XMVECTOR>& outPoints)
+		{
+			using namespace DirectX;
+
+			outPoints.clear();
+
+			Check();
+
+			XMVECTOR frontLeft = XMVectorSet(XMVectorGetX(m_projectedMin), 0, 0, m_near);
+			XMVECTOR frontRight = XMVectorSet(XMVectorGetX(m_projectedMax), 0, 0, m_near);
+
+			XMVECTOR det;
+			XMMATRIX inv = XMMatrixInverse(&det, m_matrix);
+
+			frontLeft = XMVector4Transform(frontLeft, inv);
+			frontRight = XMVector4Transform(frontRight, inv);
+
+			XMVECTOR left = XMVector3Normalize(frontLeft - m_origin);
+			XMVECTOR right = XMVector3Normalize(frontRight - m_origin);
+
+			XMVECTOR backLeft = m_origin + (m_near + GetDepth()) * left;
+			XMVECTOR backRight = m_origin + (m_near + GetDepth()) * right;
+
+			outPoints.push_back(frontLeft);
+			outPoints.push_back(frontRight);
+			outPoints.push_back(backLeft);
+			outPoints.push_back(backRight);
+		}
+
+		void ExtendPointSceneBounds(
+			const DirectX::XMVECTOR& point,
+			rendering::DXScene* scene,
+			DirectX::XMVECTOR& bound1,
+			DirectX::XMVECTOR& bound2
+		)
+		{
+			using namespace DirectX;
+
+			XMVECTOR minPoint, maxPoint;
+			scene->GetSceneBB(minPoint, maxPoint);
+
+			float minY = XMVectorGetY(minPoint);
+			float maxY = XMVectorGetY(maxPoint);
+
+			float pY = XMVectorGetY(point);
+
+			float d1 = minY - pY;
+			float d2 = maxY - pY;
+
+			float offset = XMVectorGetY(m_up);
+			float c1 = d1 / offset;
+			float c2 = d2 / offset;
+
+			bound1 = point + c1 * m_up;
+			bound2 = point + c2 * m_up;
 		}
 	};
 }
@@ -918,7 +973,7 @@ void rendering::psm::PSM::UpdateSMSettings1()
 	lpm.m_fwd = fwd;
 	lpm.m_up = up;
 	lpm.m_corners = corners;
-	lpm.m_psmNearPlane = m_appSettings->GetSettings().m_psmNear;
+	lpm.m_near = m_appSettings->GetSettings().m_psmNear;
 
 	lpm.Init();
 	lpm.Check();
@@ -930,6 +985,17 @@ void rendering::psm::PSM::UpdateSMSettings1()
 	}
 
 	lpm.Check();
+
+	std::list<XMVECTOR> flatPlanePoints;
+	lpm.GetFlatPlanePoints(flatPlanePoints);
+
+	for (auto it = flatPlanePoints.begin(); it != flatPlanePoints.end(); ++it)
+	{
+		XMVECTOR b1, b2;
+		lpm.ExtendPointSceneBounds(*it, m_scene, b1, b2);
+
+		bool t = true;
+	}
 }
 
 void rendering::psm::PSM::CreateDescriptorHeap()
