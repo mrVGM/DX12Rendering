@@ -472,7 +472,7 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
             m_displayTexMaterial = new DXDisplaySMMaterial(
                 *displayShadowMap.m_vertexShader,
                 *displayShadowMap.m_pixelShader,
-                m_shadowMap->GetShadowMap(0));
+                m_shadowMap->GetShadowMask());
 
             core::utils::RunSync(m_ctx.m_done);
         }

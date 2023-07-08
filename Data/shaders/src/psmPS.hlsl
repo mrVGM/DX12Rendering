@@ -14,7 +14,7 @@ float4 PSMain(float4 position : SV_POSITION, float3 worldPos : WORLD_POSITION) :
 {
     return float4(1, 1, 1, 1);
 
-    float4 smValue = CalculatePSM(m_camBuff, m_psmBuff, worldPos);
+    float4 smValue = CalculatePSM(m_psmBuff, worldPos);
     smValue /= smValue.w;
 
     float depth = smValue.z;

@@ -39,9 +39,9 @@ PSInput VSMain(
         worldPos,
         worldNormal);
 
-    result.position = mul(m_camBuff.m_matrix, float4(worldPos, 1));
+    //result.position = mul(m_camBuff.m_matrix, float4(worldPos, 1));
 
-    //result.position = CalculatePSM(m_camBuff, m_psmBuff, worldPos);
+    result.position = CalculatePSM(m_psmBuff, worldPos);
     result.world_position = worldPos;
     
     return result;

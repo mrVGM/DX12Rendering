@@ -483,8 +483,8 @@ namespace
 			{
 				XMMATRIX view(
 					DirectX::XMVECTOR{ 1, 0, 0, 0 },
-					DirectX::XMVECTOR{ 0, -1, 0, 0 },
 					DirectX::XMVECTOR{ 0, 0, -1, 0 },
+					DirectX::XMVECTOR{ 0, -1, 0, 0 },
 					DirectX::XMVECTOR{ 0, 0, 0, 1 }
 				);
 
@@ -517,8 +517,8 @@ namespace
 
 			XMMATRIX scaleMat(
 				XMVectorSet(XMVectorGetX(scale), 0, 0, 0),
-				XMVectorSet(0, XMVectorGetY(scale), 0, 0),
 				XMVectorSet(0, 0, XMVectorGetZ(scale), 0),
+				XMVectorSet(0, XMVectorGetY(scale), 0, 0),
 				XMVectorSet(0, 0, 0, 1)
 			);
 			m_orthoMatrix = XMMatrixMultiply(scaleMat, XMMatrixTranspose(m_orthoMatrix));
@@ -1050,21 +1050,53 @@ void rendering::psm::PSM::UpdateSMSettings1()
 	lpm.m_near = m_appSettings->GetSettings().m_psmNear;
 
 	lpm.Init();
-	lpm.Check();
 
 	// TODO: Better convex hull calculation
 	for (int i = 0; i < 20; ++i)
 	{
 		lpm.AdjustOrigin();
 	}
-
-	lpm.Check();
-
 	lpm.CreateOrthoMatrix();
 	lpm.ScaleOrthoMatrix();
-
 	lpm.Check();
-	bool t = true;
+
+	SMSettings1 smSettings;
+
+	{
+		int index = 0;
+		for (int r = 0; r < 4; ++r) {
+			float x = DirectX::XMVectorGetX(lpm.m_matrix.r[r]);
+			float y = DirectX::XMVectorGetY(lpm.m_matrix.r[r]);
+			float z = DirectX::XMVectorGetZ(lpm.m_matrix.r[r]);
+			float w = DirectX::XMVectorGetW(lpm.m_matrix.r[r]);
+
+			smSettings.m_perspMatrix[index++] = x;
+			smSettings.m_perspMatrix[index++] = y;
+			smSettings.m_perspMatrix[index++] = z;
+			smSettings.m_perspMatrix[index++] = w;
+		}
+	}
+
+	{
+		int index = 0;
+		for (int r = 0; r < 4; ++r) {
+			float x = DirectX::XMVectorGetX(lpm.m_orthoMatrix.r[r]);
+			float y = DirectX::XMVectorGetY(lpm.m_orthoMatrix.r[r]);
+			float z = DirectX::XMVectorGetZ(lpm.m_orthoMatrix.r[r]);
+			float w = DirectX::XMVectorGetW(lpm.m_orthoMatrix.r[r]);
+
+			smSettings.m_orthoMatrix[index++] = x;
+			smSettings.m_orthoMatrix[index++] = y;
+			smSettings.m_orthoMatrix[index++] = z;
+			smSettings.m_orthoMatrix[index++] = w;
+		}
+	}
+
+	void* data = m_settingsBuffer->GetUploadBuffer()->Map();
+	SMSettings1* settingsData = static_cast<SMSettings1*>(data);
+	*settingsData = smSettings;
+	m_settingsBuffer->GetUploadBuffer()->Unmap();
+	m_settingsBuffer->SetDirty();
 }
 
 void rendering::psm::PSM::CreateDescriptorHeap()

@@ -19,21 +19,11 @@ float4 PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
 {
     float3 worldPos = p_position.Sample(p_sampler, uv);
 
-    float4 sampleDepth = CalculatePSM(m_camBuff, m_psmBuff, worldPos);
+    float4 sampleDepth = CalculatePSM(m_psmBuff, worldPos);
     sampleDepth /= sampleDepth.w;
 
     float4 smSample = p_shadowMap.Sample(p_sampler, sampleDepth);
 
-    bool inShadow = false;
-
-    if (m_psmBuff.m_straightLight)
-    {
-        inShadow = smSample.x < sampleDepth.z;
-    }
-    else
-    {
-        inShadow = smSample.x > sampleDepth.z;
-    }
-
+    bool inShadow = smSample.x > sampleDepth.z;
     return float4(inShadow, inShadow, inShadow, 1);
 }
