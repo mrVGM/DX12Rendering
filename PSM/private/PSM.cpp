@@ -271,6 +271,131 @@ namespace
 		right = XMVector3Cross(up, fwd);
 		right = XMVector3Normalize(right);
 	}
+
+	struct LightPerspMatrix
+	{
+		DirectX::XMVECTOR m_right;
+		DirectX::XMVECTOR m_fwd;
+		DirectX::XMVECTOR m_up;
+		std::list<DirectX::XMVECTOR> m_corners;
+		float m_psmNearPlane = 1;
+
+		DirectX::XMVECTOR m_bbMin;
+		DirectX::XMVECTOR m_bbMax;
+
+		DirectX::XMVECTOR m_origin;
+		DirectX::XMMATRIX m_matrix;
+		float m_near = 1;
+		
+		DirectX::XMVECTOR m_projectedMin;
+		DirectX::XMVECTOR m_projectedMax;
+
+		float GetDepth()
+		{
+			using namespace DirectX;
+			XMVECTOR dV = m_bbMax - m_bbMin;
+			float d = XMVectorGetZ(dV);
+
+			return d;
+		}
+
+		void Init()
+		{
+			using namespace DirectX;
+
+			{
+				const XMVECTOR& cur = m_corners.front();
+
+				XMVECTOR X = XMVector3Dot(cur, m_right);
+				XMVECTOR Y = XMVector3Dot(cur, m_up);
+				XMVECTOR Z = XMVector3Dot(cur, m_fwd);
+
+				XMVECTOR tmp = XMVectorSet(
+					XMVectorGetX(X),
+					XMVectorGetX(Y),
+					XMVectorGetX(Z),
+					0
+				);
+
+				m_bbMin = m_bbMax = tmp;
+			}
+
+			for (auto it = m_corners.begin(); it != m_corners.end(); ++it)
+			{
+				const XMVECTOR& cur = *it;
+
+				XMVECTOR X = XMVector3Dot(cur, m_right);
+				XMVECTOR Y = XMVector3Dot(cur, m_up);
+				XMVECTOR Z = XMVector3Dot(cur, m_fwd);
+
+				XMVECTOR tmp = XMVectorSet(
+					XMVectorGetX(X),
+					XMVectorGetX(Y),
+					XMVectorGetX(Z),
+					0
+				);
+
+				m_bbMin = XMVectorMin(m_bbMin, tmp);
+				m_bbMax = XMVectorMax(m_bbMax, tmp);
+			}
+
+			XMVECTOR origin = 0.5 * (m_bbMin + m_bbMax);
+			origin = XMVectorSetZ(origin, XMVectorGetZ(m_bbMin) - m_psmNearPlane);
+			m_near = m_psmNearPlane;
+
+			origin = XMVectorGetX(origin) * m_right + XMVectorGetY(origin) * m_up + XMVectorGetZ(origin) * m_fwd;
+			m_origin = origin;
+
+			float d = GetDepth();
+			m_matrix = rendering::cam_utils::MakePerspectiveProjectionMatrix(m_right, m_fwd, m_up, m_origin, m_psmNearPlane, m_psmNearPlane + d, 90, 1);
+		}
+
+		void Check()
+		{
+			using namespace DirectX;
+
+			XMVECTOR pMin, pMax;
+
+			{
+				const XMVECTOR& cur = m_corners.front();
+				XMVECTOR tmp = XMVector4Transform(cur, m_matrix);
+				tmp /= XMVectorGetW(tmp);
+
+				pMin = pMax = tmp;
+			}
+
+			for (auto it = m_corners.begin(); it != m_corners.end(); ++it)
+			{
+				const XMVECTOR& cur = *it;
+				XMVECTOR tmp = XMVector4Transform(cur, m_matrix);
+				tmp /= XMVectorGetW(tmp);
+
+				pMin = XMVectorMin(pMin, tmp);
+				pMax = XMVectorMax(pMax, tmp);
+			}
+
+			m_projectedMin = pMin;
+			m_projectedMax = pMax;
+		}
+
+		void AdjustOrigin()
+		{
+			using namespace DirectX;
+
+			Check();
+			XMVECTOR adjustedProjectedOrigin = 0.5 * (m_projectedMin + m_projectedMax);
+			adjustedProjectedOrigin = XMVectorSetZ(adjustedProjectedOrigin, 0);
+			adjustedProjectedOrigin = XMVectorSetW(adjustedProjectedOrigin, m_near);
+
+			XMVECTOR det;
+			XMMATRIX inv = XMMatrixInverse(&det, m_matrix);
+
+			XMVECTOR center = XMVector4Transform(adjustedProjectedOrigin, inv);
+			
+			m_origin = center - m_near * m_fwd;
+			m_matrix = rendering::cam_utils::MakePerspectiveProjectionMatrix(m_right, m_fwd, m_up, m_origin, m_near, m_near + GetDepth(), 90, 1);
+		}
+	};
 }
 
 
@@ -787,100 +912,27 @@ void rendering::psm::PSM::UpdateSMSettings1()
 	float maxDist;
 	m_camera->GetFrustrumCorners(corners, maxDist, m_camera->GetNearPlane(), m_camera->GetFarPlane());
 
-	XMVECTOR bbMin, bbMax;
-	{
-		const XMVECTOR& cur = corners.front();
-		XMVECTOR xV = XMVector3Dot(cur, right);
-		XMVECTOR yV = XMVector3Dot(cur, up);
-		XMVECTOR zV = XMVector3Dot(cur, fwd);
 
-		float x = XMVectorGetX(xV);
-		float y = XMVectorGetX(yV);
-		float z = XMVectorGetX(zV);
+	LightPerspMatrix lpm;
+	lpm.m_right = right;
+	lpm.m_fwd = fwd;
+	lpm.m_up = up;
+	lpm.m_corners = corners;
+	lpm.m_psmNearPlane = m_appSettings->GetSettings().m_psmNear;
 
-		bbMin = bbMax = XMVectorSet(x, y, z, 0);
-	}
+	lpm.Init();
+	lpm.Check();
 
-	for (auto it = corners.begin(); it != corners.end(); ++it)
-	{
-		const XMVECTOR& cur = *it;
-		XMVECTOR xV = XMVector3Dot(cur, right);
-		XMVECTOR yV = XMVector3Dot(cur, up);
-		XMVECTOR zV = XMVector3Dot(cur, fwd);
-
-		float x = XMVectorGetX(xV);
-		float y = XMVectorGetX(yV);
-		float z = XMVectorGetX(zV);
-
-		XMVECTOR tmp = XMVectorSet(x, y, z, 0);
-
-		bbMin = XMVectorMin(bbMin, tmp);
-		bbMax = XMVectorMax(bbMax, tmp);
-	}
-
-	float psmNear = m_appSettings->GetSettings().m_psmNear;
-
-	XMVECTOR origin = 0.5 * (bbMin + bbMax);
-	origin = XMVectorSetZ(origin, XMVectorGetZ(bbMin) - psmNear);
-
-	origin = XMVectorGetX(origin) * right + XMVectorGetY(origin) * up + XMVectorGetZ(origin) * fwd;
-
-	XMVECTOR dV = bbMax - bbMin;
-	float d = XMVectorGetZ(dV);
-
-	// TODO: Fix the origin calculation
-	XMMATRIX perspMat = cam_utils::MakePerspectiveProjectionMatrix(right, fwd, up, origin, 1000, 1000 + d, 90, 1);
-	XMVECTOR det;
-	XMMATRIX perspInvMat = XMMatrixInverse(&det, perspMat);
-
-	XMVECTOR pMin, pMax;
-
-	{
-		const XMVECTOR& cur = corners.front();
-
-		XMVECTOR tmp = XMVector4Transform(cur, perspMat);
-		tmp /= XMVectorGetW(tmp);
-
-		pMin = pMax = tmp;
-	}
-
-	for (auto it = corners.begin(); it != corners.end(); ++it)
-	{
-		const XMVECTOR& cur = *it;
-
-		XMVECTOR tmp = XMVector4Transform(cur, perspMat);
-		tmp /= XMVectorGetW(tmp);
-
-		pMin = XMVectorMin(pMin, tmp);
-		pMax = XMVectorMax(pMax, tmp);
-	}
-
-	XMVECTOR center = 0.5 * (pMin + pMax);
-	center = XMVectorSetZ(center, 0);
-	center = XMVectorSetW(center, 1000);
-
-	center = XMVector4Transform(center, perspInvMat);
-
-	origin = center - psmNear * fwd;
-
-	XMVECTOR r = XMVector3Dot(origin, fwd);
-
-	perspMat = cam_utils::MakePerspectiveProjectionMatrix(right, fwd, up, origin, psmNear, psmNear + d, 90, 1);
-
-	std::vector<float> xs, ys;
-
-	for (auto it = corners.begin(); it != corners.end(); ++it)
-	{
-		const XMVECTOR& cur = *it;
-
-		XMVECTOR tmp = XMVector4Transform(cur, perspMat);
-		tmp /= XMVectorGetW(tmp);
-
-		xs.push_back(XMVectorGetX(tmp));
-		ys.push_back(XMVectorGetY(tmp));
-
-		bool t = true;
-	}
+	lpm.AdjustOrigin();
+	lpm.Check();
+	lpm.AdjustOrigin();
+	lpm.Check();
+	lpm.AdjustOrigin();
+	lpm.Check();
+	lpm.AdjustOrigin();
+	lpm.Check();
+	lpm.AdjustOrigin();
+	lpm.Check();
 }
 
 void rendering::psm::PSM::CreateDescriptorHeap()
