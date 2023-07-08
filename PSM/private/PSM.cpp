@@ -284,6 +284,7 @@ namespace
 
 		DirectX::XMVECTOR m_origin;
 		DirectX::XMMATRIX m_matrix;
+		DirectX::XMMATRIX m_orthoMatrix;
 		float m_near = 1;
 		
 		DirectX::XMVECTOR m_projectedMin;
@@ -346,27 +347,34 @@ namespace
 
 			float d = GetDepth();
 			m_matrix = rendering::cam_utils::MakePerspectiveProjectionMatrix(m_right, m_fwd, m_up, m_origin, m_near, m_near + d, 90, 1);
+			m_orthoMatrix = XMMatrixIdentity();
 		}
 
-		void Check()
+		void Check(const std::list<DirectX::XMVECTOR>* points = nullptr)
 		{
 			using namespace DirectX;
 
-			XMVECTOR pMin, pMax;
-
+			if (!points)
 			{
-				const XMVECTOR& cur = m_corners.front();
+				points = &m_corners;
+			}
+
+			XMVECTOR pMin, pMax;
+			{
+				const XMVECTOR& cur = points->front();
 				XMVECTOR tmp = XMVector4Transform(cur, m_matrix);
 				tmp /= XMVectorGetW(tmp);
+				tmp = XMVector4Transform(tmp, m_orthoMatrix);
 
 				pMin = pMax = tmp;
 			}
 
-			for (auto it = m_corners.begin(); it != m_corners.end(); ++it)
+			for (auto it = points->begin(); it != points->end(); ++it)
 			{
 				const XMVECTOR& cur = *it;
 				XMVECTOR tmp = XMVector4Transform(cur, m_matrix);
 				tmp /= XMVectorGetW(tmp);
+				tmp = XMVector4Transform(tmp, m_orthoMatrix);
 
 				pMin = XMVectorMin(pMin, tmp);
 				pMax = XMVectorMax(pMax, tmp);
@@ -449,6 +457,72 @@ namespace
 
 			bound1 = point + c1 * m_up;
 			bound2 = point + c2 * m_up;
+		}
+
+		void CreateOrthoMatrix()
+		{
+			using namespace DirectX;
+			std::list<XMVECTOR> orthoProjRefPoints = m_corners;
+			{
+				std::list<XMVECTOR> flatPlanePoints;
+				GetFlatPlanePoints(flatPlanePoints);
+
+				for (auto it = flatPlanePoints.begin(); it != flatPlanePoints.end(); ++it)
+				{
+					XMVECTOR b1, b2;
+					ExtendPointSceneBounds(*it, m_scene, b1, b2);
+
+					b1 = XMVectorSetW(b1, 1);
+					b2 = XMVectorSetW(b2, 1);
+					orthoProjRefPoints.push_back(b1);
+					orthoProjRefPoints.push_back(b2);
+				}
+			}
+
+			Check(&orthoProjRefPoints);
+			{
+				XMMATRIX view(
+					DirectX::XMVECTOR{ 1, 0, 0, 0 },
+					DirectX::XMVECTOR{ 0, -1, 0, 0 },
+					DirectX::XMVECTOR{ 0, 0, -1, 0 },
+					DirectX::XMVECTOR{ 0, 0, 0, 1 }
+				);
+
+				XMVECTOR orthoOrigin = 0.5 * (m_projectedMin + m_projectedMax);
+				orthoOrigin = XMVectorSetY(orthoOrigin, XMVectorGetY(m_projectedMax));
+
+				DirectX::XMMATRIX translate(
+					DirectX::XMVECTOR{ 1, 0, 0, -XMVectorGetX(orthoOrigin) },
+					DirectX::XMVECTOR{ 0, 1, 0, -XMVectorGetY(orthoOrigin) },
+					DirectX::XMVECTOR{ 0, 0, 1, -XMVectorGetZ(orthoOrigin) },
+					DirectX::XMVECTOR{ 0, 0, 0, 1 }
+				);
+
+				XMMATRIX orthoMatrix = XMMatrixMultiply(view, translate);
+				orthoMatrix = XMMatrixTranspose(orthoMatrix);
+
+				m_orthoMatrix = orthoMatrix;
+			}
+		}
+
+		void ScaleOrthoMatrix()
+		{
+			using namespace DirectX;
+
+			Check();
+
+			XMVECTOR scale = XMVectorMax(XMVectorAbs(m_projectedMin), XMVectorAbs(m_projectedMax));
+			scale = XMVectorSetW(scale, 1);
+			scale = XMVectorReciprocal(scale);
+
+			XMMATRIX scaleMat(
+				XMVectorSet(XMVectorGetX(scale), 0, 0, 0),
+				XMVectorSet(0, XMVectorGetY(scale), 0, 0),
+				XMVectorSet(0, 0, XMVectorGetZ(scale), 0),
+				XMVectorSet(0, 0, 0, 1)
+			);
+			m_orthoMatrix = XMMatrixMultiply(scaleMat, XMMatrixTranspose(m_orthoMatrix));
+			m_orthoMatrix = XMMatrixTranspose(m_orthoMatrix);
 		}
 	};
 }
@@ -986,16 +1060,11 @@ void rendering::psm::PSM::UpdateSMSettings1()
 
 	lpm.Check();
 
-	std::list<XMVECTOR> flatPlanePoints;
-	lpm.GetFlatPlanePoints(flatPlanePoints);
+	lpm.CreateOrthoMatrix();
+	lpm.ScaleOrthoMatrix();
 
-	for (auto it = flatPlanePoints.begin(); it != flatPlanePoints.end(); ++it)
-	{
-		XMVECTOR b1, b2;
-		lpm.ExtendPointSceneBounds(*it, m_scene, b1, b2);
-
-		bool t = true;
-	}
+	lpm.Check();
+	bool t = true;
 }
 
 void rendering::psm::PSM::CreateDescriptorHeap()
