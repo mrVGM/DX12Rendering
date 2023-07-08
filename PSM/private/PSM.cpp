@@ -923,15 +923,12 @@ void rendering::psm::PSM::UpdateSMSettings1()
 	lpm.Init();
 	lpm.Check();
 
-	lpm.AdjustOrigin();
-	lpm.Check();
-	lpm.AdjustOrigin();
-	lpm.Check();
-	lpm.AdjustOrigin();
-	lpm.Check();
-	lpm.AdjustOrigin();
-	lpm.Check();
-	lpm.AdjustOrigin();
+	// TODO: Better convex hull calculation
+	for (int i = 0; i < 20; ++i)
+	{
+		lpm.AdjustOrigin();
+	}
+
 	lpm.Check();
 }
 
