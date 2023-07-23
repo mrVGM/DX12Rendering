@@ -17,6 +17,11 @@ combinatory::CombinatorySettings::~CombinatorySettings()
 {
 }
 
+combinatory::CombinatorySettings::Settings& combinatory::CombinatorySettings::GetSettings()
+{
+	return m_settings;
+}
+
 void combinatory::CombinatorySettings::LoadSettings()
 {
 	settings::AppSettings* appSettings = settings::AppSettings::GetAppSettings();
@@ -58,6 +63,25 @@ void combinatory::CombinatorySettings::LoadSettings()
 		cur.m_count = itemCount->m_data.front()->m_symbolData.m_number;
 
 		m_settings.m_items.push_back(cur);
+		Item& last = m_settings.m_items.back();
+		m_itemsSorted.push_back(&last);
 	}
 
+	for (int i = 0; i < m_itemsSorted.size() - 1; ++i)
+	{
+		for (int j = i; j < m_itemsSorted.size(); ++j)
+		{
+			if (m_itemsSorted[i]->m_width > m_itemsSorted[j]->m_width)
+			{
+				Item* tmp = m_itemsSorted[i];
+				m_itemsSorted[i] = m_itemsSorted[j];
+				m_itemsSorted[j] = tmp;
+			}
+		}
+	}
+
+	for (int i = 0; i < m_itemsSorted.size(); ++i)
+	{
+		m_itemsSorted[i]->m_id = i;
+	}
 }

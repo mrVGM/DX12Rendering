@@ -6,6 +6,7 @@
 
 #include <string>
 #include <list>
+#include <vector>
 
 namespace combinatory
 {
@@ -17,6 +18,7 @@ namespace combinatory
 			int m_width = 0;
 			int m_length = 0;
 			int m_count = 0;
+			int m_id = -1;
 		};
 
 		struct Settings
@@ -29,7 +31,11 @@ namespace combinatory
 
 		void LoadSettings();
 	public:
+		std::vector<Item*> m_itemsSorted;
+
 		CombinatorySettings();
 		virtual ~CombinatorySettings();
+
+		Settings& GetSettings();
 	};
 }

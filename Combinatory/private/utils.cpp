@@ -31,3 +31,8 @@ int combinatory::GCD(int a, int b)
 
 	return a;
 }
+
+int combinatory::LCM(int a, int b)
+{
+	return a * b / GCD(a, b);
+}
