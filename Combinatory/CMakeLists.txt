@@ -11,7 +11,7 @@ add_library (Combinatory
 	"private/CombinatorySettings.h"
 	"private/CombinatorySettingsMeta.h"
 	"private/CombinatorySettingsMeta.cpp"
-)
+ "private/utils.cpp" "private/utils.h")
 
 target_include_directories(Combinatory INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Combinatory PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
