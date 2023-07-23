@@ -4,5 +4,6 @@
 	<entry_point>"Combinatory"</entry_point>
 	<other_settings>
 		<shader_repo>"shader_repo.xml"</shader_repo>
+		<combinatory>"combinatory.xml"</combinatory>
 	</other_settings>
 </settings>

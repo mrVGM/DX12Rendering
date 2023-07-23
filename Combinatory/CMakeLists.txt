@@ -7,11 +7,16 @@ add_library (Combinatory
 	"private/CombinatoryEntryPointMeta.cpp"
 	"private/CombinatoryEntryPoint.h"
 	"private/CombinatoryEntryPoint.cpp"
+	"private/CombinatorySettings.cpp"
+	"private/CombinatorySettings.h"
+	"private/CombinatorySettingsMeta.h"
+	"private/CombinatorySettingsMeta.cpp"
 )
 
 target_include_directories(Combinatory INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Combinatory PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
+target_link_libraries(Combinatory PRIVATE XMLReader)
 target_link_libraries(Combinatory INTERFACE PUBLIC
 	AppSettings
 )
