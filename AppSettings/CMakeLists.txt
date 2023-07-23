@@ -17,6 +17,8 @@ add_library (AppSettings
 	"private/SettingsReaderMeta.cpp"
 	"public/SettingsReader.h"
 	"private/SettingsReader.cpp"
+	"public/CombinatoryEntryPointMetaTag.h"
+	"private/CombinatoryEntryPointMetaTag.cpp"
 )
 
 target_include_directories(AppSettings INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

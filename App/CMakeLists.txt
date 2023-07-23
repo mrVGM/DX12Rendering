@@ -12,6 +12,7 @@ target_link_libraries(App PRIVATE
 	AppSettings
 	Renderer
 	SceneConverter
+	Combinatory
 )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
