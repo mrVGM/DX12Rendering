@@ -69,10 +69,24 @@ void combinatory::Block::CalculateBlockMaxCount()
 		int cnt = it->first->m_count / it->second;
 		++cnt;
 
-		if (minCnt < cnt)
+		if (minCnt < 0 || minCnt > cnt)
 		{
 			minCnt = cnt;
 		}
+	}
+
+	bool passedUpperLimit = false;
+	while (!passedUpperLimit)
+	{
+		for (auto it = itemsInBlock.begin(); it != itemsInBlock.end(); ++it)
+		{
+			if (minCnt * it->second - it->first->m_count >= 5)
+			{
+				passedUpperLimit = true;
+				break;
+			}
+		}
+		++minCnt;
 	}
 
 	m_maxCount = minCnt;
