@@ -16,7 +16,7 @@ namespace
 {
 	combinatory::CombinatorySettings* m_settings = nullptr;
 
-	struct Block
+	struct Blocka
 	{
 		std::vector<combinatory::Item*> m_items;
 		std::vector<int> m_quantities;
@@ -155,6 +155,8 @@ void combinatory::CombinatoryEntryPoint::Boot()
 
 	ItemManager itemManager(*m_settings);
 
+	itemManager.GenerateBlocks();
+
 	std::vector<Item*> ordering;
 	int ordSize = m_settings->GetSettings().m_width / m_settings->m_itemsSorted[0]->m_width;
 
@@ -179,11 +181,11 @@ void combinatory::CombinatoryEntryPoint::Boot()
 		}
 	}
 
-	std::list<Block> blocks;
+	std::list<Blocka> blocks;
 	for (auto it = ords.begin(); it != ords.end(); ++it)
 	{
 		std::stringstream ss(*it);
-		Block block;
+		Blocka block;
 
 		while (!ss.eof())
 		{

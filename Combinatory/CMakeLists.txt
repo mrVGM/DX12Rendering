@@ -16,6 +16,9 @@ add_library (Combinatory
 	"private/Entities.h"
 	"private/ItemManager.h"
 	"private/ItemManager.cpp"
+	"private/VariationNumber.h"
+	"private/VariationNumber.cpp"
+	"private/Entities.cpp"
 )
 
 target_include_directories(Combinatory INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
