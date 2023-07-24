@@ -90,3 +90,14 @@ bool combinatory::VariationNumber::Increment()
 
 	return false;
 }
+
+long long combinatory::VariationNumber::GetMaxNumber() const
+{
+	VariationNumber tmp(m_digitLimits);
+	for (int i = 0; i < m_digitLimits.size(); ++i)
+	{
+		tmp.m_number[i] = m_digitLimits[i];
+	}
+
+	return tmp.GetIntegerRepresentation();
+}

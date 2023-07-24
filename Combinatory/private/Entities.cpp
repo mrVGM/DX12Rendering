@@ -3,6 +3,7 @@
 #include "utils.h"
 
 #include <sstream>
+#include <map>
 
 std::string combinatory::Block::GetBlockCode()
 {
@@ -42,4 +43,37 @@ void combinatory::Block::CalculateItemCounts()
 	{
 		m_items[i].count = lcm / m_items[i].m_item->m_length;
 	}
+}
+
+void combinatory::Block::CalculateBlockMaxCount()
+{
+	std::map<Item*, int> itemsInBlock;
+
+	for (int i = 0; i < m_items.size(); ++i)
+	{
+		ItemGroup& ig = m_items[i];
+		auto it = itemsInBlock.find(ig.m_item);
+		if (it == itemsInBlock.end())
+		{
+			itemsInBlock[ig.m_item] = ig.count;
+		}
+		else
+		{
+			itemsInBlock[ig.m_item] = ig.count + it->second;
+		}
+	}
+
+	int minCnt = -1;
+	for (auto it = itemsInBlock.begin(); it != itemsInBlock.end(); ++it)
+	{
+		int cnt = it->first->m_count / it->second;
+		++cnt;
+
+		if (minCnt < cnt)
+		{
+			minCnt = cnt;
+		}
+	}
+
+	m_maxCount = minCnt;
 }

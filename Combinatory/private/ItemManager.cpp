@@ -18,7 +18,7 @@ combinatory::ItemManager::ItemManager(CombinatorySettings& combinatorySettings)
 
 	for (int i = 0; i < m_itemsSorted.size() - 1; ++i)
 	{
-		for (int j = i; j < m_itemsSorted.size(); ++j)
+		for (int j = i + 1; j < m_itemsSorted.size(); ++j)
 		{
 			if (m_itemsSorted[i]->m_width > m_itemsSorted[j]->m_width)
 			{
@@ -126,5 +126,28 @@ void combinatory::ItemManager::GenerateBlocks()
 	{
 		Block& cur = m_blocks[i];
 		cur.CalculateItemCounts();
+		cur.CalculateBlockMaxCount();
 	}
+
+	for (int i = 0; i < m_blocks.size() - 1; ++i)
+	{
+		for (int j = i + 1; j < m_blocks.size(); ++j)
+		{
+			if (m_blocks[i].m_maxCount < m_blocks[j].m_maxCount)
+			{
+				Block tmp = m_blocks[i];
+				m_blocks[i] = m_blocks[j];
+				m_blocks[j] = tmp;
+			}
+		}
+	}
+
+	std::vector<int> coefs;
+	for (int i = 0; i < m_blocks.size(); ++i)
+	{
+		coefs.push_back(m_blocks[i].m_maxCount);
+	}
+	VariationNumber sizeTest(coefs);
+
+	long long intRepr = sizeTest.GetMaxNumber();
 }

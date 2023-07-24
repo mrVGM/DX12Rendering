@@ -26,5 +26,7 @@ namespace combinatory
 		long long GetIntegerRepresentation() const;
 
 		bool Increment();
+
+		long long GetMaxNumber() const;
 	};
 }

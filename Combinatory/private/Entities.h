@@ -27,8 +27,10 @@ namespace combinatory
 	struct Block
 	{
 		std::vector<ItemGroup> m_items;
+		int m_maxCount = 0;
 
 		std::string GetBlockCode();
 		void CalculateItemCounts();
+		void CalculateBlockMaxCount();
 	};
 }
