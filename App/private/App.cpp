@@ -1,7 +1,5 @@
 #include "App.h"
 
-#include "Renderer.h"
-#include "SceneConverter.h"
 #include "Combinatory.h"
 
 #include "RendererEntryPointMetaTag.h"
@@ -25,12 +23,8 @@ namespace
 
 	void RegisterLibs()
 	{
-		rendering::RegisterLib();
-		scene_converter::RegisterLib();
 		combinatory::RegisterLib();
 
-		m_appEntryPoints["Renderer"] = &settings::RendererEntryPointMetaTag::GetInstance();
-		m_appEntryPoints["SceneConverter"] = &settings::SceneConverterEntryPointMetaTag::GetInstance();
 		m_appEntryPoints["Combinatory"] = &settings::CombinatoryEntryPointMetaTag::GetInstance();
 	}
 }

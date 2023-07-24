@@ -10,8 +10,6 @@ target_include_directories(App PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
 target_link_libraries(App PRIVATE
 	AppSettings
-	Renderer
-	SceneConverter
 	Combinatory
 )
 
