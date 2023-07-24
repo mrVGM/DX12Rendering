@@ -52,22 +52,6 @@ void settings::AppSettings::ReadSettingFile()
 	{
 		std::list<const xml_reader::Node*> tmp;
 		xml_reader::FindChildNodes(settingsNode, [](const xml_reader::Node* node) {
-			if (node->m_tagName == "scene")
-			{
-				return true;
-			}
-			return false;
-		}, tmp);
-
-		if (tmp.size() > 0)
-		{
-			m_settings.m_sceneName = tmp.front()->m_data.front()->m_symbolData.m_string;
-		}
-	}
-
-	{
-		std::list<const xml_reader::Node*> tmp;
-		xml_reader::FindChildNodes(settingsNode, [](const xml_reader::Node* node) {
 			if (node->m_tagName == "entry_point")
 			{
 				return true;
