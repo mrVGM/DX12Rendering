@@ -4,6 +4,8 @@
 
 #include "Combinatory.h"
 
+#include "ItemManager.h"
+
 #include "utils.h"
 
 #include <vector>
@@ -16,7 +18,7 @@ namespace
 
 	struct Block
 	{
-		std::vector<combinatory::CombinatorySettings::Item*> m_items;
+		std::vector<combinatory::Item*> m_items;
 		std::vector<int> m_quantities;
 		int m_length;
 
@@ -37,13 +39,13 @@ namespace
 		}
 	};
 
-	bool GenerateNextItemOrdering(std::vector<combinatory::CombinatorySettings::Item*>& ordering)
+	bool GenerateNextItemOrdering(std::vector<combinatory::Item*>& ordering)
 	{
 		using namespace combinatory;
 
 		for (int i = ordering.size() - 1; i >= 0; --i)
 		{
-			CombinatorySettings::Item*& cur = ordering[i];
+			Item*& cur = ordering[i];
 			if (!cur)
 			{
 				cur = m_settings->m_itemsSorted[0];
@@ -70,7 +72,7 @@ namespace
 		return false;
 	}
 
-	bool CheckOrdering(const std::vector<combinatory::CombinatorySettings::Item*>& ordering)
+	bool CheckOrdering(const std::vector<combinatory::Item*>& ordering)
 	{
 		using namespace combinatory;
 
@@ -78,7 +80,7 @@ namespace
 
 		for (int i = 0; i < ordering.size(); ++i)
 		{
-			CombinatorySettings::Item* cur = ordering[i];
+			Item* cur = ordering[i];
 
 			if (cur)
 			{
@@ -94,7 +96,7 @@ namespace
 		return false;
 	}
 
-	std::string EncodeOrdering(const std::vector<combinatory::CombinatorySettings::Item*>& ordering)
+	std::string EncodeOrdering(const std::vector<combinatory::Item*>& ordering)
 	{
 		std::vector<int> itemsBlock;
 		for (int i = 0; i < ordering.size(); ++i)
@@ -151,9 +153,9 @@ void combinatory::CombinatoryEntryPoint::Boot()
 
 	m_settings = combinatory::GetSettings();
 
-	m_settings->GetSettings();
+	ItemManager itemManager(*m_settings);
 
-	std::vector<CombinatorySettings::Item*> ordering;
+	std::vector<Item*> ordering;
 	int ordSize = m_settings->GetSettings().m_width / m_settings->m_itemsSorted[0]->m_width;
 
 	for (int i = 0; i < ordSize; ++i)

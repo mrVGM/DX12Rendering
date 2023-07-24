@@ -3,6 +3,7 @@
 #include "SettingsReader.h"
 
 #include "BaseObjectMetaTag.h"
+#include "Entities.h"
 
 #include <string>
 #include <list>
@@ -13,14 +14,6 @@ namespace combinatory
 	class CombinatorySettings : public settings::SettingsReader
 	{
 	public:
-		struct Item
-		{
-			int m_width = 0;
-			int m_length = 0;
-			int m_count = 0;
-			int m_id = -1;
-		};
-
 		struct Settings
 		{
 			int m_width = 0;
