@@ -113,18 +113,19 @@ bool combinatory::Block::ContainsItem(Item* item)
 	return false;
 }
 
-bool combinatory::BlockGroup::ContainsItem(Item* item)
+int combinatory::BlockGroup::ItemOccurences(Item* item)
 {
+	int occurrences = 0;
 	for (auto it = m_blocks.begin(); it != m_blocks.end(); ++it)
 	{
 		Block* cur = *it;
 
 		if (cur->ContainsItem(item))
 		{
-			return true;
+			++occurrences;
 		}
 	}
-	return false;
+	return occurrences;
 }
 
 void combinatory::BlockGroup::GetAllItems(std::set<Item*>& items)
@@ -168,31 +169,33 @@ void combinatory::BlockGroup::ShrinkGroup()
 	while (shrinked)
 	{
 		shrinked = false;
-		BlockGroup tmp = *this;
-		std::set<Item*> tmpItems;
 
 		for (auto it = blocksSorted.begin(); it != blocksSorted.end(); ++it)
 		{
-			if (!tmp.m_blocks.contains(*it))
+			if (!m_blocks.contains(*it))
 			{
 				continue;
 			}
 
-			tmp.m_blocks.erase(*it);
-			tmpItems.clear();
-			tmp.GetAllItems(tmpItems);
-
-			if (tmpItems.size() == items.size())
+			bool canRemove = true;
+			Block* curBlock = *it;
+			for (int i = 0; i < curBlock->m_items.size(); ++i)
 			{
+				ItemGroup& curItem = curBlock->m_items[i];
+				int occurences = ItemOccurences(curItem.m_item);
+
+				if (occurences <= 2)
+				{
+					canRemove = false;
+				}
+			}
+
+			if (canRemove)
+			{
+				m_blocks.erase(curBlock);
 				shrinked = true;
 			}
-			else
-			{
-				tmp.m_blocks.insert(*it);
-			}
 		}
-
-		*this = tmp;
 	}
 }
 

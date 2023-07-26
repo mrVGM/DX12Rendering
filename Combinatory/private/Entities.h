@@ -43,7 +43,7 @@ namespace combinatory
 		std::set<Block*> m_blocks;
 		std::vector<Block*> m_blocksOrdered;
 
-		bool ContainsItem(Item* item);
+		int ItemOccurences(Item* item);
 		void GetAllItems(std::set<Item*>& items);
 		void ShrinkGroup();
 		bool IsEquivalent(BlockGroup& other);
