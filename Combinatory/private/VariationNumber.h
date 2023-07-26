@@ -1,7 +1,5 @@
 #pragma once
 
-#include "CombinatorySettings.h"
-
 #include <string>
 #include <vector>
 
@@ -16,6 +14,7 @@ namespace combinatory
 		void Init(const std::vector<int>& digitLimits);
 
 	public:
+		VariationNumber() = delete;
 		VariationNumber(const std::vector<int>& digitLimits);
 		VariationNumber(const int* digitLimits, int count);
 		VariationNumber(const VariationNumber& other) = delete;

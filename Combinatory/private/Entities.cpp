@@ -1,5 +1,7 @@
 #include "Entities.h"
 
+#include "VariationNumber.h"
+
 #include "utils.h"
 
 #include <sstream>
@@ -75,9 +77,9 @@ void combinatory::Block::CalculateBlockMaxCount()
 		}
 	}
 
-	bool passedUpperLimit = false;
-	while (!passedUpperLimit)
+	while (true)
 	{
+		bool passedUpperLimit = false;
 		for (auto it = itemsInBlock.begin(); it != itemsInBlock.end(); ++it)
 		{
 			if (minCnt * it->second - it->first->m_count >= 5)
@@ -86,8 +88,225 @@ void combinatory::Block::CalculateBlockMaxCount()
 				break;
 			}
 		}
+
+		if (passedUpperLimit)
+		{
+			break;
+		}
 		++minCnt;
 	}
 
 	m_maxCount = minCnt;
+}
+
+bool combinatory::Block::ContainsItem(Item* item)
+{
+	for (int i = 0; i < m_items.size(); ++i)
+	{
+		ItemGroup& cur = m_items[i];
+
+		if (cur.m_item == item)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool combinatory::BlockGroup::ContainsItem(Item* item)
+{
+	for (auto it = m_blocks.begin(); it != m_blocks.end(); ++it)
+	{
+		Block* cur = *it;
+
+		if (cur->ContainsItem(item))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+void combinatory::BlockGroup::GetAllItems(std::set<Item*>& items)
+{
+	for (auto blockIt = m_blocks.begin(); blockIt != m_blocks.end(); ++blockIt)
+	{
+		Block* curBlock = *blockIt;
+		for (auto itemIt = curBlock->m_items.begin(); itemIt != curBlock->m_items.end(); ++itemIt)
+		{
+			ItemGroup& itemGroup = *itemIt;
+			items.insert(itemGroup.m_item);
+		}
+	}
+}
+
+void combinatory::BlockGroup::ShrinkGroup()
+{
+	std::set<Item*> items;
+	GetAllItems(items);
+
+	std::vector<Block*> blocksSorted;
+	for (auto it = m_blocks.begin(); it != m_blocks.end(); ++it)
+	{
+		blocksSorted.push_back(*it);
+	}
+
+	for (int i = 0; i < blocksSorted.size() - 1; ++i)
+	{
+		for (int j = i + 1; j < blocksSorted.size(); ++j)
+		{
+			if (blocksSorted[i]->m_maxCount > blocksSorted[j]->m_maxCount)
+			{
+				Block* tmp = blocksSorted[i];
+				blocksSorted[i] = blocksSorted[j];
+				blocksSorted[j] = tmp;
+			}
+		}
+	}
+
+	bool shrinked = true;
+	while (shrinked)
+	{
+		shrinked = false;
+		BlockGroup tmp = *this;
+		std::set<Item*> tmpItems;
+
+		for (auto it = blocksSorted.begin(); it != blocksSorted.end(); ++it)
+		{
+			if (!tmp.m_blocks.contains(*it))
+			{
+				continue;
+			}
+
+			tmp.m_blocks.erase(*it);
+			tmpItems.clear();
+			tmp.GetAllItems(tmpItems);
+
+			if (tmpItems.size() == items.size())
+			{
+				shrinked = true;
+			}
+			else
+			{
+				tmp.m_blocks.insert(*it);
+			}
+		}
+
+		*this = tmp;
+	}
+}
+
+bool combinatory::BlockGroup::IsEquivalent(BlockGroup& other)
+{
+	std::set<Item*> group1Items;
+	GetAllItems(group1Items);
+
+	std::set<Item*> group2Items;
+	other.GetAllItems(group2Items);
+
+	for (auto it = group1Items.begin(); it != group1Items.end(); ++it)
+	{
+		if (!group2Items.contains(*it))
+		{
+			return false;
+		}
+	}
+
+	for (auto it = group2Items.begin(); it != group2Items.end(); ++it)
+	{
+		if (!group1Items.contains(*it))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+void combinatory::BlockGroup::CalculateBestNumber()
+{
+	std::vector<int> digits;
+	for (auto it = m_blocks.begin(); it != m_blocks.end(); ++it)
+	{
+		m_blocksOrdered.push_back(*it);
+	}
+
+	std::vector<int> tmp;
+	for (int i = 0; i < m_blocksOrdered.size(); ++i)
+	{
+		tmp.push_back(m_blocksOrdered[i]->m_maxCount);
+	}
+
+	VariationNumber groupNumber(tmp);
+
+	long long maxNum = groupNumber.GetMaxNumber();
+
+	int best = -1;
+	while (groupNumber.Increment())
+	{
+		int assessment = AssessNumber(groupNumber);
+
+		if (assessment >= 0)
+		{
+			if (best < 0)
+			{
+				best = assessment;
+			}
+			else if (best > assessment)
+			{
+				best = assessment;
+			}
+		}
+	}
+	bool t = true;
+}
+
+int combinatory::BlockGroup::AssessNumber(VariationNumber& number)
+{
+	std::map<Item*, int> itemInstances;
+	const std::vector<int>& coefs = number.GetNumber();
+
+	for (int i = 0; i < m_blocksOrdered.size(); ++i)
+	{
+		Block* curBlock = m_blocksOrdered[i];
+		int curCoef = coefs[i];
+
+		for (auto it = curBlock->m_items.begin(); it != curBlock->m_items.end(); ++it)
+		{
+			ItemGroup& curGroup = *it;
+			int num = curGroup.count * curCoef;
+
+			auto record = itemInstances.find(curGroup.m_item);
+
+			if (record == itemInstances.end())
+			{
+				itemInstances[curGroup.m_item] = num;
+			}
+			else
+			{
+				itemInstances[curGroup.m_item] += num;
+			}
+		}
+	}
+
+	int s = -1;
+	for (auto it = itemInstances.begin(); it != itemInstances.end(); ++it)
+	{
+		if (it->first->m_count < it->second)
+		{
+			return -1;
+		}
+
+		int diff = it->first->m_count - it->second;
+		if (s < 0)
+		{
+			s = diff;
+		}
+		else
+		{
+			s += diff;
+		}
+	}
+
+	return s;
 }

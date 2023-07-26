@@ -150,4 +150,88 @@ void combinatory::ItemManager::GenerateBlocks()
 	VariationNumber sizeTest(coefs);
 
 	long long intRepr = sizeTest.GetMaxNumber();
+
+	SeparateBlocksInGroups();
+	bool t = true;
+}
+
+void combinatory::ItemManager::GenerateBlockGroup(Item* initialItem, BlockGroup& blockGroup)
+{
+	for (auto it = m_blocks.begin(); it != m_blocks.end(); ++it)
+	{
+		Block& cur = *it;
+		if (cur.ContainsItem(initialItem))
+		{
+			blockGroup.m_blocks.insert(&cur);
+		}
+	}
+
+	std::set<Item*> itemsInGroup;
+	blockGroup.GetAllItems(itemsInGroup);
+
+	int numBlocks = blockGroup.m_blocks.size();
+
+	while (true)
+	{
+		for (auto it = itemsInGroup.begin(); it != itemsInGroup.end(); ++it)
+		{
+			Item* curItem = *it;
+
+			for (auto blockIt = m_blocks.begin(); blockIt != m_blocks.end(); ++blockIt)
+			{
+				Block& cur = *blockIt;
+				if (cur.ContainsItem(curItem))
+				{
+					blockGroup.m_blocks.insert(&cur);
+				}
+			}
+		}
+
+		if (numBlocks == blockGroup.m_blocks.size())
+		{
+			break;
+		}
+
+		numBlocks = blockGroup.m_blocks.size();
+		itemsInGroup.clear();
+		blockGroup.GetAllItems(itemsInGroup);
+	}
+}
+
+void combinatory::ItemManager::SeparateBlocksInGroups()
+{
+	std::set<Item*> itemsCovered;
+
+
+	bool blockGroupAdded = true;
+	while (blockGroupAdded)
+	{
+		blockGroupAdded = false;
+		for (auto itemIt = m_itemsSorted.begin(); itemIt != m_itemsSorted.end(); ++itemIt)
+		{
+			Item* item = *itemIt;
+
+			if (itemsCovered.contains(item))
+			{
+				continue;
+			}
+
+			BlockGroup& bg = m_blockGroups.emplace_back();
+			GenerateBlockGroup(item, bg);
+
+			bg.GetAllItems(itemsCovered);
+			blockGroupAdded = true;
+			break;
+		}
+	}
+
+	for (auto groupIt = m_blockGroups.begin(); groupIt != m_blockGroups.end(); ++groupIt)
+	{
+		BlockGroup& bg = *groupIt;
+		bg.ShrinkGroup();
+
+		bg.CalculateBestNumber();
+	}
+
+	bool t = true;
 }

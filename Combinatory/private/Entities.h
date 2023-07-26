@@ -4,9 +4,12 @@
 
 #include "BaseObjectMetaTag.h"
 
+#include "VariationNumber.h"
+
 #include <string>
 #include <list>
 #include <vector>
+#include <set>
 
 namespace combinatory
 {
@@ -32,5 +35,20 @@ namespace combinatory
 		std::string GetBlockCode();
 		void CalculateItemCounts();
 		void CalculateBlockMaxCount();
+		bool ContainsItem(Item* item);
+	};
+
+	struct BlockGroup
+	{
+		std::set<Block*> m_blocks;
+		std::vector<Block*> m_blocksOrdered;
+
+		bool ContainsItem(Item* item);
+		void GetAllItems(std::set<Item*>& items);
+		void ShrinkGroup();
+		bool IsEquivalent(BlockGroup& other);
+
+		void CalculateBestNumber();
+		int AssessNumber(VariationNumber& number);
 	};
 }

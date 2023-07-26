@@ -15,6 +15,7 @@ namespace combinatory
 	private:
 		std::vector<Item*> m_itemsSorted;
 		std::vector<Block> m_blocks;
+		std::vector<BlockGroup> m_blockGroups;
 
 	public:
 		ItemManager(CombinatorySettings& combinatorySettings);
@@ -25,5 +26,8 @@ namespace combinatory
 		void Test();
 
 		void GenerateBlocks();
+
+		void GenerateBlockGroup(Item* initialItem, BlockGroup& blockGroup);
+		void SeparateBlocksInGroups();
 	};
 }
