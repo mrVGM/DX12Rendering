@@ -48,6 +48,7 @@ namespace combinatory
 		void ShrinkGroup();
 		bool IsEquivalent(BlockGroup& other);
 
+		void FlattenBlocks();
 		void CalculateBestNumber();
 		int AssessNumber(VariationNumber& number);
 	};

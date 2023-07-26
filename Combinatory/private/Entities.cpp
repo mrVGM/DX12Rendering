@@ -197,6 +197,8 @@ void combinatory::BlockGroup::ShrinkGroup()
 			}
 		}
 	}
+
+	FlattenBlocks();
 }
 
 bool combinatory::BlockGroup::IsEquivalent(BlockGroup& other)
@@ -224,6 +226,14 @@ bool combinatory::BlockGroup::IsEquivalent(BlockGroup& other)
 	}
 
 	return true;
+}
+
+void combinatory::BlockGroup::FlattenBlocks()
+{
+	for (auto it = m_blocks.begin(); it != m_blocks.end(); ++it)
+	{
+		m_blocksOrdered.push_back(*it);
+	}
 }
 
 void combinatory::BlockGroup::CalculateBestNumber()

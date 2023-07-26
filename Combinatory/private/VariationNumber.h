@@ -20,7 +20,8 @@ namespace combinatory
 		VariationNumber(const VariationNumber& other) = delete;
 		VariationNumber& operator=(const VariationNumber& other) = delete;
 
-		const std::vector<int>& GetNumber() const;
+		std::vector<int>& GetNumber();
+		const std::vector<int>& GetDigits() const;
 		bool SetNumber(long long num);
 		long long GetIntegerRepresentation() const;
 

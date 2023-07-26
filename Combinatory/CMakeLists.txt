@@ -19,12 +19,14 @@ add_library (Combinatory
 	"private/VariationNumber.h"
 	"private/VariationNumber.cpp"
 	"private/Entities.cpp"
+	"private/BlockGroupProcessor.h"
+	"private/BlockGroupProcessor.cpp"
 )
 
 target_include_directories(Combinatory INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Combinatory PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(Combinatory PRIVATE XMLReader)
+target_link_libraries(Combinatory PRIVATE XMLReader Jobs)
 target_link_libraries(Combinatory INTERFACE PUBLIC
 	AppSettings
 )

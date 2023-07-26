@@ -26,9 +26,14 @@ combinatory::VariationNumber::VariationNumber(const int* digitLimits, int count)
 	Init(tmp);
 }
 
-const std::vector<int>& combinatory::VariationNumber::GetNumber() const
+std::vector<int>& combinatory::VariationNumber::GetNumber()
 {
 	return m_number;
+}
+
+const std::vector<int>& combinatory::VariationNumber::GetDigits() const
+{
+	return m_digitLimits;
 }
 
 bool combinatory::VariationNumber::SetNumber(long long num)
