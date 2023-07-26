@@ -21,6 +21,10 @@ add_library (Combinatory
 	"private/Entities.cpp"
 	"private/BlockGroupProcessor.h"
 	"private/BlockGroupProcessor.cpp"
+	"private/ProcessorsJobSystemMeta.h"
+	"private/ProcessorsJobSystemMeta.cpp"
+	"private/ResultJobSystemMeta.h"
+	"private/ResultJobSystemMeta.cpp"
 )
 
 target_include_directories(Combinatory INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
