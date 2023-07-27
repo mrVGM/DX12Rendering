@@ -38,10 +38,14 @@ namespace combinatory
 		bool ContainsItem(Item* item);
 	};
 
+	class BlockGroupProcessorManager;
+
 	struct BlockGroup
 	{
 		std::set<Block*> m_blocks;
 		std::vector<Block*> m_blocksOrdered;
+
+		BlockGroupProcessorManager* m_processorManager = nullptr;
 
 		int ItemOccurences(Item* item);
 		void GetAllItems(std::set<Item*>& items);
@@ -51,5 +55,7 @@ namespace combinatory
 		void FlattenBlocks();
 		void CalculateBestNumber();
 		int AssessNumber(VariationNumber& number);
+
+		~BlockGroup();
 	};
 }

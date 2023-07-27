@@ -16,29 +16,6 @@ namespace
 {
 	combinatory::CombinatorySettings* m_settings = nullptr;
 
-	struct Blocka
-	{
-		std::vector<combinatory::Item*> m_items;
-		std::vector<int> m_quantities;
-		int m_length;
-
-		void CalcLengthAndQuantities()
-		{
-			int lcm = m_items[0]->m_length;
-			for (int i = 1; i < m_items.size(); ++i)
-			{
-				lcm = combinatory::LCM(lcm, m_items[i]->m_length);
-			}
-
-			m_length = lcm;
-
-			for (int i = 0; i < m_items.size(); ++i)
-			{
-				m_quantities.push_back(m_length / m_items[i]->m_length);
-			}
-		}
-	};
-
 	bool GenerateNextItemOrdering(std::vector<combinatory::Item*>& ordering)
 	{
 		using namespace combinatory;
@@ -153,51 +130,8 @@ void combinatory::CombinatoryEntryPoint::Boot()
 
 	m_settings = combinatory::GetSettings();
 
-	ItemManager itemManager(*m_settings);
-
-	itemManager.GenerateBlocks();
-
-	std::vector<Item*> ordering;
-	int ordSize = m_settings->GetSettings().m_width / m_settings->m_itemsSorted[0]->m_width;
-
-	for (int i = 0; i < ordSize; ++i)
-	{
-		ordering.push_back(nullptr);
-	}
-
-	int iterations = 0;
-	int goodOrderings = 0;
-
-	std::set<std::string> ords;
-
-	while (GenerateNextItemOrdering(ordering))
-	{
-		++iterations;
-
-		if (CheckOrdering(ordering))
-		{
-			++goodOrderings;
-			ords.insert(EncodeOrdering(ordering));
-		}
-	}
-
-	std::list<Blocka> blocks;
-	for (auto it = ords.begin(); it != ords.end(); ++it)
-	{
-		std::stringstream ss(*it);
-		Blocka block;
-
-		while (!ss.eof())
-		{
-			int id;
-			ss >> id;
-			block.m_items.push_back(m_settings->m_itemsSorted[id]);
-		}
-		block.CalcLengthAndQuantities();
-
-		blocks.push_back(block);
-	}
-
+	ItemManager* itemManager = new ItemManager(*m_settings);
+	itemManager->GenerateBlocks();
 
 	bool t = true;
 }

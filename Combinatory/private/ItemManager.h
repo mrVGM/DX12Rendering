@@ -4,13 +4,15 @@
 
 #include "Entities.h"
 
+#include "BaseObject.h"
+
 #include <string>
 #include <list>
 #include <vector>
 
 namespace combinatory
 {
-	class ItemManager
+	class ItemManager : public BaseObject
 	{
 	private:
 		std::vector<Item*> m_itemsSorted;
@@ -19,6 +21,7 @@ namespace combinatory
 
 	public:
 		ItemManager(CombinatorySettings& combinatorySettings);
+		virtual ~ItemManager();
 
 		int GetItemsCount();
 		Item* GetItemByID(int id);

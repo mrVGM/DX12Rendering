@@ -1,12 +1,15 @@
 #include "ItemManager.h"
 
+#include "ItemManagerMeta.h"
+
 #include "VariationNumber.h"
 
 #include <map>
 
 #include "utils.h"
 
-combinatory::ItemManager::ItemManager(CombinatorySettings& combinatorySettings)
+combinatory::ItemManager::ItemManager(CombinatorySettings& combinatorySettings) :
+	BaseObject(ItemManagerMeta::GetInstance())
 {
 	CombinatorySettings::Settings& settings = combinatorySettings.GetSettings();
 
@@ -32,6 +35,10 @@ combinatory::ItemManager::ItemManager(CombinatorySettings& combinatorySettings)
 	{
 		m_itemsSorted[i]->m_id = i;
 	}
+}
+
+combinatory::ItemManager::~ItemManager()
+{
 }
 
 int combinatory::ItemManager::GetItemsCount()
@@ -201,7 +208,6 @@ void combinatory::ItemManager::GenerateBlockGroup(Item* initialItem, BlockGroup&
 void combinatory::ItemManager::SeparateBlocksInGroups()
 {
 	std::set<Item*> itemsCovered;
-
 
 	bool blockGroupAdded = true;
 	while (blockGroupAdded)

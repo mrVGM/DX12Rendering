@@ -4,6 +4,8 @@
 
 #include "utils.h"
 
+#include "BlockGroupProcessor.h"
+
 #include <sstream>
 #include <map>
 
@@ -238,40 +240,8 @@ void combinatory::BlockGroup::FlattenBlocks()
 
 void combinatory::BlockGroup::CalculateBestNumber()
 {
-	std::vector<int> digits;
-	for (auto it = m_blocks.begin(); it != m_blocks.end(); ++it)
-	{
-		m_blocksOrdered.push_back(*it);
-	}
-
-	std::vector<int> tmp;
-	for (int i = 0; i < m_blocksOrdered.size(); ++i)
-	{
-		tmp.push_back(m_blocksOrdered[i]->m_maxCount);
-	}
-
-	VariationNumber groupNumber(tmp);
-
-	long long maxNum = groupNumber.GetMaxNumber();
-
-	int best = -1;
-	while (groupNumber.Increment())
-	{
-		int assessment = AssessNumber(groupNumber);
-
-		if (assessment >= 0)
-		{
-			if (best < 0)
-			{
-				best = assessment;
-			}
-			else if (best > assessment)
-			{
-				best = assessment;
-			}
-		}
-	}
-	bool t = true;
+	m_processorManager = new BlockGroupProcessorManager(this);
+	m_processorManager->StartProcessing();
 }
 
 int combinatory::BlockGroup::AssessNumber(VariationNumber& number)
@@ -322,4 +292,12 @@ int combinatory::BlockGroup::AssessNumber(VariationNumber& number)
 	}
 
 	return s;
+}
+
+combinatory::BlockGroup::~BlockGroup()
+{
+	if (m_processorManager)
+	{
+		delete m_processorManager;
+	}
 }

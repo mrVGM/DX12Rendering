@@ -25,6 +25,8 @@ add_library (Combinatory
 	"private/ProcessorsJobSystemMeta.cpp"
 	"private/ResultJobSystemMeta.h"
 	"private/ResultJobSystemMeta.cpp"
+	"private/ItemManagerMeta.h"
+	"private/ItemManagerMeta.cpp"
 )
 
 target_include_directories(Combinatory INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
