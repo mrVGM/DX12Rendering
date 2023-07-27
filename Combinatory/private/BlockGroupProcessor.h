@@ -46,6 +46,8 @@ namespace combinatory
 		VariationNumber m_bestNumber;
 		int m_bestScore = -1;
 
+		int m_activeProcessors = 0;
+
 		BlockGroupProcessorManager(BlockGroup* blockGroup);
 		~BlockGroupProcessorManager();
 

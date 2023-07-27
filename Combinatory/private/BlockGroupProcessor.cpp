@@ -105,6 +105,38 @@ void combinatory::ProcessSomeNumbers::Do()
 		if (!inc)
 		{
 			m_ctx.m_done = true;
+
+			class LogFinished : public jobs::Job
+			{
+			public:
+				void Do() override
+				{
+					std::cout << "*** Processing Finished! ***" << std::endl << std::endl;
+				}
+			};
+
+			class Finished : public jobs::Job
+			{
+			private:
+				JobCtx m_ctx;
+			public:
+				Finished(const JobCtx& ctx) :
+					m_ctx(ctx)
+				{
+				}
+
+				void Do() override
+				{
+					--m_ctx.m_blockGroupProcessor->GetManager()->m_activeProcessors;
+					if (m_ctx.m_blockGroupProcessor->GetManager()->m_activeProcessors == 0)
+					{
+						RunLog(new LogFinished());
+					}
+				}
+			};
+
+			RunSync(new Finished(m_ctx));
+
 			break;
 		}
 	}
@@ -217,6 +249,8 @@ combinatory::BlockGroupProcessorManager::~BlockGroupProcessorManager()
 
 void combinatory::BlockGroupProcessorManager::StartProcessing()
 {
+	m_activeProcessors = m_processors.size();
+
 	for (int i = 0; i < m_processors.size(); ++i)
 	{
 		m_processors[i]->StartProcessing();
