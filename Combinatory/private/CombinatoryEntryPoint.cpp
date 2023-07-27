@@ -132,6 +132,7 @@ void combinatory::CombinatoryEntryPoint::Boot()
 
 	ItemManager* itemManager = new ItemManager(*m_settings);
 	itemManager->GenerateBlocks();
+	itemManager->SeparateBlocksInGroups();
 
 	bool t = true;
 }

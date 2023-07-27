@@ -26,8 +26,6 @@ namespace combinatory
 		int GetItemsCount();
 		Item* GetItemByID(int id);
 
-		void Test();
-
 		void GenerateBlocks();
 
 		void GenerateBlockGroup(Item* initialItem, BlockGroup& blockGroup);

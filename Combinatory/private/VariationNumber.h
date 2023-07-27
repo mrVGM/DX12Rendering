@@ -17,9 +17,7 @@ namespace combinatory
 		VariationNumber() = delete;
 		VariationNumber(const std::vector<int>& digitLimits);
 		VariationNumber(const int* digitLimits, int count);
-		VariationNumber(const VariationNumber& other) = delete;
-		VariationNumber& operator=(const VariationNumber& other) = delete;
-
+		
 		std::vector<int>& GetNumber();
 		const std::vector<int>& GetDigits() const;
 		bool SetNumber(long long num);

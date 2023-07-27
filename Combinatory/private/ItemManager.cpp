@@ -51,21 +51,6 @@ combinatory::Item* combinatory::ItemManager::GetItemByID(int id)
 	return m_itemsSorted[id];
 }
 
-void combinatory::ItemManager::Test()
-{
-	int vnTemplate[] = {2,3,4};
-	VariationNumber vn(vnTemplate, _countof(vnTemplate));
-	VariationNumber vn2(vnTemplate, _countof(vnTemplate));
-
-	while (vn.Increment())
-	{
-		long long intRepr = vn.GetIntegerRepresentation();
-		vn2.SetNumber(intRepr);
-
-		bool t = true;
-	}
-}
-
 void combinatory::ItemManager::GenerateBlocks()
 {
 	int minWidth = m_itemsSorted[0]->m_width;
@@ -148,18 +133,6 @@ void combinatory::ItemManager::GenerateBlocks()
 			}
 		}
 	}
-
-	std::vector<int> coefs;
-	for (int i = 0; i < m_blocks.size(); ++i)
-	{
-		coefs.push_back(m_blocks[i].m_maxCount);
-	}
-	VariationNumber sizeTest(coefs);
-
-	long long intRepr = sizeTest.GetMaxNumber();
-
-	SeparateBlocksInGroups();
-	bool t = true;
 }
 
 void combinatory::ItemManager::GenerateBlockGroup(Item* initialItem, BlockGroup& blockGroup)
@@ -234,10 +207,6 @@ void combinatory::ItemManager::SeparateBlocksInGroups()
 	for (auto groupIt = m_blockGroups.begin(); groupIt != m_blockGroups.end(); ++groupIt)
 	{
 		BlockGroup& bg = *groupIt;
-		bg.ShrinkGroup();
-
-		bg.CalculateBestNumber();
+		bg.FlattenBlocks();
 	}
-
-	bool t = true;
 }
