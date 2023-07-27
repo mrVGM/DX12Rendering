@@ -4,6 +4,7 @@
 
 #include <map>
 #include <iostream>
+#include <sstream>
 
 namespace
 {
@@ -93,15 +94,14 @@ void combinatory::ProcessSomeNumbers::Do()
 	for (int i = 0; i < 300; ++i)
 	{
 		int score = m_ctx.m_blockGroupProcessor->GetManager()->GetScore(m_ctx.m_blockGroupProcessor->m_groupNumber);
-		bool inc = m_ctx.m_blockGroupProcessor->IncrementCurGroupNumber();
 
-		
 		if (m_ctx.m_blockGroupProcessor->m_bestScore < score)
 		{
 			m_ctx.m_blockGroupProcessor->m_bestScore = score;
 			m_ctx.m_blockGroupProcessor->m_bestGroupNumber = m_ctx.m_blockGroupProcessor->m_groupNumber;
 		}
 
+		bool inc = m_ctx.m_blockGroupProcessor->IncrementCurGroupNumber();
 		if (!inc)
 		{
 			m_ctx.m_done = true;
@@ -144,6 +144,7 @@ void combinatory::BlockGroupProcessor::StoreProcessorResult()
 
 		struct CTX
 		{
+			BlockGroupProcessorManager* m_manager = nullptr;
 			int m_score;
 			VariationNumber m_number;
 		};
@@ -160,11 +161,13 @@ void combinatory::BlockGroupProcessor::StoreProcessorResult()
 
 			void Do() override
 			{
-				std::cout << m_ctx.m_score << ":\t" << m_ctx.m_number.ToString() << std::endl;
+				std::cout << m_ctx.m_score << ":\t" << m_ctx.m_number.ToString() << std::endl
+					<< m_ctx.m_manager->GetDiffByNumber(m_ctx.m_number)
+					<< std::endl << std::endl;
 			}
 		};
 
-		RunLog(new LogState(CTX{ m_manager->m_bestScore, m_manager->m_bestNumber }));
+		RunLog(new LogState(CTX{ m_manager, m_manager->m_bestScore, m_manager->m_bestNumber }));
 	}
 }
 
@@ -224,9 +227,7 @@ int combinatory::BlockGroupProcessorManager::GetScore(VariationNumber& vn)
 {
 	const std::vector<int> num = vn.GetNumber();
 
-	std::set<Item*> items;
 	std::map<Item*, int> counts;
-	m_blockGroup->GetAllItems(items);
 
 	for (int i = 0; i < m_blockGroup->m_blocksOrdered.size(); ++i)
 	{
@@ -260,4 +261,40 @@ int combinatory::BlockGroupProcessorManager::GetScore(VariationNumber& vn)
 	}
 
 	return score;
+}
+
+std::string combinatory::BlockGroupProcessorManager::GetDiffByNumber(VariationNumber& vn)
+{
+	std::stringstream ss;
+
+	const std::vector<int> num = vn.GetNumber();
+
+	std::map<Item*, int> counts;
+
+	for (int i = 0; i < m_blockGroup->m_blocksOrdered.size(); ++i)
+	{
+		Block* curBlock = m_blockGroup->m_blocksOrdered[i];
+		for (auto itemIt = curBlock->m_items.begin(); itemIt != curBlock->m_items.end(); ++itemIt)
+		{
+			ItemGroup& curItem = *itemIt;
+
+			auto record = counts.find(curItem.m_item);
+			int n = num[i] * curItem.count;
+			if (record == counts.end())
+			{
+				counts[curItem.m_item] = n;
+			}
+			else
+			{
+				counts[curItem.m_item] = record->second + n;
+			}
+		}
+	}
+
+	for (auto it = counts.begin(); it != counts.end(); ++it)
+	{
+		ss << it->first->m_width << "x" << it->first->m_length << ":" << it->second - it->first->m_count << ' ';
+	}
+
+	return ss.str();
 }

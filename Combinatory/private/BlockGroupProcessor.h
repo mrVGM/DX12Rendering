@@ -52,6 +52,8 @@ namespace combinatory
 		void StartProcessing();
 
 		int GetScore(VariationNumber& vn);
+
+		std::string GetDiffByNumber(VariationNumber& num);
 	};
 
 	struct JobCtx
