@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <settings>
 	<width>400</width>
+	<num_threads>10</num_threads>
 	
 	<items>
 		<item>

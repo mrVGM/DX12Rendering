@@ -17,6 +17,7 @@ namespace combinatory
 		struct Settings
 		{
 			int m_width = 0;
+			int m_numThreads = 1;
 			std::list<Item> m_items;
 		};
 	private:

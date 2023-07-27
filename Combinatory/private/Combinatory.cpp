@@ -13,9 +13,9 @@
 void combinatory::Boot()
 {
 	std::cout << "Combinatory!" << std::endl;
-	new CombinatorySettings();
+	CombinatorySettings* settings = new CombinatorySettings();
 
-	new jobs::JobSystem(ProcessorsJobSystemMeta::GetInstance(), 64);
+	new jobs::JobSystem(ProcessorsJobSystemMeta::GetInstance(), settings->GetSettings().m_numThreads);
 	new jobs::JobSystem(ResultJobSystemMeta::GetInstance(), 1);
 }
 

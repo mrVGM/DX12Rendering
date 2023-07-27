@@ -39,6 +39,11 @@ void combinatory::CombinatorySettings::LoadSettings()
 	});
 	m_settings.m_width = width->m_data.front()->m_symbolData.m_number;
 
+	const xml_reader::Node* numThreads = xml_reader::FindChildNode(settingsNode, [](const xml_reader::Node* node) {
+		return node->m_tagName == "num_threads";
+	});
+	m_settings.m_numThreads = numThreads->m_data.front()->m_symbolData.m_number;
+
 	const xml_reader::Node* items = xml_reader::FindChildNode(settingsNode, [](const xml_reader::Node* node) {
 		return node->m_tagName == "items";
 	});
