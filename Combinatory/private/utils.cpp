@@ -4,6 +4,7 @@
 
 #include "ProcessorsJobSystemMeta.h"
 #include "ResultJobSystemMeta.h"
+#include "LogJobSystemMeta.h"
 
 #include "JobSystem.h"
 
@@ -13,6 +14,7 @@ namespace
 {
 	jobs::JobSystem* m_processorsJobSystem = nullptr;
 	jobs::JobSystem* m_resultJobSystem = nullptr;
+	jobs::JobSystem* m_logJobSystem = nullptr;
 
 	void CacheJobSystems()
 	{
@@ -44,6 +46,19 @@ namespace
 
 			jobs::JobSystem* jobSystem = static_cast<jobs::JobSystem*>(obj);
 			m_resultJobSystem = jobSystem;
+		}
+
+		if (!m_logJobSystem)
+		{
+			BaseObject* obj = container.GetObjectOfClass(LogJobSystemMeta::GetInstance());
+
+			if (!obj)
+			{
+				throw "Can't find Log Job System!";
+			}
+
+			jobs::JobSystem* jobSystem = static_cast<jobs::JobSystem*>(obj);
+			m_logJobSystem = jobSystem;
 		}
 	}
 }
@@ -92,4 +107,11 @@ void combinatory::RunSync(jobs::Job* job)
 	CacheJobSystems();
 
 	m_resultJobSystem->ScheduleJob(job);
+}
+
+void combinatory::RunLog(jobs::Job* job)
+{
+	CacheJobSystems();
+
+	m_logJobSystem->ScheduleJob(job);
 }

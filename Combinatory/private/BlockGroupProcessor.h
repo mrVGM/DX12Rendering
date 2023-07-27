@@ -34,10 +34,10 @@ namespace combinatory
 		void StartProcessing();
 		void StoreProcessorResult();
 
-		~BlockGroupProcessor()
-		{
-			bool t = true;
-		}
+		double GetProgress();
+		int GetBest();
+
+		BlockGroupProcessorManager* GetManager();
 	};
 
 	struct BlockGroupProcessorManager

@@ -13,4 +13,5 @@ namespace combinatory
 
 	void RunAsync(jobs::Job* job);
 	void RunSync(jobs::Job* job);
+	void RunLog(jobs::Job* job);
 }

@@ -2,6 +2,8 @@
 
 #include "utils.h"
 
+#include <iostream>
+
 namespace
 {
 	std::vector<int> GetGroupNumberTemplate(combinatory::BlockGroup* blockGroup)
@@ -120,6 +122,28 @@ void combinatory::ProcessSomeNumbers::Do()
 	}
 
 	RunSync(new SyncResults(m_ctx));
+
+	class LogJob : public jobs::Job
+	{
+	private:
+		BlockGroupProcessor* m_processor = nullptr;
+	public:
+		LogJob(BlockGroupProcessor* processor) :
+			m_processor(processor)
+		{
+		}
+
+		void Do() override
+		{
+			if (m_processor->GetManager()->m_bestProcessor)
+			{
+				std::cout << m_processor->GetManager()->m_bestProcessor->GetBest() << std::endl;
+			}
+		}
+	};
+
+
+	RunLog(new LogJob(m_ctx.m_blockGroupProcessor));
 }
 
 combinatory::SyncResults::SyncResults(const JobCtx& ctx) :
@@ -153,10 +177,30 @@ void combinatory::BlockGroupProcessor::StoreProcessorResult()
 		return;
 	}
 
-	if (m_manager->m_bestProcessor->m_bestScore > m_bestScore)
+	if (m_bestScore < 0)
+	{
+		return;
+	}
+
+	if (m_manager->m_bestProcessor->m_bestScore < 0 || m_manager->m_bestProcessor->m_bestScore > m_bestScore)
 	{
 		m_manager->m_bestProcessor = this;
 	}
+}
+
+double combinatory::BlockGroupProcessor::GetProgress()
+{
+	return m_groupNumber.GetIntegerRepresentation() / (double) m_groupNumber.GetMaxNumber();
+}
+
+int combinatory::BlockGroupProcessor::GetBest()
+{
+	return m_bestScore;
+}
+
+combinatory::BlockGroupProcessorManager* combinatory::BlockGroupProcessor::GetManager()
+{
+	return m_manager;
 }
 
 combinatory::BlockGroupProcessorManager::BlockGroupProcessorManager(BlockGroup* blockGroup) :
