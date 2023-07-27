@@ -4,9 +4,12 @@
 
 #include "VariationNumber.h"
 
-#include <map>
+#include "BlockGroupProcessor.h"
 
 #include "utils.h"
+
+#include <map>
+#include <iostream>
 
 combinatory::ItemManager::ItemManager(CombinatorySettings& combinatorySettings) :
 	BaseObject(ItemManagerMeta::GetInstance())
@@ -39,6 +42,10 @@ combinatory::ItemManager::ItemManager(CombinatorySettings& combinatorySettings) 
 
 combinatory::ItemManager::~ItemManager()
 {
+	for (int i = 0; i < m_processors.size(); ++i)
+	{
+		delete m_processors[i];
+	}
 }
 
 int combinatory::ItemManager::GetItemsCount()
@@ -207,6 +214,27 @@ void combinatory::ItemManager::SeparateBlocksInGroups()
 	for (auto groupIt = m_blockGroups.begin(); groupIt != m_blockGroups.end(); ++groupIt)
 	{
 		BlockGroup& bg = *groupIt;
+		bg.ShrinkGroup();
 		bg.FlattenBlocks();
+
+		std::cout << bg.ToString() << std::endl;
+	}
+}
+
+std::vector<combinatory::BlockGroup>& combinatory::ItemManager::GetBlockGroups()
+{
+	return m_blockGroups;
+}
+
+void combinatory::ItemManager::StartSolvingBlockGroups()
+{
+	for (int i = 0; i < m_blockGroups.size(); ++i)
+	{
+		m_processors.push_back(new BlockGroupProcessorManager(&m_blockGroups[i]));
+	}
+
+	for (int i = 0; i < m_processors.size(); ++i)
+	{
+		m_processors[i]->StartProcessing();
 	}
 }

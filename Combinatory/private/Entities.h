@@ -47,6 +47,7 @@ namespace combinatory
 		std::vector<Block*> m_blocksOrdered;
 
 		BlockGroupProcessorManager* m_processorManager = nullptr;
+		~BlockGroup();
 
 		int ItemOccurences(Item* item);
 		void GetAllItems(std::set<Item*>& items);
@@ -57,6 +58,6 @@ namespace combinatory
 		void CalculateBestNumber();
 		int AssessNumber(VariationNumber& number);
 
-		~BlockGroup();
+		std::string ToString();
 	};
 }

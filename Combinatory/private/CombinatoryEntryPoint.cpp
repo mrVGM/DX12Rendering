@@ -134,5 +134,5 @@ void combinatory::CombinatoryEntryPoint::Boot()
 	itemManager->GenerateBlocks();
 	itemManager->SeparateBlocksInGroups();
 
-	bool t = true;
+	itemManager->StartSolvingBlockGroups();
 }

@@ -14,7 +14,7 @@ namespace combinatory
 		void Init(const std::vector<int>& digitLimits);
 
 	public:
-		VariationNumber() = delete;
+		VariationNumber();
 		VariationNumber(const std::vector<int>& digitLimits);
 		VariationNumber(const int* digitLimits, int count);
 		
@@ -26,5 +26,7 @@ namespace combinatory
 		bool Increment();
 
 		long long GetMaxNumber() const;
+
+		std::string ToString();
 	};
 }

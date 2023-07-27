@@ -19,6 +19,7 @@ namespace combinatory
 		std::vector<Block> m_blocks;
 		std::vector<BlockGroup> m_blockGroups;
 
+		std::vector<BlockGroupProcessorManager*> m_processors;
 	public:
 		ItemManager(CombinatorySettings& combinatorySettings);
 		virtual ~ItemManager();
@@ -30,5 +31,9 @@ namespace combinatory
 
 		void GenerateBlockGroup(Item* initialItem, BlockGroup& blockGroup);
 		void SeparateBlocksInGroups();
+
+		std::vector<BlockGroup>& GetBlockGroups();
+
+		void StartSolvingBlockGroups();
 	};
 }

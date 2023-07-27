@@ -1,5 +1,7 @@
 #include "VariationNumber.h"
 
+#include <sstream>
+
 void combinatory::VariationNumber::Init(const std::vector<int>& digitLimits)
 {
 	m_digitLimits = digitLimits;
@@ -8,6 +10,10 @@ void combinatory::VariationNumber::Init(const std::vector<int>& digitLimits)
 	{
 		m_number.push_back(0);
 	}
+}
+
+combinatory::VariationNumber::VariationNumber()
+{
 }
 
 combinatory::VariationNumber::VariationNumber(const std::vector<int>& digitLimits)
@@ -105,4 +111,22 @@ long long combinatory::VariationNumber::GetMaxNumber() const
 	}
 
 	return tmp.GetIntegerRepresentation();
+}
+
+std::string combinatory::VariationNumber::ToString()
+{
+	std::stringstream ss;
+	ss << '(';
+	for (int i = 0; i < m_number.size(); ++i)
+	{
+		ss << m_number[i];
+		if (i < m_number.size() - 1)
+		{
+			ss << ' ';
+		}
+	}
+
+	ss << ')';
+
+	return ss.str();
 }

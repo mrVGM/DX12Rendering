@@ -25,10 +25,8 @@ namespace combinatory
 
 		int m_bestScore = -1;
 	public:
-		BlockGroupProcessor(BlockGroupProcessorManager* manager, BlockGroup* blockGroup, int processorTemplateID);
+		BlockGroupProcessor(BlockGroupProcessorManager* manager, BlockGroup* blockGroup, const VariationNumber& processorTemplate);
 
-
-		void SetProcessorTemplate(int number);
 		bool IncrementCurGroupNumber();
 
 		void StartProcessing();
@@ -45,12 +43,15 @@ namespace combinatory
 		BlockGroup* m_blockGroup = nullptr;
 		std::vector<BlockGroupProcessor*> m_processors;
 
-		BlockGroupProcessor* m_bestProcessor = nullptr;
+		VariationNumber m_bestNumber;
+		int m_bestScore = -1;
 
 		BlockGroupProcessorManager(BlockGroup* blockGroup);
 		~BlockGroupProcessorManager();
 
 		void StartProcessing();
+
+		int GetScore(VariationNumber& vn);
 	};
 
 	struct JobCtx

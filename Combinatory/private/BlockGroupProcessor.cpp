@@ -2,6 +2,7 @@
 
 #include "utils.h"
 
+#include <map>
 #include <iostream>
 
 namespace
@@ -30,33 +31,22 @@ namespace
 	}
 }
 
-combinatory::BlockGroupProcessor::BlockGroupProcessor(BlockGroupProcessorManager* manager, BlockGroup* blockGroup, int processorTemplateID) :
+combinatory::BlockGroupProcessor::BlockGroupProcessor(BlockGroupProcessorManager* manager, BlockGroup* blockGroup, const VariationNumber& processorTemplate) :
 	m_manager(manager),
 	m_blockGroup(blockGroup),
+	m_processorTemplate(processorTemplate),
 	m_groupNumber(GetGroupNumberTemplate(blockGroup)),
-	m_bestGroupNumber(GetGroupNumberTemplate(blockGroup)),
-	m_processorTemplate(GetGroupProcessorTemplate(blockGroup))
+	m_bestGroupNumber(GetGroupNumberTemplate(blockGroup))
 {
-	m_processorTemplate.SetNumber(processorTemplateID);
-
-	const std::vector<int> processorTemplate = m_processorTemplate.GetNumber();
-
 	std::vector<int>& num = m_groupNumber.GetNumber();
-	std::vector<int>& bestNum = m_bestGroupNumber.GetNumber();
-
 	for (int i = 0; i < num.size(); ++i)
 	{
-		while (num[i] % 2 != processorTemplate[i])
+		while (num[i] % 2 != m_processorTemplate.GetNumber()[i])
 		{
 			++num[i];
-			++bestNum[i];
 		}
 	}
-}
-
-void combinatory::BlockGroupProcessor::SetProcessorTemplate(int number)
-{
-	m_processorTemplate.SetNumber(number);
+	m_bestGroupNumber = m_groupNumber;
 }
 
 bool combinatory::BlockGroupProcessor::IncrementCurGroupNumber()
@@ -102,16 +92,14 @@ void combinatory::ProcessSomeNumbers::Do()
 {
 	for (int i = 0; i < 300; ++i)
 	{
-		int assessment = m_ctx.m_blockGroupProcessor->m_blockGroup->AssessNumber(m_ctx.m_blockGroupProcessor->m_groupNumber);
+		int score = m_ctx.m_blockGroupProcessor->GetManager()->GetScore(m_ctx.m_blockGroupProcessor->m_groupNumber);
 		bool inc = m_ctx.m_blockGroupProcessor->IncrementCurGroupNumber();
 
-		if (assessment >= 0)
+		
+		if (m_ctx.m_blockGroupProcessor->m_bestScore < score)
 		{
-			if (m_ctx.m_blockGroupProcessor->m_bestScore < 0 || m_ctx.m_blockGroupProcessor->m_bestScore > assessment)
-			{
-				m_ctx.m_blockGroupProcessor->m_bestScore = assessment;
-				m_ctx.m_blockGroupProcessor->m_bestGroupNumber.SetNumber(m_ctx.m_blockGroupProcessor->m_groupNumber.GetIntegerRepresentation());
-			}
+			m_ctx.m_blockGroupProcessor->m_bestScore = score;
+			m_ctx.m_blockGroupProcessor->m_bestGroupNumber = m_ctx.m_blockGroupProcessor->m_groupNumber;
 		}
 
 		if (!inc)
@@ -122,28 +110,6 @@ void combinatory::ProcessSomeNumbers::Do()
 	}
 
 	RunSync(new SyncResults(m_ctx));
-
-	class LogJob : public jobs::Job
-	{
-	private:
-		BlockGroupProcessor* m_processor = nullptr;
-	public:
-		LogJob(BlockGroupProcessor* processor) :
-			m_processor(processor)
-		{
-		}
-
-		void Do() override
-		{
-			if (m_processor->GetManager()->m_bestProcessor)
-			{
-				std::cout << m_processor->GetManager()->m_bestProcessor->GetBest() << std::endl;
-			}
-		}
-	};
-
-
-	RunLog(new LogJob(m_ctx.m_blockGroupProcessor));
 }
 
 combinatory::SyncResults::SyncResults(const JobCtx& ctx) :
@@ -171,20 +137,34 @@ void combinatory::BlockGroupProcessor::StartProcessing()
 
 void combinatory::BlockGroupProcessor::StoreProcessorResult()
 {
-	if (!m_manager->m_bestProcessor)
+	if (m_manager->m_bestScore < m_bestScore)
 	{
-		m_manager->m_bestProcessor = this;
-		return;
-	}
+		m_manager->m_bestNumber = m_bestGroupNumber;
+		m_manager->m_bestScore = m_bestScore;
 
-	if (m_bestScore < 0)
-	{
-		return;
-	}
+		struct CTX
+		{
+			int m_score;
+			VariationNumber m_number;
+		};
 
-	if (m_manager->m_bestProcessor->m_bestScore < 0 || m_manager->m_bestProcessor->m_bestScore > m_bestScore)
-	{
-		m_manager->m_bestProcessor = this;
+		class LogState : public jobs::Job
+		{
+		private:
+			CTX m_ctx;
+		public:
+			LogState(const CTX& ctx) :
+				m_ctx(ctx)
+			{
+			}
+
+			void Do() override
+			{
+				std::cout << m_ctx.m_score << ":\t" << m_ctx.m_number.ToString() << std::endl;
+			}
+		};
+
+		RunLog(new LogState(CTX{ m_manager->m_bestScore, m_manager->m_bestNumber }));
 	}
 }
 
@@ -204,7 +184,8 @@ combinatory::BlockGroupProcessorManager* combinatory::BlockGroupProcessor::GetMa
 }
 
 combinatory::BlockGroupProcessorManager::BlockGroupProcessorManager(BlockGroup* blockGroup) :
-	m_blockGroup(blockGroup)
+	m_blockGroup(blockGroup),
+	m_bestNumber(GetGroupNumberTemplate(blockGroup))
 {
 	std::vector<int> tmp;
 	for (int i = 0; i < m_blockGroup->m_blocksOrdered.size(); ++i)
@@ -213,11 +194,13 @@ combinatory::BlockGroupProcessorManager::BlockGroupProcessorManager(BlockGroup* 
 	}
 
 	VariationNumber vn(tmp);
-	long long maxNum = vn.GetMaxNumber();
-	for (int i = 0; i <= maxNum; ++i)
+	bool inc = true;
+
+	while (inc)
 	{
-		BlockGroupProcessor* processor = new BlockGroupProcessor(this, m_blockGroup, i);
+		BlockGroupProcessor* processor = new BlockGroupProcessor(this, m_blockGroup, vn);
 		m_processors.push_back(processor);
+		inc = vn.Increment();
 	}
 }
 
@@ -235,4 +218,46 @@ void combinatory::BlockGroupProcessorManager::StartProcessing()
 	{
 		m_processors[i]->StartProcessing();
 	}
+}
+
+int combinatory::BlockGroupProcessorManager::GetScore(VariationNumber& vn)
+{
+	const std::vector<int> num = vn.GetNumber();
+
+	std::set<Item*> items;
+	std::map<Item*, int> counts;
+	m_blockGroup->GetAllItems(items);
+
+	for (int i = 0; i < m_blockGroup->m_blocksOrdered.size(); ++i)
+	{
+		Block* curBlock = m_blockGroup->m_blocksOrdered[i];
+		for (auto itemIt = curBlock->m_items.begin(); itemIt != curBlock->m_items.end(); ++itemIt)
+		{
+			ItemGroup& curItem = *itemIt;
+
+			auto record = counts.find(curItem.m_item);
+			int n = num[i] * curItem.count;
+			if (record == counts.end())
+			{
+				counts[curItem.m_item] = n;
+			}
+			else
+			{
+				counts[curItem.m_item] = record->second + n;
+			}
+		}
+	}
+
+	int score = 0;
+	for (auto it = counts.begin(); it != counts.end(); ++it)
+	{
+		if (it->first->m_count < it->second)
+		{
+			return -1;
+		}
+
+		score += it->second;
+	}
+
+	return score;
 }
