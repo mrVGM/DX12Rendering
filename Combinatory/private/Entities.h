@@ -36,6 +36,7 @@ namespace combinatory
 		void CalculateItemCounts();
 		void CalculateBlockMaxCount();
 		bool ContainsItem(Item* item);
+		int ItemOccurences(Item* item);
 	};
 
 	class BlockGroupProcessorManager;

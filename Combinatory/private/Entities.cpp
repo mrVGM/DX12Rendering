@@ -115,6 +115,21 @@ bool combinatory::Block::ContainsItem(Item* item)
 	return false;
 }
 
+int combinatory::Block::ItemOccurences(Item* item)
+{
+	int occurences = 0;
+	for (int i = 0; i < m_items.size(); ++i)
+	{
+		ItemGroup& cur = m_items[i];
+
+		if (cur.m_item == item)
+		{
+			occurences += cur.count;
+		}
+	}
+	return occurences;
+}
+
 int combinatory::BlockGroup::ItemOccurences(Item* item)
 {
 	int occurrences = 0;
