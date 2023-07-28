@@ -44,6 +44,15 @@ void combinatory::CombinatorySettings::LoadSettings()
 	});
 	m_settings.m_numThreads = numThreads->m_data.front()->m_symbolData.m_number;
 
+	const xml_reader::Node* unskippableBlocks = xml_reader::FindChildNode(settingsNode, [](const xml_reader::Node* node) {
+		return node->m_tagName == "unskippable_blocks";
+	});
+	for (auto it = unskippableBlocks->m_data.begin(); it != unskippableBlocks->m_data.end(); ++it)
+	{
+		const std::string& tmp = (*it)->m_symbolData.m_string;
+		m_settings.m_uskippableBlocks.insert(tmp);
+	}
+
 	const xml_reader::Node* items = xml_reader::FindChildNode(settingsNode, [](const xml_reader::Node* node) {
 		return node->m_tagName == "items";
 	});

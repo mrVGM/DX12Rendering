@@ -8,6 +8,7 @@
 #include <string>
 #include <list>
 #include <vector>
+#include <set>
 
 namespace combinatory
 {
@@ -19,6 +20,7 @@ namespace combinatory
 			int m_width = 0;
 			int m_numThreads = 1;
 			std::list<Item> m_items;
+			std::set<std::string> m_uskippableBlocks;
 		};
 	private:
 		Settings m_settings;

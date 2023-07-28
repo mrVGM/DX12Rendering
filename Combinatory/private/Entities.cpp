@@ -25,10 +25,16 @@ std::string combinatory::Block::GetBlockCode()
 	}
 
 	std::stringstream ss;
+	ss << '[';
 	for (int i = 0; i < m_items.size(); ++i)
 	{
-		ss << m_items[i].m_item->m_id << ' ';
+		ss << m_items[i].m_item->m_width << 'x' << m_items[i].m_item->m_length;
+		if (i < m_items.size() - 1)
+		{
+			ss << ' ';
+		}
 	}
+	ss << ']';
 
 	return ss.str();
 }
@@ -193,9 +199,14 @@ void combinatory::BlockGroup::ShrinkGroup()
 			{
 				continue;
 			}
+			Block* curBlock = *it;
+			std::string blockCode = curBlock->GetBlockCode();
+			if (GetSettings()->GetSettings().m_uskippableBlocks.contains(blockCode))
+			{
+				continue;
+			}
 
 			bool canRemove = true;
-			Block* curBlock = *it;
 			for (int i = 0; i < curBlock->m_items.size(); ++i)
 			{
 				ItemGroup& curItem = curBlock->m_items[i];

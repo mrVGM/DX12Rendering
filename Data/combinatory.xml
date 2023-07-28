@@ -70,4 +70,8 @@
 			<count>54</count>
 		</item>
 	</items>
+
+	<unskippable_blocks>
+		"[80x2500 80x2500 80x2500 80x2500 80x2500]"
+	</unskippable_blocks>
 </settings>
