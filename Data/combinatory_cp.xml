@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<settings>
+	<width>400</width>
+	<num_threads>10</num_threads>
+	
+	<items>
+		<item>
+			<width>240</width>
+			<length>320</length>
+			<count>44</count>
+		</item>
+		
+		<item>
+			<width>200</width>
+			<length>290</length>
+			<count>46</count>
+		</item>
+
+		<item>
+			<width>200</width>
+			<length>240</length>
+			<count>46</count>
+		</item>
+
+		<item>
+			<width>160</width>
+			<length>240</length>
+			<count>64</count>
+		</item>
+
+		<item>
+			<width>140</width>
+			<length>200</length>
+			<count>64</count>
+		</item>
+
+		<item>
+			<width>120</width>
+			<length>170</length>
+			<count>48</count>
+		</item>
+
+		<item>
+			<width>140</width>
+			<length>2500</length>
+			<count>0</count>
+		</item>
+
+		<item>
+			<width>120</width>
+			<length>2500</length>
+			<count>0</count>
+		</item>
+
+		<item>
+			<width>100</width>
+			<length>2500</length>
+			<count>0</count>
+		</item>
+
+		<item>
+			<width>80</width>
+			<length>2500</length>
+			<count>0</count>
+		</item>
+
+		<item>
+			<width>66</width>
+			<length>2500</length>
+			<count>0</count>
+		</item>
+	</items>
+
+	<unskippable_blocks>
+		"[80x2500 80x2500 80x2500 80x2500 80x2500]"
+	</unskippable_blocks>
+</settings>
