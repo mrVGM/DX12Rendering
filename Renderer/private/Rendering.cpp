@@ -44,6 +44,8 @@
 
 #include "RendererEntryPoint.h"
 
+#include "ImageLoading.h"
+
 #include <iostream>
 
 namespace
@@ -221,6 +223,8 @@ void rendering::Boot()
 	}
 
 	InitBaseObjects();
+
+	image_loading::Boot();
 
 	LoadScene();
 	LoadRenderPipepine();
