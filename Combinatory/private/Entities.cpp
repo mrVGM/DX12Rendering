@@ -302,17 +302,13 @@ std::string combinatory::BlockGroup::ToString()
 {
 	std::stringstream ss;
 
+	ss << "*** Block Group ***" << std::endl;
+
 	for (int i = 0; i < m_blocksOrdered.size(); ++i)
 	{
 		Block* cur = m_blocksOrdered[i];
 
-		ss << "*** Block " << i << " ***" << std::endl;
-
-		for (int j = 0; j < cur->m_items.size(); ++j)
-		{
-			ItemGroup& curItem = cur->m_items[j];
-			ss << '\t' << curItem.m_item->m_width << "x" << curItem.m_item->m_length << '\t' << "x" << curItem.count << std::endl;
-		}
+		ss << cur->GetBlockCode() << std::endl;
 	}
 
 	return ss.str();
