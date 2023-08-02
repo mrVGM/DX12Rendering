@@ -224,10 +224,10 @@ void rendering::Boot()
 
 	InitBaseObjects();
 
-	image_loading::Boot();
-
 	LoadScene();
 	LoadRenderPipepine();
+
+	image_loading::Boot();
 }
 
 void rendering::RegisterLib()
