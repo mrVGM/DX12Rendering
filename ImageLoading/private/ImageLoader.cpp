@@ -79,6 +79,31 @@ namespace
 		else if (dxgiFormat == DXGI_FORMAT_R8_UNORM) return 8;
 		else if (dxgiFormat == DXGI_FORMAT_A8_UNORM) return 8;
 	}
+
+
+	struct LoadImageCommandList
+	{
+		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocator;
+		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_commandList;
+
+		LoadImageCommandList()
+		{
+			using Microsoft::WRL::ComPtr;
+			using namespace rendering;
+
+			THROW_ERROR(
+				m_device->GetDevice().CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COPY, IID_PPV_ARGS(&m_commandAllocator)),
+				"Can't create Command Allocator!")
+
+			THROW_ERROR(
+				m_device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_COPY, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&m_commandList)),
+				"Can't create Command List!")
+
+			THROW_ERROR(
+				m_commandList->Close(),
+				"Can't close command List!")
+		}
+	};
 }
 
 rendering::image_loading::ImageLoader::ImageLoader() :
@@ -150,7 +175,59 @@ void rendering::image_loading::ImageLoader::LoadImageFromFile(const std::string&
 		DXHeap* m_bufferHeap = nullptr;
 		DXBuffer* m_buffer = nullptr;
 
+		LoadImageCommandList m_loadImageCommandList;
+		BYTE* m_imageData = nullptr;
+		D3D12_SUBRESOURCE_DATA m_textureData = {};
+
+
 		jobs::Job* m_done = nullptr;
+
+		~Context()
+		{
+			if (m_imageData)
+			{
+				delete[] m_imageData;
+			}
+		}
+	};
+
+	int bitsPerPixel = GetDXGIFormatBitsPerPixel(format); // number of bits per pixel
+	int bytesPerRow = (width * bitsPerPixel) / 8; // number of bytes in each row of the image data
+	int imageSize = bytesPerRow * height; // total image size in bytes
+
+	Context* ctx = new Context();
+	ctx->m_imageName = imageFile;
+	ctx->m_width = width;
+	ctx->m_height = height;
+	ctx->m_format = format;
+	ctx->m_imageData = new BYTE[imageSize];
+
+	frame->CopyPixels(nullptr, bytesPerRow, imageSize, ctx->m_imageData);
+
+	D3D12_SUBRESOURCE_DATA textureData = {};
+	ctx->m_textureData.pData = ctx->m_imageData; // pointer to our image data
+	ctx->m_textureData.RowPitch = bytesPerRow; // size of all our triangle vertex data
+	ctx->m_textureData.SlicePitch = bytesPerRow * height; // also the size of our triangle vertex data
+
+	class CleanUp : public jobs::Job
+	{
+	private:
+		Context& m_ctx;
+	public:
+		CleanUp(Context& ctx) :
+			m_ctx(ctx)
+		{
+		}
+
+		void Do() override
+		{
+			core::utils::RunSync(m_ctx.m_done);
+
+			core::utils::DisposeBaseObject(*m_ctx.m_buffer);
+			core::utils::DisposeBaseObject(*m_ctx.m_bufferHeap);
+
+			delete &m_ctx;
+		}
 	};
 
 	class PlaceResources : public jobs::Job
@@ -168,8 +245,24 @@ void rendering::image_loading::ImageLoader::LoadImageFromFile(const std::string&
 			m_ctx.m_texture->Place(*m_ctx.m_heap, 0);
 			m_ctx.m_buffer->Place(m_ctx.m_bufferHeap, 0);
 
+			m_ctx.m_loadImageCommandList.m_commandList.Get()->Reset(m_ctx.m_loadImageCommandList.m_commandAllocator.Get(), nullptr);
 
-			core::utils::RunSync(m_ctx.m_done);
+
+			UpdateSubresources(m_ctx.m_loadImageCommandList.m_commandList.Get(), m_ctx.m_texture->GetTexture(), m_ctx.m_buffer->GetBuffer(), 0, 0, 1, &m_ctx.m_textureData);
+
+			CD3DX12_RESOURCE_BARRIER barrier[] =
+			{
+				CD3DX12_RESOURCE_BARRIER::Transition(m_ctx.m_texture->GetTexture(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
+			};
+
+			//m_ctx.m_loadImageCommandList.m_commandList->ResourceBarrier(_countof(barrier), barrier);
+			m_ctx.m_loadImageCommandList.m_commandList->Close();
+
+			ID3D12CommandList* lists[] =
+			{
+				m_ctx.m_loadImageCommandList.m_commandList.Get()
+			};
+			core::utils::RunCopyLists(lists, _countof(lists), new CleanUp(m_ctx));
 		}
 	};
 
@@ -246,7 +339,7 @@ void rendering::image_loading::ImageLoader::LoadImageFromFile(const std::string&
 		}
 	};
 
-
+	core::utils::RunSync(new CreateItems(*ctx));
 }
 
 #undef THROW_ERROR
