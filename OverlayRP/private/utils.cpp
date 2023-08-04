@@ -1,20 +1,20 @@
 #include "utils.h"
 
-#include "DXCameraBufferMeta.h"
+#include "Resources/QuadVertexBufferMeta.h"
 
 #include "BaseObjectContainer.h"
 
-rendering::DXMutableBuffer* rendering::unlit::GetCameraBuffer()
+rendering::DXBuffer* rendering::overlay::GetQuadVertexBuffer()
 {
 	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
 
-	BaseObject* obj = container.GetObjectOfClass(DXCameraBufferMeta::GetInstance());
+	BaseObject* obj = container.GetObjectOfClass(QuadVertexBufferMeta::GetInstance());
 
 	if (!obj)
 	{
-		throw "Can't find Camera Buffer!";
+		throw "Can't find Quad Vertex Buffer!";
 	}
 
-	DXMutableBuffer* buffer = static_cast<DXMutableBuffer*>(obj);
+	DXBuffer* buffer = static_cast<DXBuffer*>(obj);
 	return buffer;
 }

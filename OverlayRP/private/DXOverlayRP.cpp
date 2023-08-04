@@ -13,6 +13,13 @@
 
 #include "DXMutableBuffer.h"
 
+#include "DXHeap.h"
+#include "DXBufferMeta.h"
+#include "Resources/QuadVertexBufferMeta.h"
+
+#include "utils.h"
+#include "CoreUtils.h"
+
 #include <set>
 
 #define THROW_ERROR(hRes, error) \
@@ -134,7 +141,40 @@ void rendering::overlay::DXOverlayRP::Execute()
 
 void rendering::overlay::DXOverlayRP::Load(jobs::Job* done)
 {
-    core::utils::RunSync(done);
+    struct Context
+    {
+        int m_left = 2;
+        jobs::Job* m_done = nullptr;
+    };
+
+    Context* ctx = new Context();
+    ctx->m_done = done;
+
+    class ItemReady : public jobs::Job
+    {
+    private:
+        Context& m_ctx;
+    public:
+        ItemReady(Context& ctx) :
+            m_ctx(ctx)
+        {
+        }
+
+        void Do() override
+        {
+            --m_ctx.m_left;
+            if (m_ctx.m_left > 0)
+            {
+                return;
+            }
+
+            core::utils::RunSync(m_ctx.m_done);
+            delete &m_ctx;
+        }
+    };
+
+    CreateQuadVertexBuffer(new ItemReady(*ctx));
+    CreateQuadIndexBuffer(new ItemReady(*ctx));
 }
 
 #undef THROW_ERROR
@@ -180,4 +220,270 @@ void rendering::overlay::DXOverlayRP::RenderOverlay()
     }
 
     m_commandQueue->GetCommandQueue()->ExecuteCommandLists(numLists, m_commandListsCache);
+}
+
+void rendering::overlay::DXOverlayRP::CreateQuadIndexBuffer(jobs::Job* done)
+{
+    struct Context
+    {
+        int m_loading = 2;
+
+        DXBuffer* m_buffer = nullptr;
+        DXHeap* m_heap = nullptr;
+
+        DXBuffer* m_uploadBuffer = nullptr;
+        DXHeap* m_uploadHeap = nullptr;
+
+        jobs::Job* m_done = nullptr;
+    };
+
+    Context* ctx = new Context();
+    ctx->m_done = done;
+
+    class CleanUp : public jobs::Job
+    {
+    private:
+        Context& m_ctx;
+    public:
+        CleanUp(Context& ctx) :
+            m_ctx(ctx)
+        {
+        }
+
+        void Do() override
+        {
+            core::utils::RunSync(m_ctx.m_done);
+
+            core::utils::DisposeBaseObject(*m_ctx.m_uploadBuffer);
+            core::utils::DisposeBaseObject(*m_ctx.m_uploadHeap);
+            delete& m_ctx;
+        }
+    };
+
+    class PlaceBuffers : public jobs::Job
+    {
+    private:
+        Context& m_ctx;
+    public:
+        PlaceBuffers(Context& ctx) :
+            m_ctx(ctx)
+        {
+        }
+
+        void Do() override
+        {
+            m_ctx.m_buffer->Place(m_ctx.m_heap, 0);
+            m_ctx.m_uploadBuffer->Place(m_ctx.m_uploadHeap, 0);
+
+            void* data = m_ctx.m_uploadBuffer->Map();
+            QuadVertex* quadVerts = static_cast<QuadVertex*>(data);
+
+            quadVerts[0] = QuadVertex{ {-1, -1, 0}, {0, 0} };
+            quadVerts[1] = QuadVertex{ { 1, -1, 0}, {1, 0} };
+            quadVerts[2] = QuadVertex{ { 1,  1, 0}, {1, 1} };
+            quadVerts[3] = QuadVertex{ {-1,  1, 0}, {0, 1} };
+
+            m_ctx.m_uploadBuffer->Unmap();
+
+            m_ctx.m_uploadBuffer->CopyBuffer(*m_ctx.m_buffer, new CleanUp(m_ctx));
+        }
+    };
+
+    class HeapIsResident : public jobs::Job
+    {
+    private:
+        Context& m_ctx;
+    public:
+        HeapIsResident(Context& ctx) :
+            m_ctx(ctx)
+        {
+        }
+
+        void Do() override
+        {
+            --m_ctx.m_loading;
+            if (m_ctx.m_loading > 0)
+            {
+                return;
+            }
+
+            core::utils::RunAsync(new PlaceBuffers(m_ctx));
+        }
+    };
+
+    class CreateItems : public jobs::Job
+    {
+    private:
+        Context& m_ctx;
+    public:
+        CreateItems(Context& ctx) :
+            m_ctx(ctx)
+        {
+        }
+
+        void Do() override
+        {
+            UINT64 stride = sizeof(QuadVertex);
+            UINT64 size = 4 * stride;
+
+            m_ctx.m_buffer = new DXBuffer(QuadVertexBufferMeta::GetInstance());
+            m_ctx.m_buffer->SetBufferSizeAndFlags(size, D3D12_RESOURCE_FLAG_NONE);
+            m_ctx.m_buffer->SetBufferStride(stride);
+
+            m_ctx.m_uploadBuffer = new DXBuffer(QuadVertexBufferMeta::GetInstance());
+            m_ctx.m_uploadBuffer->SetBufferSizeAndFlags(size, D3D12_RESOURCE_FLAG_NONE);
+            m_ctx.m_uploadBuffer->SetBufferStride(stride);
+
+            m_ctx.m_heap = new DXHeap();
+            m_ctx.m_heap->SetHeapType(D3D12_HEAP_TYPE_DEFAULT);
+            m_ctx.m_heap->SetHeapSize(size);
+            m_ctx.m_heap->SetHeapFlags(D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS);
+            m_ctx.m_heap->Create();
+
+            m_ctx.m_uploadHeap = new DXHeap();
+            m_ctx.m_uploadHeap->SetHeapType(D3D12_HEAP_TYPE_UPLOAD);
+            m_ctx.m_uploadHeap->SetHeapSize(size);
+            m_ctx.m_uploadHeap->SetHeapFlags(D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS);
+            m_ctx.m_uploadHeap->Create();
+
+            m_ctx.m_heap->MakeResident(new HeapIsResident(m_ctx));
+            m_ctx.m_uploadHeap->MakeResident(new HeapIsResident(m_ctx));
+        }
+    };
+
+    core::utils::RunSync(new CreateItems(*ctx));
+}
+
+void rendering::overlay::DXOverlayRP::CreateQuadVertexBuffer(jobs::Job* done)
+{
+    struct Context
+    {
+        int m_loading = 2;
+
+        DXBuffer* m_buffer = nullptr;
+        DXHeap* m_heap = nullptr;
+
+        DXBuffer* m_uploadBuffer = nullptr;
+        DXHeap* m_uploadHeap = nullptr;
+
+        jobs::Job* m_done = nullptr;
+    };
+
+    Context* ctx = new Context();
+    ctx->m_done = done;
+
+    class CleanUp : public jobs::Job
+    {
+    private:
+        Context& m_ctx;
+    public:
+        CleanUp(Context& ctx) :
+            m_ctx(ctx)
+        {
+        }
+
+        void Do() override
+        {
+            core::utils::RunSync(m_ctx.m_done);
+
+            core::utils::DisposeBaseObject(*m_ctx.m_uploadBuffer);
+            core::utils::DisposeBaseObject(*m_ctx.m_uploadHeap);
+            delete& m_ctx;
+        }
+    };
+
+    class PlaceBuffers : public jobs::Job
+    {
+    private:
+        Context& m_ctx;
+    public:
+        PlaceBuffers(Context& ctx) :
+            m_ctx(ctx)
+        {
+        }
+
+        void Do() override
+        {
+            m_ctx.m_buffer->Place(m_ctx.m_heap, 0);
+            m_ctx.m_uploadBuffer->Place(m_ctx.m_uploadHeap, 0);
+
+            void* data = m_ctx.m_uploadBuffer->Map();
+            int* indices = static_cast<int*>(data);
+
+            indices[0] = 0;
+            indices[1] = 3;
+            indices[2] = 2;
+            indices[3] = 0;
+            indices[4] = 2;
+            indices[5] = 1;
+
+            m_ctx.m_uploadBuffer->Unmap();
+
+            m_ctx.m_uploadBuffer->CopyBuffer(*m_ctx.m_buffer, new CleanUp(m_ctx));
+        }
+    };
+
+    class HeapIsResident : public jobs::Job
+    {
+    private:
+        Context& m_ctx;
+    public:
+        HeapIsResident(Context& ctx) :
+            m_ctx(ctx)
+        {
+        }
+
+        void Do() override
+        {
+            --m_ctx.m_loading;
+            if (m_ctx.m_loading > 0)
+            {
+                return;
+            }
+
+            core::utils::RunAsync(new PlaceBuffers(m_ctx));
+        }
+    };
+
+    class CreateItems : public jobs::Job
+    {
+    private:
+        Context& m_ctx;
+    public:
+        CreateItems(Context& ctx) :
+            m_ctx(ctx)
+        {
+        }
+
+        void Do() override
+        {
+            UINT64 stride = sizeof(int);
+            UINT64 size = 6 * stride;
+
+            m_ctx.m_buffer = new DXBuffer(QuadVertexBufferMeta::GetInstance());
+            m_ctx.m_buffer->SetBufferSizeAndFlags(size, D3D12_RESOURCE_FLAG_NONE);
+            m_ctx.m_buffer->SetBufferStride(stride);
+
+            m_ctx.m_uploadBuffer = new DXBuffer(QuadVertexBufferMeta::GetInstance());
+            m_ctx.m_uploadBuffer->SetBufferSizeAndFlags(size, D3D12_RESOURCE_FLAG_NONE);
+            m_ctx.m_uploadBuffer->SetBufferStride(stride);
+
+            m_ctx.m_heap = new DXHeap();
+            m_ctx.m_heap->SetHeapType(D3D12_HEAP_TYPE_DEFAULT);
+            m_ctx.m_heap->SetHeapSize(size);
+            m_ctx.m_heap->SetHeapFlags(D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS);
+            m_ctx.m_heap->Create();
+
+            m_ctx.m_uploadHeap = new DXHeap();
+            m_ctx.m_uploadHeap->SetHeapType(D3D12_HEAP_TYPE_UPLOAD);
+            m_ctx.m_uploadHeap->SetHeapSize(size);
+            m_ctx.m_uploadHeap->SetHeapFlags(D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS);
+            m_ctx.m_uploadHeap->Create();
+
+            m_ctx.m_heap->MakeResident(new HeapIsResident(m_ctx));
+            m_ctx.m_uploadHeap->MakeResident(new HeapIsResident(m_ctx));
+        }
+    };
+
+    core::utils::RunSync(new CreateItems(*ctx));
 }

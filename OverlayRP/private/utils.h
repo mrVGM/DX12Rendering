@@ -1,8 +1,15 @@
 #pragma once
 
+#include "DXBuffer.h"
 #include "DXMutableBuffer.h"
 
-namespace rendering::unlit
+namespace rendering::overlay
 {
-	DXMutableBuffer* GetCameraBuffer();
+	struct QuadVertex
+	{
+		float m_position[4];
+		float m_uv[2];
+	};
+
+	DXBuffer* GetQuadVertexBuffer();
 }

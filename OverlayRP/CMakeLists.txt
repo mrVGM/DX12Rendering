@@ -1,12 +1,14 @@
 ﻿cmake_minimum_required (VERSION 3.8)
 
 add_library (OverlayRP
-	"public/DXOverlayRPMeta.h"
+	"private/Resources/QuadVertexBufferMeta.h"
 	"private/DXOverlayRPMeta.cpp"
 	"public/DXOverlayRP.h"
 	"private/DXOverlayRP.cpp"
 	"private/utils.cpp"
 	"private/utils.h"
+	"private/Resources/QuadVertexBufferMeta.h"
+	"private/Resources/QuadVertexBufferMeta.cpp"
 )
 
 target_include_directories(OverlayRP INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
