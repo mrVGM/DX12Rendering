@@ -192,6 +192,8 @@ namespace
 		new Updater();
 		new DXMaterialRepo();
 
+		image_loading::Boot();
+
 		rendering::shader_repo::LoadShaderPrograms();
 
 		rendering::utils::CacheObjects();
@@ -226,8 +228,6 @@ void rendering::Boot()
 
 	LoadScene();
 	LoadRenderPipepine();
-
-	image_loading::Boot();
 }
 
 void rendering::RegisterLib()

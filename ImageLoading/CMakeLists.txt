@@ -7,7 +7,9 @@ add_library (ImageLoading
 	"private/ImageLoaderMeta.cpp"
 	"public/ImageLoading.h"
 	"private/ImageLoading.cpp"
-)
+	"private/ImageTextureMeta.h"
+	"private/ImageTextureMeta.cpp"
+  )
 
 target_include_directories(ImageLoading INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(ImageLoading PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
