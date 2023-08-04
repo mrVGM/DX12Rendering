@@ -48,6 +48,7 @@ target_link_libraries(Renderer INTERFACE PUBLIC
 	DeferredRP
 	CommonResources
 	AppSettings
+	ImageLoading
 )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

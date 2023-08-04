@@ -44,6 +44,8 @@
 
 #include "RendererEntryPoint.h"
 
+#include "ImageLoading.h"
+
 #include <iostream>
 
 namespace
@@ -189,6 +191,8 @@ namespace
 		new DXRenderer();
 		new Updater();
 		new DXMaterialRepo();
+
+		image_loading::Boot();
 
 		rendering::shader_repo::LoadShaderPrograms();
 

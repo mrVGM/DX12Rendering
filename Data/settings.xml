@@ -9,5 +9,6 @@
 	
 	<other_settings>
 		<shader_repo>"shader_repo.xml"</shader_repo>
+		<image_loading>"image_loading.xml"</image_loading>
 	</other_settings>
 </settings>
