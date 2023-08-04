@@ -214,6 +214,8 @@ void rendering::image_loading::ImageLoader::LoadImageFromFile(const std::string&
 	ctx->m_textureData.RowPitch = bytesPerRow; // size of all our triangle vertex data
 	ctx->m_textureData.SlicePitch = bytesPerRow * height; // also the size of our triangle vertex data
 
+	ctx->m_done = done;
+
 	class CleanUp : public jobs::Job
 	{
 	private:
