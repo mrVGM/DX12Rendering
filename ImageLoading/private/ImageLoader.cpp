@@ -86,6 +86,8 @@ namespace
 		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocator;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_commandList;
 
+		ID3D12CommandList* m_commandLists[1];
+
 		LoadImageCommandList()
 		{
 			using Microsoft::WRL::ComPtr;
@@ -102,6 +104,8 @@ namespace
 			THROW_ERROR(
 				m_commandList->Close(),
 				"Can't close command List!")
+
+			m_commandLists[0] = m_commandList.Get();
 		}
 	};
 }
@@ -162,6 +166,7 @@ void rendering::image_loading::ImageLoader::LoadImageFromFile(const std::string&
 	struct Context
 	{
 		std::string m_imageName;
+		ImageLoader* m_imageLoader = nullptr;
 
 		int m_loading = 2;
 
@@ -179,7 +184,6 @@ void rendering::image_loading::ImageLoader::LoadImageFromFile(const std::string&
 		BYTE* m_imageData = nullptr;
 		D3D12_SUBRESOURCE_DATA m_textureData = {};
 
-
 		jobs::Job* m_done = nullptr;
 
 		~Context()
@@ -196,6 +200,7 @@ void rendering::image_loading::ImageLoader::LoadImageFromFile(const std::string&
 	int imageSize = bytesPerRow * height; // total image size in bytes
 
 	Context* ctx = new Context();
+	ctx->m_imageLoader = this;
 	ctx->m_imageName = imageFile;
 	ctx->m_width = width;
 	ctx->m_height = height;
@@ -221,6 +226,7 @@ void rendering::image_loading::ImageLoader::LoadImageFromFile(const std::string&
 
 		void Do() override
 		{
+			m_ctx.m_imageLoader->m_imagesRepo[m_ctx.m_imageName] = m_ctx.m_texture;
 			core::utils::RunSync(m_ctx.m_done);
 
 			core::utils::DisposeBaseObject(*m_ctx.m_buffer);
@@ -249,20 +255,9 @@ void rendering::image_loading::ImageLoader::LoadImageFromFile(const std::string&
 
 
 			UpdateSubresources(m_ctx.m_loadImageCommandList.m_commandList.Get(), m_ctx.m_texture->GetTexture(), m_ctx.m_buffer->GetBuffer(), 0, 0, 1, &m_ctx.m_textureData);
-
-			CD3DX12_RESOURCE_BARRIER barrier[] =
-			{
-				CD3DX12_RESOURCE_BARRIER::Transition(m_ctx.m_texture->GetTexture(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
-			};
-
-			//m_ctx.m_loadImageCommandList.m_commandList->ResourceBarrier(_countof(barrier), barrier);
 			m_ctx.m_loadImageCommandList.m_commandList->Close();
 
-			ID3D12CommandList* lists[] =
-			{
-				m_ctx.m_loadImageCommandList.m_commandList.Get()
-			};
-			core::utils::RunCopyLists(lists, _countof(lists), new CleanUp(m_ctx));
+			core::utils::RunCopyLists(m_ctx.m_loadImageCommandList.m_commandLists, 1, new CleanUp(m_ctx));
 		}
 	};
 
@@ -340,6 +335,11 @@ void rendering::image_loading::ImageLoader::LoadImageFromFile(const std::string&
 	};
 
 	core::utils::RunSync(new CreateItems(*ctx));
+}
+
+rendering::DXTexture* rendering::image_loading::ImageLoader::GetImage(const std::string& image)
+{
+	return m_imagesRepo[image];
 }
 
 #undef THROW_ERROR

@@ -26,5 +26,7 @@ namespace rendering::image_loading
 		virtual ~ImageLoader();
 
 		void LoadImageFromFile(const std::string& imageFile, jobs::Job* done);
+
+		DXTexture* GetImage(const std::string& image);
 	};
 }
