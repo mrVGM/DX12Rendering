@@ -13,6 +13,8 @@
 
 #include "DataLib.h"
 
+#include "utils.h"
+
 #include "d3dx12.h"
 
 #include <d3d12.h>
@@ -25,6 +27,7 @@ if (FAILED(hRes)) {\
 namespace
 {
 	rendering::DXDevice* m_device = nullptr;
+	rendering::image_loading::ImageLoadingSettings* m_imageLoadingSettings = nullptr;
 
 	void CacheObjects()
 	{
@@ -33,6 +36,11 @@ namespace
 		if (!m_device)
 		{
 			m_device = core::utils::GetDevice();
+		}
+
+		if (!m_imageLoadingSettings)
+		{
+			m_imageLoadingSettings = rendering::image_loading::GetImageLoadingSettings();
 		}
 	}
 
@@ -158,6 +166,11 @@ void rendering::image_loading::ImageLoader::LoadImageFromFile(const std::string&
 	hr = frame->GetPixelFormat(&pf);
 
 	DXGI_FORMAT format = GetDXGIFormatFromWICFormat(pf);
+
+	if (format == DXGI_FORMAT_UNKNOWN)
+	{
+		throw "Unsupported image format!";
+	}
 
 	UINT width;
 	UINT height;
@@ -342,6 +355,25 @@ void rendering::image_loading::ImageLoader::LoadImageFromFile(const std::string&
 rendering::DXTexture* rendering::image_loading::ImageLoader::GetImage(const std::string& image)
 {
 	return m_imagesRepo[image];
+}
+
+void rendering::image_loading::ImageLoader::StartLoadingImages()
+{
+	ImageLoadingSettings::Settings& settings = m_imageLoadingSettings->GetSettings();
+
+	class DummyJob : public jobs::Job
+	{
+	public:
+		void Do() override
+		{
+		}
+	};
+
+	for (auto it = settings.m_images.begin(); it != settings.m_images.end(); ++it)
+	{
+		LoadImageFromFile(it->second.m_imageFile, new DummyJob());
+
+	}
 }
 
 #undef THROW_ERROR

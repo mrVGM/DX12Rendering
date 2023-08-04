@@ -9,12 +9,18 @@ add_library (ImageLoading
 	"private/ImageLoading.cpp"
 	"private/ImageTextureMeta.h"
 	"private/ImageTextureMeta.cpp"
-  )
+	"private/ImageLoadingSettingsMeta.cpp"
+	"private/ImageLoadingSettingsMeta.h"
+	"private/ImageLoadingSettings.cpp"
+	"private/ImageLoadingSettings.h"
+	"private/utils.h"
+	"private/utils.cpp"
+)
 
 target_include_directories(ImageLoading INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(ImageLoading PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(ImageLoading PRIVATE RenderingCore)
+target_link_libraries(ImageLoading PRIVATE RenderingCore AppSettings XMLReader)
 target_link_libraries(ImageLoading PRIVATE "windowscodecs.lib")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

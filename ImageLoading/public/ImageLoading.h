@@ -13,4 +13,5 @@ namespace rendering::image_loading
 {
 	void Boot();
 	DXTexture* GetImage(const std::string& image);
+	const std::string* GetImageDescriptionFile(const std::string& image);
 }
