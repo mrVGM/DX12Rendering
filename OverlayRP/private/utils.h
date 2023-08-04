@@ -11,6 +11,13 @@ namespace rendering::overlay
 		float m_uv[2];
 	};
 
+	struct CharInfo
+	{
+		float m_position[4];
+		int m_charID;
+	};
+
 	DXBuffer* GetQuadVertexBuffer();
 	DXBuffer* GetQuadIndexBuffer();
+	DXMutableBuffer* GetQuadInstanceBuffer();
 }

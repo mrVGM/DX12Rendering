@@ -17,6 +17,7 @@
 #include "DXBufferMeta.h"
 #include "Resources/QuadVertexBufferMeta.h"
 #include "Resources/QuadIndexBufferMeta.h"
+#include "Resources/QuadInstanceBufferMeta.h"
 
 #include "utils.h"
 #include "CoreUtils.h"
@@ -144,7 +145,7 @@ void rendering::overlay::DXOverlayRP::Load(jobs::Job* done)
 {
     struct Context
     {
-        int m_left = 2;
+        int m_left = 3;
         jobs::Job* m_done = nullptr;
     };
 
@@ -176,6 +177,7 @@ void rendering::overlay::DXOverlayRP::Load(jobs::Job* done)
 
     CreateQuadVertexBuffer(new ItemReady(*ctx));
     CreateQuadIndexBuffer(new ItemReady(*ctx));
+    CreateQuadInstanceBuffer(new ItemReady(*ctx));
 }
 
 #undef THROW_ERROR
@@ -487,4 +489,10 @@ void rendering::overlay::DXOverlayRP::CreateQuadVertexBuffer(jobs::Job* done)
     };
 
     core::utils::RunSync(new CreateItems(*ctx));
+}
+
+void rendering::overlay::DXOverlayRP::CreateQuadInstanceBuffer(jobs::Job* done)
+{
+    DXMutableBuffer* instanceBuffer = new DXMutableBuffer(QuadInstanceBufferMeta::GetInstance(), m_maxCharacters * sizeof(CharInfo), sizeof(CharInfo));
+    instanceBuffer->Load(done);
 }

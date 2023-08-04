@@ -13,6 +13,8 @@ namespace rendering::overlay
 {
 	class DXOverlayRP : public RenderPass
 	{
+		const int m_maxCharacters = 1024;
+
 		ID3D12CommandList** m_commandListsCache = nullptr;
 		int m_numCommandLists = 0;
 
@@ -25,6 +27,7 @@ namespace rendering::overlay
 
 		void CreateQuadVertexBuffer(jobs::Job* done);
 		void CreateQuadIndexBuffer(jobs::Job* done);
+		void CreateQuadInstanceBuffer(jobs::Job* done);
 	public:
 		DXOverlayRP();
 		virtual ~DXOverlayRP();

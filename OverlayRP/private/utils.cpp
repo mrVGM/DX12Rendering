@@ -2,6 +2,7 @@
 
 #include "Resources/QuadVertexBufferMeta.h"
 #include "Resources/QuadIndexBufferMeta.h"
+#include "Resources/QuadInstanceBufferMeta.h"
 
 #include "BaseObjectContainer.h"
 
@@ -32,5 +33,20 @@ rendering::DXBuffer* rendering::overlay::GetQuadIndexBuffer()
 	}
 
 	DXBuffer* buffer = static_cast<DXBuffer*>(obj);
+	return buffer;
+}
+
+rendering::DXMutableBuffer* rendering::overlay::GetQuadInstanceBuffer()
+{
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+
+	BaseObject* obj = container.GetObjectOfClass(QuadInstanceBufferMeta::GetInstance());
+
+	if (!obj)
+	{
+		throw "Can't find Quad Index Buffer!";
+	}
+
+	DXMutableBuffer* buffer = static_cast<DXMutableBuffer*>(obj);
 	return buffer;
 }
