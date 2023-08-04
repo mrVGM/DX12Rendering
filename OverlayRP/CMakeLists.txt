@@ -12,6 +12,10 @@ add_library (OverlayRP
 	"private/Resources/QuadIndexBufferMeta.cpp"
 	"private/Resources/QuadInstanceBufferMeta.h"
 	"private/Resources/QuadInstanceBufferMeta.cpp"
+    "private/HelperMaterials/DXDisplayTextMaterial.cpp"
+	"private/HelperMaterials/DXDisplayTextMaterial.h"
+	"private/HelperMaterials/DXDisplaytextMaterialMeta.cpp"
+	"private/HelperMaterials/DXDisplayTextMaterialMeta.h"
 )
 
 target_include_directories(OverlayRP INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

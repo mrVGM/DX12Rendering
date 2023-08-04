@@ -7,7 +7,7 @@ namespace rendering::overlay
 {
 	struct QuadVertex
 	{
-		float m_position[4];
+		float m_position[3];
 		float m_uv[2];
 	};
 
