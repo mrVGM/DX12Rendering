@@ -49,6 +49,7 @@ target_link_libraries(Renderer INTERFACE PUBLIC
 	CommonResources
 	AppSettings
 	ImageLoading
+	OverlayRP
 )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
