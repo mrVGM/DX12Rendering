@@ -9,6 +9,8 @@ add_library (OverlayRP
 	"private/utils.h"
 	"private/Resources/QuadVertexBufferMeta.h"
 	"private/Resources/QuadVertexBufferMeta.cpp"
+	"private/Resources/QuadIndexBufferMeta.h"
+	"private/Resources/QuadIndexBufferMeta.cpp"
 )
 
 target_include_directories(OverlayRP INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

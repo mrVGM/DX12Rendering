@@ -12,4 +12,5 @@ namespace rendering::overlay
 	};
 
 	DXBuffer* GetQuadVertexBuffer();
+	DXBuffer* GetQuadIndexBuffer();
 }

@@ -16,6 +16,7 @@
 #include "DXHeap.h"
 #include "DXBufferMeta.h"
 #include "Resources/QuadVertexBufferMeta.h"
+#include "Resources/QuadIndexBufferMeta.h"
 
 #include "utils.h"
 #include "CoreUtils.h"
@@ -330,7 +331,7 @@ void rendering::overlay::DXOverlayRP::CreateQuadIndexBuffer(jobs::Job* done)
             m_ctx.m_buffer->SetBufferSizeAndFlags(size, D3D12_RESOURCE_FLAG_NONE);
             m_ctx.m_buffer->SetBufferStride(stride);
 
-            m_ctx.m_uploadBuffer = new DXBuffer(QuadVertexBufferMeta::GetInstance());
+            m_ctx.m_uploadBuffer = new DXBuffer(DXBufferMeta::GetInstance());
             m_ctx.m_uploadBuffer->SetBufferSizeAndFlags(size, D3D12_RESOURCE_FLAG_NONE);
             m_ctx.m_uploadBuffer->SetBufferStride(stride);
 
@@ -460,11 +461,11 @@ void rendering::overlay::DXOverlayRP::CreateQuadVertexBuffer(jobs::Job* done)
             UINT64 stride = sizeof(int);
             UINT64 size = 6 * stride;
 
-            m_ctx.m_buffer = new DXBuffer(QuadVertexBufferMeta::GetInstance());
+            m_ctx.m_buffer = new DXBuffer(QuadIndexBufferMeta::GetInstance());
             m_ctx.m_buffer->SetBufferSizeAndFlags(size, D3D12_RESOURCE_FLAG_NONE);
             m_ctx.m_buffer->SetBufferStride(stride);
 
-            m_ctx.m_uploadBuffer = new DXBuffer(QuadVertexBufferMeta::GetInstance());
+            m_ctx.m_uploadBuffer = new DXBuffer(DXBufferMeta::GetInstance());
             m_ctx.m_uploadBuffer->SetBufferSizeAndFlags(size, D3D12_RESOURCE_FLAG_NONE);
             m_ctx.m_uploadBuffer->SetBufferStride(stride);
 
