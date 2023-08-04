@@ -19,6 +19,10 @@
 #include "Resources/QuadIndexBufferMeta.h"
 #include "Resources/QuadInstanceBufferMeta.h"
 
+#include "HelperMaterials/DXDisplayTextMaterial.h"
+
+#include "ShaderRepo.h"
+
 #include "utils.h"
 #include "CoreUtils.h"
 
@@ -34,6 +38,8 @@ namespace
     rendering::DXSwapChain* m_swapChain = nullptr;
     rendering::DXCommandQueue* m_commandQueue = nullptr;
     rendering::DXMaterialRepo* m_repo = nullptr;
+
+    rendering::DXMaterial* m_displayTextMaterial = nullptr;
 
     void CacheObjects()
     {
@@ -171,6 +177,10 @@ void rendering::overlay::DXOverlayRP::Load(jobs::Job* done)
             }
 
             core::utils::RunSync(m_ctx.m_done);
+
+            const shader_repo::ShaderSet& shaderSet = shader_repo::GetShaderSetByName("display_char_mat");
+            m_displayTextMaterial = new DXDisplayTextMaterial(*shaderSet.m_vertexShader, *shaderSet.m_pixelShader);
+
             delete &m_ctx;
         }
     };

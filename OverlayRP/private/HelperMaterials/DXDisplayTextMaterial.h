@@ -19,7 +19,7 @@ namespace rendering::overlay
 		void CreateDescriptorHeaps();
 
 	public:
-		DXDisplayTextMaterial(const DXShader& vertexShader, const DXShader& pixelShader, DXTexture* texture);
+		DXDisplayTextMaterial(const DXShader& vertexShader, const DXShader& pixelShader);
 		virtual ~DXDisplayTextMaterial();
 
 		virtual ID3D12CommandList* GenerateCommandList(

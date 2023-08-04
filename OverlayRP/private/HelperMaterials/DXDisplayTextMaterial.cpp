@@ -48,7 +48,7 @@ namespace
 }
 
 
-rendering::overlay::DXDisplayTextMaterial::DXDisplayTextMaterial(const rendering::DXShader& vertexShader, const rendering::DXShader& pixelShader, DXTexture* texture) :
+rendering::overlay::DXDisplayTextMaterial::DXDisplayTextMaterial(const rendering::DXShader& vertexShader, const rendering::DXShader& pixelShader) :
     DXMaterial(DXDisplayTextMaterialMeta::GetInstance(), vertexShader, pixelShader)
 {
     CacheObjects();
