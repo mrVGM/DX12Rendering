@@ -82,8 +82,6 @@ ID3D12CommandList* rendering::overlay::DXDisplayTextMaterial::GenerateCommandLis
         device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), m_pipelineState.Get(), IID_PPV_ARGS(&commandList)),
         "Can't reset Command List!")
 
-    DXSwapChain* swapChain = m_swapChain;
-
     {
         CD3DX12_RESOURCE_BARRIER barrier[] =
         {
@@ -94,8 +92,8 @@ ID3D12CommandList* rendering::overlay::DXDisplayTextMaterial::GenerateCommandLis
 
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 
-    commandList->RSSetViewports(1, &swapChain->GetViewport());
-    commandList->RSSetScissorRects(1, &swapChain->GetScissorRect());
+    commandList->RSSetViewports(1, &m_swapChain->GetViewport());
+    commandList->RSSetScissorRects(1, &m_swapChain->GetScissorRect());
 
     D3D12_CPU_DESCRIPTOR_HANDLE handles[] =
     {
@@ -110,9 +108,9 @@ ID3D12CommandList* rendering::overlay::DXDisplayTextMaterial::GenerateCommandLis
     realVertexBufferView.SizeInBytes = vertexBuffer.GetBufferSize();
 
     D3D12_VERTEX_BUFFER_VIEW& instanceBufferView = vertexBufferViews[1];
-    realVertexBufferView.BufferLocation = instanceBuffer.GetBuffer()->GetGPUVirtualAddress();
-    realVertexBufferView.StrideInBytes = instanceBuffer.GetStride();
-    realVertexBufferView.SizeInBytes = instanceBuffer.GetBufferSize();
+    instanceBufferView.BufferLocation = instanceBuffer.GetBuffer()->GetGPUVirtualAddress();
+    instanceBufferView.StrideInBytes = instanceBuffer.GetStride();
+    instanceBufferView.SizeInBytes = instanceBuffer.GetBufferSize();
 
     D3D12_INDEX_BUFFER_VIEW indexBufferView;
     indexBufferView.BufferLocation = indexBuffer.GetBuffer()->GetGPUVirtualAddress();
@@ -123,7 +121,7 @@ ID3D12CommandList* rendering::overlay::DXDisplayTextMaterial::GenerateCommandLis
     commandList->IASetVertexBuffers(0, _countof(vertexBufferViews), vertexBufferViews);
     commandList->IASetIndexBuffer(&indexBufferView);
 
-    commandList->DrawIndexedInstanced(6, 1024, 0, 0, 0);
+    commandList->DrawIndexedInstanced(indexCount, 1024, startIndex, 0, 0);
 
     {
         CD3DX12_RESOURCE_BARRIER barrier[] =

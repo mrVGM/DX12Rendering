@@ -39,6 +39,10 @@ namespace
     rendering::DXCommandQueue* m_commandQueue = nullptr;
     rendering::DXMaterialRepo* m_repo = nullptr;
 
+    rendering::DXBuffer* m_quadVertexBuffer = nullptr;
+    rendering::DXBuffer* m_quadIndexBuffer = nullptr;
+    rendering::DXMutableBuffer* m_quadInstanceBuffer = nullptr;
+
     rendering::DXMaterial* m_displayTextMaterial = nullptr;
 
     void CacheObjects()
@@ -136,15 +140,7 @@ void rendering::overlay::DXOverlayRP::Prepare()
 
 void rendering::overlay::DXOverlayRP::Execute()
 {
-    {
-        ID3D12CommandList* ppCommandLists[] = { m_startList.Get() };
-        m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-    }
-
-    {
-        ID3D12CommandList* ppCommandLists[] = { m_endList.Get() };
-        m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-    }
+    RenderOverlay();
 }
 
 void rendering::overlay::DXOverlayRP::Load(jobs::Job* done)
@@ -178,6 +174,10 @@ void rendering::overlay::DXOverlayRP::Load(jobs::Job* done)
 
             core::utils::RunSync(m_ctx.m_done);
 
+            m_quadVertexBuffer = GetQuadVertexBuffer();
+            m_quadIndexBuffer = GetQuadIndexBuffer();
+            m_quadInstanceBuffer = GetQuadInstanceBuffer();
+
             const shader_repo::ShaderSet& shaderSet = shader_repo::GetShaderSetByName("display_char_mat");
             m_displayTextMaterial = new DXDisplayTextMaterial(*shaderSet.m_vertexShader, *shaderSet.m_pixelShader);
 
@@ -201,38 +201,18 @@ rendering::overlay::DXOverlayRP::DXOverlayRP() :
 
 rendering::overlay::DXOverlayRP::~DXOverlayRP()
 {
-    if (m_commandListsCache)
-    {
-        delete[] m_commandListsCache;
-    }
 }
 
 
 void rendering::overlay::DXOverlayRP::RenderOverlay()
 {
-    DXMaterial* errorMat = m_repo->GetMaterial("error");
-    if (errorMat)
-    {
-        errorMat->ResetCommandLists();
-    }
+    m_displayTextMaterial->ResetCommandLists();
+    m_displayTextMaterial->GenerateCommandList(*m_quadVertexBuffer, *m_quadIndexBuffer, *m_quadInstanceBuffer->GetBuffer(), 0, 6, 0);
 
-    std::list<ID3D12CommandList*> unlitLists;
+    const std::list<Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> >& lists = m_displayTextMaterial->GetGeneratedCommandLists();
+    ID3D12CommandList* tmp = lists.front().Get();
 
-    int numLists = unlitLists.size();
-    if (m_numCommandLists < numLists)
-    {
-        delete[] m_commandListsCache;
-        m_commandListsCache = new ID3D12CommandList* [numLists];
-        m_numCommandLists = numLists;
-    }
-
-    int index = 0;
-    for (auto it = unlitLists.begin(); it != unlitLists.end(); ++it)
-    {
-        m_commandListsCache[index++] = *it;
-    }
-
-    m_commandQueue->GetCommandQueue()->ExecuteCommandLists(numLists, m_commandListsCache);
+    m_commandQueue->GetCommandQueue()->ExecuteCommandLists(1, &tmp);
 }
 
 void rendering::overlay::DXOverlayRP::CreateQuadIndexBuffer(jobs::Job* done)

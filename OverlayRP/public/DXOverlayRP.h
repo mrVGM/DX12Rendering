@@ -15,9 +15,6 @@ namespace rendering::overlay
 	{
 		const int m_maxCharacters = 1024;
 
-		ID3D12CommandList** m_commandListsCache = nullptr;
-		int m_numCommandLists = 0;
-
 		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocator;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_startList;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_endList;
