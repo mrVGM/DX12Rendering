@@ -48,5 +48,13 @@ void rendering::overlay::DXOverlayUpdater::Update(double dt)
 		return;
 	}
 
+	void* data = m_quadInstanceBuffer->GetUploadBuffer()->Map();
+	CharInfo* charInfoData = static_cast<CharInfo*>(data);
+
+	charInfoData[0] = CharInfo{ { -0.5, -0.5, 0, 0 }, 0 };
+	charInfoData[1] = CharInfo{ { 0, 0, 0.5, 0.5 }, 0 };
+	m_quadInstanceBuffer->GetUploadBuffer()->Unmap();
+
+	m_quadInstanceBuffer->SetDirty();
 	m_init = true;
 }
