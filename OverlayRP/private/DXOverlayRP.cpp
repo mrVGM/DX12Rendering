@@ -23,6 +23,8 @@
 
 #include "ShaderRepo.h"
 
+#include "Updaters/DXOverlayUpdater.h"
+
 #include "utils.h"
 #include "CoreUtils.h"
 
@@ -180,6 +182,8 @@ void rendering::overlay::DXOverlayRP::Load(jobs::Job* done)
 
             const shader_repo::ShaderSet& shaderSet = shader_repo::GetShaderSetByName("display_char_mat");
             m_displayTextMaterial = new DXDisplayTextMaterial(*shaderSet.m_vertexShader, *shaderSet.m_pixelShader);
+
+            new DXOverlayUpdater();
 
             delete &m_ctx;
         }

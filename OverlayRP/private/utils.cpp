@@ -4,6 +4,8 @@
 #include "Resources/QuadIndexBufferMeta.h"
 #include "Resources/QuadInstanceBufferMeta.h"
 
+#include "DXOverlayRPMeta.h"
+
 #include "BaseObjectContainer.h"
 
 rendering::DXBuffer* rendering::overlay::GetQuadVertexBuffer()
@@ -49,4 +51,19 @@ rendering::DXMutableBuffer* rendering::overlay::GetQuadInstanceBuffer()
 
 	DXMutableBuffer* buffer = static_cast<DXMutableBuffer*>(obj);
 	return buffer;
+}
+
+rendering::overlay::DXOverlayRP* rendering::overlay::GetOverlayRP()
+{
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+
+	BaseObject* obj = container.GetObjectOfClass(DXOverlayRPMeta::GetInstance());
+
+	if (!obj)
+	{
+		throw "Can't find Overlay RP!";
+	}
+
+	DXOverlayRP* overlayRP = static_cast<DXOverlayRP*>(obj);
+	return overlayRP;
 }

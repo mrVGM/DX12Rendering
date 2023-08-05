@@ -19,7 +19,27 @@ PSInput VSMain(DisplayCharVSInput vertexInput)
 {
     PSInput result;
 
-    result.position = float4(vertexInput.position, 1);
+    float4 outPos = float4(vertexInput.position, 1);
+    
+    if (outPos.x < 0)
+    {
+        outPos.x = vertexInput.instance_position.x;
+    }
+    else
+    {
+        outPos.x = vertexInput.instance_position.z;
+    }
+
+    if (outPos.y < 0)
+    {
+        outPos.y = vertexInput.instance_position.y;
+    }
+    else
+    {
+        outPos.y = vertexInput.instance_position.w;
+    }
+
+    result.position = outPos;
     result.uv = vertexInput.uv;
 
     return result;

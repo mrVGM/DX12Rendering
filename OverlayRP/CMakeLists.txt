@@ -16,6 +16,10 @@ add_library (OverlayRP
 	"private/HelperMaterials/DXDisplayTextMaterial.h"
 	"private/HelperMaterials/DXDisplaytextMaterialMeta.cpp"
 	"private/HelperMaterials/DXDisplayTextMaterialMeta.h"
+	"private/Updaters/DXOverlayUpdater.cpp"
+	"private/Updaters/DXOverlayUpdater.h"
+	"private/Updaters/DXOverlayUpdaterMeta.cpp"
+	"private/Updaters/DXOverlayUpdaterMeta.h"
 )
 
 target_include_directories(OverlayRP INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
