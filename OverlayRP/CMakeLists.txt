@@ -22,7 +22,7 @@ add_library (OverlayRP
 	"private/Updaters/DXOverlayUpdaterMeta.h"
 	"private/Resources/FontLoadedNotificationReceiverMeta.h" 
 	"private/Resources/FontLoadedNotificationReceiverMeta.cpp"
-)
+ "private/Resources/FontDescriptorHeapMeta.h" "private/Resources/FontDescriptorHeapMeta.cpp")
 
 target_include_directories(OverlayRP INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(OverlayRP PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")

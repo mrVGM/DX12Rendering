@@ -4,16 +4,22 @@
 
 #include "Job.h"
 
-namespace rendering::overlay
+namespace rendering
 {
 	class DXDescriptorHeap;
 	class DXTexture;
+}
+
+namespace rendering::overlay
+{
 
 	class DXDisplayTextMaterial : public rendering::DXMaterial
 	{
 	private:
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pipelineState;
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature;
+
+		DXDescriptorHeap* m_srvHeap = nullptr;
 
 		void CreatePipelineStateAndRootSignature();
 		void CreateDescriptorHeaps();

@@ -16,6 +16,10 @@
 
 #include "DXBuffer.h"
 
+#include "ImageLoading.h"
+
+#include "Resources/FontDescriptorHeapMeta.h"
+
 #include "utils.h"
 
 #include "CoreUtils.h"
@@ -30,6 +34,8 @@ namespace
     rendering::DXDevice* m_device = nullptr;
     rendering::DXSwapChain* m_swapChain = nullptr;
     rendering::overlay::DXOverlayRP* m_overlayRP = nullptr;
+
+    rendering::DXTexture* m_fontTexture = nullptr;
 
     void CacheObjects()
     {
@@ -49,6 +55,11 @@ namespace
         if (!m_overlayRP)
         {
             m_overlayRP = overlay::GetOverlayRP();
+        }
+
+        if (!m_fontTexture)
+        {
+            m_fontTexture = image_loading::GetImage("default_font");
         }
     }
 }
@@ -97,6 +108,11 @@ ID3D12CommandList* rendering::overlay::DXDisplayTextMaterial::GenerateCommandLis
     }
 
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+
+    ID3D12DescriptorHeap* descriptorHeaps[] = { m_srvHeap->GetDescriptorHeap() };
+    commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+
+    commandList->SetGraphicsRootDescriptorTable(0, descriptorHeaps[0]->GetGPUDescriptorHandleForHeapStart());
 
     commandList->RSSetViewports(1, &m_swapChain->GetViewport());
     commandList->RSSetScissorRects(1, &m_swapChain->GetScissorRect());
@@ -181,8 +197,13 @@ void rendering::overlay::DXDisplayTextMaterial::CreatePipelineStateAndRootSignat
             D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
             D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 
+        CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
+        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
+        CD3DX12_ROOT_PARAMETER1 rootParameters[1];
+        rootParameters[0].InitAsDescriptorTable(_countof(ranges), ranges, D3D12_SHADER_VISIBILITY_PIXEL);
+
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-        rootSignatureDesc.Init_1_1(0, nullptr, 0, nullptr, rootSignatureFlags);
+        rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, &sampler, rootSignatureFlags);
 
         ComPtr<ID3DBlob> signature;
         ComPtr<ID3DBlob> error;
@@ -242,6 +263,9 @@ void rendering::overlay::DXDisplayTextMaterial::CreatePipelineStateAndRootSignat
 
 void rendering::overlay::DXDisplayTextMaterial::CreateDescriptorHeaps()
 {
+    std::list<DXTexture*> textures;
+    textures.push_back(m_fontTexture);
+    m_srvHeap = DXDescriptorHeap::CreateSRVDescriptorHeap(FontDescriptorHeapMeta::GetInstance(), textures);
 }
 
 #undef THROW_ERROR
