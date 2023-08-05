@@ -19,11 +19,17 @@
 #include "Resources/QuadIndexBufferMeta.h"
 #include "Resources/QuadInstanceBufferMeta.h"
 
+#include "DXTexture.h"
+
 #include "HelperMaterials/DXDisplayTextMaterial.h"
 
 #include "ShaderRepo.h"
 
 #include "Updaters/DXOverlayUpdater.h"
+
+#include "ImageLoading.h"
+#include "NotificationReceiver.h"
+#include "Resources/FontLoadedNotificationReceiverMeta.h"
 
 #include "utils.h"
 #include "CoreUtils.h"
@@ -46,6 +52,8 @@ namespace
     rendering::DXMutableBuffer* m_quadInstanceBuffer = nullptr;
 
     rendering::DXMaterial* m_displayTextMaterial = nullptr;
+
+    rendering::DXTexture* m_fontTexture = nullptr;
 
     void CacheObjects()
     {
@@ -146,6 +154,35 @@ void rendering::overlay::DXOverlayRP::Execute()
 }
 
 void rendering::overlay::DXOverlayRP::Load(jobs::Job* done)
+{
+    struct Context
+    {
+        DXOverlayRP* m_overlayRP = nullptr;
+        jobs::Job* m_done = nullptr;
+    };
+
+    Context ctx {this, done};
+
+    class BuffersReady : public jobs::Job
+    {
+    private:
+        Context m_ctx;
+    public:
+        BuffersReady(Context& ctx) :
+            m_ctx(ctx)
+        {
+        }
+
+        void Do() override
+        {
+            m_ctx.m_overlayRP->CreateDisplayCharMaterial(m_ctx.m_done);
+        }
+    };
+
+    LoadBuffers(new BuffersReady(ctx));
+}
+
+void rendering::overlay::DXOverlayRP::LoadBuffers(jobs::Job* done)
 {
     struct Context
     {
@@ -489,6 +526,60 @@ void rendering::overlay::DXOverlayRP::CreateQuadInstanceBuffer(jobs::Job* done)
 {
     DXMutableBuffer* instanceBuffer = new DXMutableBuffer(QuadInstanceBufferMeta::GetInstance(), m_maxCharacters * sizeof(CharInfo), sizeof(CharInfo));
     instanceBuffer->Load(done);
+}
+
+void rendering::overlay::DXOverlayRP::CreateDisplayCharMaterial(jobs::Job* done)
+{
+    if (!m_fontTexture)
+    {
+        m_fontTexture = image_loading::GetImage("default_font");
+    }
+
+    if (m_fontTexture)
+    {
+        const shader_repo::ShaderSet& shaderSet = shader_repo::GetShaderSetByName("display_char_mat");
+        m_displayTextMaterial = new DXDisplayTextMaterial(*shaderSet.m_vertexShader, *shaderSet.m_pixelShader);
+        
+        core::utils::RunSync(done);
+        return;
+    }
+
+    struct Context
+    {
+        jobs::Job* m_done = nullptr;
+    };
+
+    class FontLoadedReceiver : public notifications::NotificationReceiver
+    {
+    private:
+        Context m_ctx;
+    public:
+        FontLoadedReceiver(const Context& ctx) :
+            notifications::NotificationReceiver(FontLoadedNotificationReceiverMeta::GetInstance()),
+            m_ctx(ctx)
+        {
+        }
+
+        void Notify() override
+        {
+            m_fontTexture = image_loading::GetImage("default_font");
+
+            if (!m_fontTexture)
+            {
+                return;
+            }
+
+            const shader_repo::ShaderSet& shaderSet = shader_repo::GetShaderSetByName("display_char_mat");
+            m_displayTextMaterial = new DXDisplayTextMaterial(*shaderSet.m_vertexShader, *shaderSet.m_pixelShader);
+
+            core::utils::RunSync(m_ctx.m_done);
+
+            core::utils::DisposeBaseObject(*this);
+        }
+    };
+
+    Context ctx{ done };
+    new FontLoadedReceiver(ctx);
 }
 
 int rendering::overlay::DXOverlayRP::GetMaxCharacters() const

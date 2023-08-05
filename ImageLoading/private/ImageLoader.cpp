@@ -13,6 +13,9 @@
 
 #include "DataLib.h"
 
+#include "Notifications.h"
+#include "ImageLoadedNotificationMeta.h"
+
 #include "utils.h"
 
 #include "d3dx12.h"
@@ -366,6 +369,7 @@ void rendering::image_loading::ImageLoader::StartLoadingImages()
 	public:
 		void Do() override
 		{
+			notifications::Notify(ImageLoadedNotificationMeta::GetInstance());
 		}
 	};
 

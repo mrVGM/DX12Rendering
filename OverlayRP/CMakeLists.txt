@@ -20,11 +20,14 @@ add_library (OverlayRP
 	"private/Updaters/DXOverlayUpdater.h"
 	"private/Updaters/DXOverlayUpdaterMeta.cpp"
 	"private/Updaters/DXOverlayUpdaterMeta.h"
+	"private/Resources/FontLoadedNotificationReceiverMeta.h" 
+	"private/Resources/FontLoadedNotificationReceiverMeta.cpp"
 )
 
 target_include_directories(OverlayRP INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(OverlayRP PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
+target_link_libraries(OverlayRP	PRIVATE ImageLoading)
 target_link_libraries(OverlayRP INTERFACE PUBLIC RenderPass Materials CommonResources)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

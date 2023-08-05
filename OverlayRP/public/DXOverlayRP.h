@@ -25,6 +25,9 @@ namespace rendering::overlay
 		void CreateQuadVertexBuffer(jobs::Job* done);
 		void CreateQuadIndexBuffer(jobs::Job* done);
 		void CreateQuadInstanceBuffer(jobs::Job* done);
+
+		void CreateDisplayCharMaterial(jobs::Job* done);
+		void LoadBuffers(jobs::Job* done);
 	public:
 		DXOverlayRP();
 		virtual ~DXOverlayRP();
