@@ -32,5 +32,7 @@ namespace rendering::overlay
 		void Prepare() override;
 		void Execute() override;
 		void Load(jobs::Job* done) override;
+
+		int GetMaxCharacters() const;
 	};
 }

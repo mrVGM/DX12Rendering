@@ -29,6 +29,7 @@ namespace
 {
     rendering::DXDevice* m_device = nullptr;
     rendering::DXSwapChain* m_swapChain = nullptr;
+    rendering::overlay::DXOverlayRP* m_overlayRP = nullptr;
 
     void CacheObjects()
     {
@@ -43,6 +44,11 @@ namespace
         if (!m_swapChain)
         {
             m_swapChain = core::utils::GetSwapChain();
+        }
+
+        if (!m_overlayRP)
+        {
+            m_overlayRP = overlay::GetOverlayRP();
         }
     }
 }
@@ -121,7 +127,7 @@ ID3D12CommandList* rendering::overlay::DXDisplayTextMaterial::GenerateCommandLis
     commandList->IASetVertexBuffers(0, _countof(vertexBufferViews), vertexBufferViews);
     commandList->IASetIndexBuffer(&indexBufferView);
 
-    commandList->DrawIndexedInstanced(indexCount, 1024, startIndex, 0, 0);
+    commandList->DrawIndexedInstanced(indexCount, m_overlayRP->GetMaxCharacters(), startIndex, 0, 0);
 
     {
         CD3DX12_RESOURCE_BARRIER barrier[] =

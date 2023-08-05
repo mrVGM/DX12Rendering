@@ -490,3 +490,8 @@ void rendering::overlay::DXOverlayRP::CreateQuadInstanceBuffer(jobs::Job* done)
     DXMutableBuffer* instanceBuffer = new DXMutableBuffer(QuadInstanceBufferMeta::GetInstance(), m_maxCharacters * sizeof(CharInfo), sizeof(CharInfo));
     instanceBuffer->Load(done);
 }
+
+int rendering::overlay::DXOverlayRP::GetMaxCharacters() const
+{
+    return m_maxCharacters;
+}
