@@ -122,6 +122,11 @@ ID3D12Resource* rendering::DXSwapChain::GetCurrentRenderTarget() const
     return m_renderTargets[m_frameIndex].Get();
 }
 
+UINT rendering::DXSwapChain::GetCurrentSwapChainIndex()
+{
+    return m_swapChain->GetCurrentBackBufferIndex();
+}
+
 rendering::DXSwapChain::DXSwapChain() :
     BaseObject(DXSwapChainMeta::GetInstance())
 {

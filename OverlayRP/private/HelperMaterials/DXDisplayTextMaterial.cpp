@@ -85,9 +85,11 @@ ID3D12CommandList* rendering::overlay::DXDisplayTextMaterial::GenerateCommandLis
     UINT indexCount,
     UINT instanceIndex)
 {
-    if (!m_commandLists.empty())
+    int swIndex = m_swapChain->GetCurrentSwapChainIndex();
+
+    if (m_precalculatedLists[swIndex])
     {
-        return m_commandLists.back().Get();
+        return m_precalculatedLists[swIndex];
     }
 
     DXDevice* device = m_device;
@@ -99,6 +101,7 @@ ID3D12CommandList* rendering::overlay::DXDisplayTextMaterial::GenerateCommandLis
         device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), m_pipelineState.Get(), IID_PPV_ARGS(&commandList)),
         "Can't reset Command List!")
 
+    m_precalculatedLists[swIndex] = commandList.Get();
     {
         CD3DX12_RESOURCE_BARRIER barrier[] =
         {

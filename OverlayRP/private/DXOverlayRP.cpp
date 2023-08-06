@@ -241,13 +241,8 @@ rendering::overlay::DXOverlayRP::~DXOverlayRP()
 
 void rendering::overlay::DXOverlayRP::RenderOverlay()
 {
-    m_displayTextMaterial->ResetCommandLists();
-    m_displayTextMaterial->GenerateCommandList(*m_quadVertexBuffer, *m_quadIndexBuffer, *m_quadInstanceBuffer->GetBuffer(), 0, 6, 0);
-
-    const std::list<Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> >& lists = m_displayTextMaterial->GetGeneratedCommandLists();
-    ID3D12CommandList* tmp = lists.front().Get();
-
-    m_commandQueue->GetCommandQueue()->ExecuteCommandLists(1, &tmp);
+    ID3D12CommandList* cmdList = m_displayTextMaterial->GenerateCommandList(*m_quadVertexBuffer, *m_quadIndexBuffer, *m_quadInstanceBuffer->GetBuffer(), 0, 6, 0);
+    m_commandQueue->GetCommandQueue()->ExecuteCommandLists(1, &cmdList);
 }
 
 void rendering::overlay::DXOverlayRP::CreateQuadVertexBuffer(jobs::Job* done)

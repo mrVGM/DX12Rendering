@@ -19,6 +19,8 @@ namespace rendering::overlay
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pipelineState;
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature;
 
+		ID3D12CommandList* m_precalculatedLists[2] = {};
+
 		DXDescriptorHeap* m_srvHeap = nullptr;
 
 		void CreatePipelineStateAndRootSignature();
