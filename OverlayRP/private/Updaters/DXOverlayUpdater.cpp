@@ -7,6 +7,8 @@
 #include "CoreUtils.h"
 #include "utils.h"
 
+#include <sstream>
+
 namespace
 {
 	rendering::overlay::DXOverlayRP* m_overlayRP = nullptr;
@@ -58,6 +60,19 @@ int rendering::overlay::DXOverlayUpdater::GetPriority()
 void rendering::overlay::DXOverlayUpdater::Update(double dt)
 {
 	std::list<TextPanel>& textPanels = m_overlayRP->GetTextPannels();
+
+	if (textPanels.empty())
+	{
+		textPanels.push_back(TextPanel());
+	}
+	TextPanel& tp = textPanels.front();
+
+	tp.m_screenPosX = 10;
+	tp.m_screenPosY = 10;
+
+	std::stringstream ss;
+	ss << "FPS: " << 1 / dt;
+	tp.m_text = ss.str();
 
 	void* data = m_quadInstanceBuffer->GetUploadBuffer()->Map();
 	CharInfo* charInfoData = static_cast<CharInfo*>(data);
