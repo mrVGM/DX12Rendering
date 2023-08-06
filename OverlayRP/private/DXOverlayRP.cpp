@@ -71,15 +71,7 @@ namespace
 
         if (!m_repo)
         {
-            BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-            BaseObject* obj = container.GetObjectOfClass(DXMaterialRepoMeta::GetInstance());
-
-            if (!obj)
-            {
-                throw "Can't Find Material Repo!";
-            }
-
-            m_repo = static_cast<DXMaterialRepo*>(obj);
+            m_repo = overlay::GetMaterialRepo();
         }
     }
 }

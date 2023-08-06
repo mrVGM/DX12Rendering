@@ -3,6 +3,7 @@
 #include "DXBuffer.h"
 #include "DXMutableBuffer.h"
 #include "DXOverlayRP.h"
+#include "DXMaterialRepo.h"
 
 namespace rendering::overlay
 {
@@ -22,4 +23,5 @@ namespace rendering::overlay
 	DXBuffer* GetQuadIndexBuffer();
 	DXMutableBuffer* GetQuadInstanceBuffer();
 	DXOverlayRP* GetOverlayRP();
+	DXMaterialRepo* GetMaterialRepo();
 }

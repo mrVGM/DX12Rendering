@@ -4,6 +4,7 @@
 #include "Resources/QuadIndexBufferMeta.h"
 #include "Resources/QuadInstanceBufferMeta.h"
 
+#include "DXMaterialRepoMeta.h"
 #include "DXOverlayRPMeta.h"
 
 #include "BaseObjectContainer.h"
@@ -66,4 +67,19 @@ rendering::overlay::DXOverlayRP* rendering::overlay::GetOverlayRP()
 
 	DXOverlayRP* overlayRP = static_cast<DXOverlayRP*>(obj);
 	return overlayRP;
+}
+
+rendering::DXMaterialRepo* rendering::overlay::GetMaterialRepo()
+{
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+
+	BaseObject* obj = container.GetObjectOfClass(DXMaterialRepoMeta::GetInstance());
+
+	if (!obj)
+	{
+		throw "Can't find Material Repo!";
+	}
+
+	DXMaterialRepo* materialRepo = static_cast<DXMaterialRepo*>(obj);
+	return materialRepo;
 }

@@ -66,8 +66,8 @@ rendering::image_loading::FontAsset::FontAsset(const BaseObjectMeta& meta, DXTex
 
 		m_fontInfo.m_charInfo[id] = ci;
 
-		notifications::Notify(FontAssetLoadedNotificationMeta::GetInstance());
 	}
+	notifications::Notify(FontAssetLoadedNotificationMeta::GetInstance());
 }
 
 rendering::image_loading::FontAsset::~FontAsset()
