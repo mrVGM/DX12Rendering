@@ -231,7 +231,7 @@ rendering::overlay::DXOverlayRP::DXOverlayRP() :
     CacheObjects();
     Create();
 
-    m_textPanels.push_back(TextPanel{ "Hello World!", 100, 100 });
+    m_textPanels.push_back(TextPanel{ "ABCD", 100, 100 });
 }
 
 rendering::overlay::DXOverlayRP::~DXOverlayRP()
@@ -250,7 +250,7 @@ void rendering::overlay::DXOverlayRP::RenderOverlay()
     m_commandQueue->GetCommandQueue()->ExecuteCommandLists(1, &tmp);
 }
 
-void rendering::overlay::DXOverlayRP::CreateQuadIndexBuffer(jobs::Job* done)
+void rendering::overlay::DXOverlayRP::CreateQuadVertexBuffer(jobs::Job* done)
 {
     struct Context
     {
@@ -306,10 +306,10 @@ void rendering::overlay::DXOverlayRP::CreateQuadIndexBuffer(jobs::Job* done)
             void* data = m_ctx.m_uploadBuffer->Map();
             QuadVertex* quadVerts = static_cast<QuadVertex*>(data);
 
-            quadVerts[0] = QuadVertex{ {-1, -1, 0}, {0, 0} };
-            quadVerts[1] = QuadVertex{ { 1, -1, 0}, {1, 0} };
-            quadVerts[2] = QuadVertex{ { 1,  1, 0}, {1, 1} };
-            quadVerts[3] = QuadVertex{ {-1,  1, 0}, {0, 1} };
+            quadVerts[0] = QuadVertex{ {-1, -1, 0}, {0, 1} };
+            quadVerts[1] = QuadVertex{ { 1, -1, 0}, {1, 1} };
+            quadVerts[2] = QuadVertex{ { 1,  1, 0}, {1, 0} };
+            quadVerts[3] = QuadVertex{ {-1,  1, 0}, {0, 0} };
 
             m_ctx.m_uploadBuffer->Unmap();
 
@@ -382,7 +382,7 @@ void rendering::overlay::DXOverlayRP::CreateQuadIndexBuffer(jobs::Job* done)
     core::utils::RunSync(new CreateItems(*ctx));
 }
 
-void rendering::overlay::DXOverlayRP::CreateQuadVertexBuffer(jobs::Job* done)
+void rendering::overlay::DXOverlayRP::CreateQuadIndexBuffer(jobs::Job* done)
 {
     struct Context
     {
