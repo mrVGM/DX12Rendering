@@ -2,6 +2,6 @@
 <settings>
 	<default_font>
 		<image>"ConsolasFont.png"</image>
-		<description>"ConsolasFont.json"</description>
+		<description>"ConsolasDesc.json"</description>
 	</default_font>
 </settings>

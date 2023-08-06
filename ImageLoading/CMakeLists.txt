@@ -17,6 +17,12 @@ add_library (ImageLoading
 	"private/utils.cpp"
 	"public/ImageLoadedNotificationMeta.h"
 	"private/ImageLoadedNotificationMeta.cpp"
+	"public/FontAssetMeta.h"
+	"private/ForntAssetMeta.cpp"
+	"public/FontAsset.h"
+	"private/FontAsset.cpp"
+	"public/FontAssetLoadedNotificationMeta.h"
+	"private/FontAssetLoadedNotificationMeta.cpp"
 )
 
 target_include_directories(ImageLoading INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

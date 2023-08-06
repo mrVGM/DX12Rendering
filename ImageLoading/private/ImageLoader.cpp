@@ -1,5 +1,7 @@
 #include "ImageLoader.h"
 
+#include "ImageLoading.h"
+
 #include "ImageLoaderMeta.h"
 
 #include "CoreUtils.h"
@@ -15,6 +17,9 @@
 
 #include "Notifications.h"
 #include "ImageLoadedNotificationMeta.h"
+
+#include "FontAsset.h"
+#include "FontAssetMeta.h"
 
 #include "utils.h"
 
@@ -364,19 +369,36 @@ void rendering::image_loading::ImageLoader::StartLoadingImages()
 {
 	ImageLoadingSettings::Settings& settings = m_imageLoadingSettings->GetSettings();
 
-	class DummyJob : public jobs::Job
+	struct Context
 	{
+		std::string m_name;
+	};
+
+	class ReportImageLoaded : public jobs::Job
+	{
+	private:
+		Context m_ctx;
 	public:
+		ReportImageLoaded(const Context& ctx) :
+			m_ctx(ctx)
+		{
+		}
+
 		void Do() override
 		{
+			DXTexture* tex = image_loading::GetImage(m_ctx.m_name);
+			const std::string* descPath = GetImageDescriptionFile(m_ctx.m_name);
+
+			std::string fontInfoData = data::GetLibrary().ReadFileByPath(data::GetLibrary().GetRootDir() + * descPath);
+
+			new FontAsset(FontAssetMeta::GetInstance(), tex, fontInfoData);
 			notifications::Notify(ImageLoadedNotificationMeta::GetInstance());
 		}
 	};
 
 	for (auto it = settings.m_images.begin(); it != settings.m_images.end(); ++it)
 	{
-		LoadImageFromFile(it->second.m_imageFile, new DummyJob());
-
+		LoadImageFromFile(it->second.m_imageFile, new ReportImageLoaded(Context {it->first}));
 	}
 }
 
