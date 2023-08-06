@@ -49,7 +49,7 @@ rendering::image_loading::FontAsset::FontAsset(const BaseObjectMeta& meta, DXTex
 
 		const std::string& text = cur["text"];
 		int x = cur["x"];
-		int y = cur["y"];
+		int y = texHeight - cur["y"] - 1;
 		int width = cur["width"];
 		int height = cur["height"];
 		int baseline = cur["baseline"];
@@ -60,12 +60,11 @@ rendering::image_loading::FontAsset::FontAsset(const BaseObjectMeta& meta, DXTex
 		ci.m_basePositionY = baseline;
 		ci.m_basePositionX = x;
 		ci.m_xOffset = 0;
-		ci.m_yOffset = texHeight - y - baseline;
+		ci.m_yOffset = y - height - baseline;
 		ci.m_width = width;
 		ci.m_height = height;
 
 		m_fontInfo.m_charInfo[id] = ci;
-
 	}
 	notifications::Notify(FontAssetLoadedNotificationMeta::GetInstance());
 }
