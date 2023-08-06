@@ -230,6 +230,8 @@ rendering::overlay::DXOverlayRP::DXOverlayRP() :
 {
     CacheObjects();
     Create();
+
+    m_textPanels.push_back(TextPanel{ "Hello World!", 100, 100 });
 }
 
 rendering::overlay::DXOverlayRP::~DXOverlayRP()
@@ -577,4 +579,9 @@ void rendering::overlay::DXOverlayRP::CreateDisplayCharMaterial(jobs::Job* done)
 int rendering::overlay::DXOverlayRP::GetMaxCharacters() const
 {
     return m_maxCharacters;
+}
+
+std::list<rendering::overlay::TextPanel>& rendering::overlay::DXOverlayRP::GetTextPannels()
+{
+    return m_textPanels;
 }

@@ -11,6 +11,13 @@
 
 namespace rendering::overlay
 {
+	struct TextPanel
+	{
+		std::string m_text;
+		int m_screenPosX;
+		int m_screenPosY;
+	};
+
 	class DXOverlayRP : public RenderPass
 	{
 		const int m_maxCharacters = 1024;
@@ -18,6 +25,8 @@ namespace rendering::overlay
 		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocator;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_startList;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_endList;
+
+		std::list<TextPanel> m_textPanels;
 
 		void Create();
 		void RenderOverlay();
@@ -37,5 +46,7 @@ namespace rendering::overlay
 		void Load(jobs::Job* done) override;
 
 		int GetMaxCharacters() const;
+
+		std::list<TextPanel>& GetTextPannels();
 	};
 }

@@ -6,8 +6,6 @@ namespace rendering::overlay
 {
 	class DXOverlayUpdater : public TickUpdater
 	{
-	private:
-		bool m_init = false;
 	public:
 		DXOverlayUpdater();
 		virtual ~DXOverlayUpdater();
