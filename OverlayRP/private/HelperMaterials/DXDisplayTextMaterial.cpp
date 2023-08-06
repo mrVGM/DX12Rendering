@@ -35,7 +35,7 @@ namespace
     rendering::DXSwapChain* m_swapChain = nullptr;
     rendering::overlay::DXOverlayRP* m_overlayRP = nullptr;
 
-    rendering::DXTexture* m_fontTexture = nullptr;
+    rendering::image_loading::FontAsset* m_fontAsset = nullptr;
 
     void CacheObjects()
     {
@@ -57,9 +57,9 @@ namespace
             m_overlayRP = overlay::GetOverlayRP();
         }
 
-        if (!m_fontTexture)
+        if (!m_fontAsset)
         {
-            m_fontTexture = image_loading::GetImage("default_font");
+            m_fontAsset = overlay::GetFontAsset();
         }
     }
 }
@@ -264,7 +264,7 @@ void rendering::overlay::DXDisplayTextMaterial::CreatePipelineStateAndRootSignat
 void rendering::overlay::DXDisplayTextMaterial::CreateDescriptorHeaps()
 {
     std::list<DXTexture*> textures;
-    textures.push_back(m_fontTexture);
+    textures.push_back(m_fontAsset->GetFontTexture());
     m_srvHeap = DXDescriptorHeap::CreateSRVDescriptorHeap(FontDescriptorHeapMeta::GetInstance(), textures);
 }
 

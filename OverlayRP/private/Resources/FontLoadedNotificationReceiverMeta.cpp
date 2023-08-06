@@ -1,6 +1,6 @@
 #include "FontLoadedNotificationReceiverMeta.h"
 
-#include "ImageLoadedNotificationMeta.h"
+#include "FontAssetLoadedNotificationMeta.h"
 
 namespace
 {
@@ -8,7 +8,7 @@ namespace
 }
 
 rendering::overlay::FontLoadedNotificationReceiverMeta::FontLoadedNotificationReceiverMeta() :
-	BaseObjectMeta(&image_loading::ImageLoadedNotificationMeta::GetInstance())
+	BaseObjectMeta(&image_loading::FontAssetLoadedNotificationMeta::GetInstance())
 {
 }
 

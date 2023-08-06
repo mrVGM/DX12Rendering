@@ -53,7 +53,7 @@ namespace
 
     rendering::DXMaterial* m_displayTextMaterial = nullptr;
 
-    rendering::DXTexture* m_fontTexture = nullptr;
+    rendering::image_loading::FontAsset* m_fontAsset = nullptr;
 
     void CacheObjects()
     {
@@ -522,12 +522,12 @@ void rendering::overlay::DXOverlayRP::CreateQuadInstanceBuffer(jobs::Job* done)
 
 void rendering::overlay::DXOverlayRP::CreateDisplayCharMaterial(jobs::Job* done)
 {
-    if (!m_fontTexture)
+    if (!m_fontAsset)
     {
-        m_fontTexture = image_loading::GetImage("default_font");
+        m_fontAsset = GetFontAsset();
     }
 
-    if (m_fontTexture)
+    if (m_fontAsset)
     {
         const shader_repo::ShaderSet& shaderSet = shader_repo::GetShaderSetByName("display_char_mat");
         m_displayTextMaterial = new DXDisplayTextMaterial(*shaderSet.m_vertexShader, *shaderSet.m_pixelShader);
@@ -554,9 +554,9 @@ void rendering::overlay::DXOverlayRP::CreateDisplayCharMaterial(jobs::Job* done)
 
         void Notify() override
         {
-            m_fontTexture = image_loading::GetImage("default_font");
+            m_fontAsset = GetFontAsset();
 
-            if (!m_fontTexture)
+            if (!m_fontAsset)
             {
                 return;
             }
