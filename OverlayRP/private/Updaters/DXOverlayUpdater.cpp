@@ -2,6 +2,8 @@
 
 #include "DXOverlayUpdaterMeta.h"
 
+#include "DXTexture.h"
+
 #include "CoreUtils.h"
 #include "utils.h"
 
@@ -90,6 +92,21 @@ void rendering::overlay::DXOverlayUpdater::Update(double dt)
 			{
 				ci.m_position[i] = 2 * ci.m_position[i] - 1;
 			}
+
+			ci.m_uvPos[0] = curCharInfo.m_basePositionX + curCharInfo.m_xOffset;
+			ci.m_uvPos[1] = curCharInfo.m_basePositionY + curCharInfo.m_yOffset;
+			ci.m_uvPos[2] = curCharInfo.m_basePositionX + curCharInfo.m_xOffset + curCharInfo.m_width;
+			ci.m_uvPos[3] = curCharInfo.m_basePositionY + curCharInfo.m_yOffset + curCharInfo.m_height;
+
+			ci.m_uvPos[0] /= m_fontAsset->GetFontTexture()->GetTextureDescription().Width;
+			ci.m_uvPos[1] /= m_fontAsset->GetFontTexture()->GetTextureDescription().Height;
+			ci.m_uvPos[2] /= m_fontAsset->GetFontTexture()->GetTextureDescription().Width;
+			ci.m_uvPos[3] /= m_fontAsset->GetFontTexture()->GetTextureDescription().Height;
+
+			ci.m_color[0] = 1;
+			ci.m_color[1] = 1;
+			ci.m_color[2] = 1;
+			ci.m_color[3] = 1;
 
 			cursorX += curCharInfo.m_width;
 			++index;

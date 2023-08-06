@@ -4,6 +4,7 @@ struct PSInput
 {
     float4 position         : SV_POSITION;
     float2 uv               : UV;
+    float4 color            : COLOR;
 };
 
 struct DisplayCharVSInput
@@ -12,7 +13,8 @@ struct DisplayCharVSInput
     float2 uv                   : UV;
 
     float4 instance_position    : INSTANCE_POSITION;
-    int char_info               : CHAR_INFO;
+    float4 uv_pos               : UV_POS;
+    float4 color                : COLOR;
 };
 
 PSInput VSMain(DisplayCharVSInput vertexInput)
@@ -40,7 +42,13 @@ PSInput VSMain(DisplayCharVSInput vertexInput)
     }
 
     result.position = outPos;
-    result.uv = vertexInput.uv;
 
+    float2 uvMin = vertexInput.uv_pos.xy;
+    float2 uvMax = vertexInput.uv_pos.zw;
+
+    result.uv.x = (1 - vertexInput.uv.x) * uvMin.x + vertexInput.uv.x * uvMax.x;
+    result.uv.y = (1 - vertexInput.uv.y) * uvMin.y + vertexInput.uv.y * uvMax.y;
+    result.color = vertexInput.color;
+    
     return result;
 }

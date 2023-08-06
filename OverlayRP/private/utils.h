@@ -17,7 +17,8 @@ namespace rendering::overlay
 	struct CharInfo
 	{
 		float m_position[4];
-		int m_charID;
+		float m_uvPos[4];
+		float m_color[4];
 	};
 
 	DXBuffer* GetQuadVertexBuffer();
