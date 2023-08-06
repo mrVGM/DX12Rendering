@@ -6,6 +6,7 @@
 
 #include "DXMaterialRepoMeta.h"
 #include "DXOverlayRPMeta.h"
+#include "FontAssetMeta.h"
 
 #include "BaseObjectContainer.h"
 
@@ -82,4 +83,19 @@ rendering::DXMaterialRepo* rendering::overlay::GetMaterialRepo()
 
 	DXMaterialRepo* materialRepo = static_cast<DXMaterialRepo*>(obj);
 	return materialRepo;
+}
+
+rendering::image_loading::FontAsset* rendering::overlay::GetFontAsset()
+{
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+
+	BaseObject* obj = container.GetObjectOfClass(image_loading::FontAssetMeta::GetInstance());
+
+	if (!obj)
+	{
+		return nullptr;
+	}
+
+	image_loading::FontAsset* fontAsset = static_cast<image_loading::FontAsset*>(obj);
+	return fontAsset;
 }

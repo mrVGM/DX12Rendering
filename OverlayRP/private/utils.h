@@ -4,6 +4,7 @@
 #include "DXMutableBuffer.h"
 #include "DXOverlayRP.h"
 #include "DXMaterialRepo.h"
+#include "FontAsset.h"
 
 namespace rendering::overlay
 {
@@ -24,4 +25,5 @@ namespace rendering::overlay
 	DXMutableBuffer* GetQuadInstanceBuffer();
 	DXOverlayRP* GetOverlayRP();
 	DXMaterialRepo* GetMaterialRepo();
+	image_loading::FontAsset* GetFontAsset();
 }
