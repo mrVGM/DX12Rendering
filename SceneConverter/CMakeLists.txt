@@ -16,7 +16,7 @@ add_library (SceneConverter
 target_include_directories(SceneConverter INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(SceneConverter PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(SceneConverter PRIVATE Scene)
+target_link_libraries(SceneConverter PRIVATE Collada)
 target_link_libraries(SceneConverter INTERFACE PUBLIC
 	AppSettings
 )

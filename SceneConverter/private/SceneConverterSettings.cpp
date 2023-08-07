@@ -17,6 +17,11 @@ scene_converter::SceneConverterSettings::~SceneConverterSettings()
 {
 }
 
+scene_converter::SceneConverterSettings::Settings& scene_converter::SceneConverterSettings::GetSettings()
+{
+	return m_settings;
+}
+
 void scene_converter::SceneConverterSettings::LoadSceneSettings()
 {
 	settings::AppSettings* appSettings = settings::AppSettings::GetAppSettings();

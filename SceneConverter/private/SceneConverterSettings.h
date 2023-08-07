@@ -29,5 +29,7 @@ namespace scene_converter
 	public:
 		SceneConverterSettings();
 		virtual ~SceneConverterSettings();
+
+		Settings& GetSettings();
 	};
 }
