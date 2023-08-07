@@ -5,8 +5,21 @@
 #include <string>
 #include <vector>
 
+#include <fstream>
+
 namespace data
 {
+	struct BinChunk
+	{
+		unsigned int m_size = 0;
+		char* m_data = nullptr;
+
+		void Read(std::fstream& file);
+		void Write(std::fstream& file);
+
+		~BinChunk();
+	};
+
 	class DataLib
 	{
 		std::string m_data;

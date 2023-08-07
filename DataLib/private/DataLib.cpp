@@ -138,3 +138,40 @@ const std::string& data::DataLib::GetRootDir() const
 {
 	return libDir;
 }
+
+void data::BinChunk::Read(std::fstream& file)
+{
+	if (m_data)
+	{
+		delete[] m_data;
+	}
+	m_data = nullptr;
+	m_size = 0;
+
+	char* size = reinterpret_cast<char*>(&m_size);
+	file.read(size, sizeof(m_size));
+
+	m_data = new char[m_size];
+	file.read(m_data, m_size);
+}
+
+void data::BinChunk::Write(std::fstream& file)
+{
+	if (!m_data)
+	{
+		throw "No data stored in the Chunk!";
+	}
+
+	file.write(m_data, m_size);
+}
+
+data::BinChunk::~BinChunk()
+{
+	if (m_data)
+	{
+		delete[] m_data;
+	}
+
+	m_data = nullptr;
+	m_size = 0;
+}
