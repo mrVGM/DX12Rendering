@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<settings>
+	<scenes_to_convert>
+		<house>
+			<dae>"geo/house_scene.dae"</dae>
+		</house>
+	</scenes_to_convert>
+</settings>

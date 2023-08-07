@@ -7,11 +7,16 @@ add_library (SceneConverter
 	"private/SceneConverterEntryPointMeta.h"
 	"private/SceneConverterEntryPoint.cpp"
 	"private/SceneConverterEntryPoint.h"
+	"private/SceneConverterSettingsMeta.cpp"
+	"private/SceneConverterSettingsMeta.h"
+	"private/SceneConverterSettings.cpp"
+	"private/SceneConverterSettings.h"
 )
 
 target_include_directories(SceneConverter INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(SceneConverter PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
+target_link_libraries(SceneConverter PRIVATE Scene)
 target_link_libraries(SceneConverter INTERFACE PUBLIC
 	AppSettings
 )
