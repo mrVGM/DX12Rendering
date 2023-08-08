@@ -2,20 +2,41 @@
 
 #include "json.hpp"
 
+#include <stdio.h>
 #include <string>
 #include <vector>
 
-#include <fstream>
-
 namespace data
 {
+	struct BinReader
+	{
+		FILE* m_file = nullptr;
+		unsigned int m_filePos = 0;
+
+		BinReader(const std::string& fileName);
+		~BinReader();
+
+		unsigned int Read(char* buf, int bufSize);
+	};
+
+	struct BinWriter
+	{
+		FILE* m_file = nullptr;
+		unsigned int m_filePos = 0;
+
+		BinWriter(const std::string& fileName);
+		~BinWriter();
+
+		unsigned int Write(char* buf, int bufSize);
+	};
+
 	struct BinChunk
 	{
 		unsigned int m_size = 0;
 		char* m_data = nullptr;
 
-		void Read(std::fstream& file);
-		void Write(std::fstream& file);
+		void Read(BinReader& br);
+		void Write(BinWriter& bw);
 
 		~BinChunk();
 	};

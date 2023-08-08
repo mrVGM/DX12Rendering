@@ -8,7 +8,7 @@ add_library (Collada
 	"private/ColladaSceneMeta.cpp"
 	"public/ColladaScene.h"
 	"private/ColladaScene.cpp"
-)
+ "private/ColladaEntities.cpp")
 
 target_include_directories(Collada INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Collada PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")

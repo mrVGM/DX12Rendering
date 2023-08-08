@@ -17,10 +17,25 @@ void scene_converter::Boot()
 
 	SceneConverterSettings::Settings& sceneSettings = settings->GetSettings();
 
+	std::string fileName = data::GetLibrary().GetRootDir() + "asd.bin";
+	
+
 	for (auto it = sceneSettings.m_scenes.begin(); it != sceneSettings.m_scenes.end(); ++it)
 	{
 		collada::ColladaScene cs;
 		cs.Load(data::GetLibrary().GetRootDir() + it->second.m_dae);
+
+		collada::Geometry& refGeo = cs.GetScene().m_geometries.begin()->second;
+		{
+			data::BinWriter file(fileName);
+			refGeo.Serialize(file);
+		}
+
+		{
+			data::BinReader file(fileName);
+			collada::Geometry geo;
+			geo.Deserialize(file);
+		}
 	}
 }
 

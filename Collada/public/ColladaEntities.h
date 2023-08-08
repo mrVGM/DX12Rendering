@@ -2,6 +2,8 @@
 
 #include "symbol.h"
 
+#include "DataLib.h"
+
 #include <string>
 #include <list>
 #include <map>
@@ -29,6 +31,9 @@ namespace collada
 		std::list<Vertex> m_vertices;
 		std::list<int> m_indices;
 		std::list<MaterialIndexRange> m_materials;
+
+		void Serialize(data::BinWriter& file);
+		void Deserialize(data::BinReader& file);
 	};
 
 	struct GeometryInstanceData
