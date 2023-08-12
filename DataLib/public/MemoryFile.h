@@ -1,6 +1,7 @@
 #pragma once
 
 #include <list>
+#include <string>
 
 namespace data
 {
@@ -51,5 +52,8 @@ namespace data
 		MemoryFile(const MemoryFile& other) = delete;
 		MemoryFile& operator=(const MemoryFile& other) = delete;
 		~MemoryFile();
+
+		void SaveToFile(const std::string& file);
+		void RestoreFromFile(const std::string& file);
 	};
 }

@@ -18,6 +18,17 @@ void scene_converter::Boot()
 	SceneConverterSettings::Settings& sceneSettings = settings->GetSettings();
 
 	data::MemoryFile mf;
+	std::string file = data::GetLibrary().GetRootDir() + "asd.bin";
+
+#if true
+	mf.RestoreFromFile(file);
+
+	data::MemoryFileReader reader(mf);
+	collada::Scene restored;
+	restored.Deserialize(reader);
+	bool t = true;
+#else
+
 	for (auto it = sceneSettings.m_scenes.begin(); it != sceneSettings.m_scenes.end(); ++it)
 	{
 		collada::ColladaScene cs;
@@ -26,12 +37,9 @@ void scene_converter::Boot()
 		data::MemoryFileWriter writer(mf);
 		cs.GetScene().Serialize(writer);
 
-		data::MemoryFileReader reader(mf);
-		collada::Scene restored;
-		restored.Deserialize(reader);
-
-		bool t = true;
+		mf.SaveToFile(file);
 	}
+#endif
 }
 
 void scene_converter::RegisterLib()

@@ -1,5 +1,7 @@
 #include "MemoryFile.h"
 
+#include <stdio.h>
+
 void data::MemoryFile::Write(size_t position, size_t size, void* data)
 {
 	{
@@ -147,4 +149,63 @@ size_t data::MemoryFileReader::Read(void* data, size_t size)
 	m_position += read;
 
 	return read;
+}
+
+
+void data::MemoryFile::SaveToFile(const std::string& file)
+{
+	FILE* f = nullptr;
+	fopen_s(&f, file.c_str(), "wb");
+
+	if (!f)
+	{
+		return;
+	}
+
+	int index = 0;
+	for (auto it = m_contents.begin(); it != m_contents.end(); ++it)
+	{
+		size_t size = m_chunkSize;
+
+		if (index + 1 == m_contents.size())
+		{
+			size = std::min(size, m_lastChunkSize);
+		}
+
+		void* chunk = *it;
+		fwrite(chunk, sizeof(char), size, f);
+	}
+
+	fclose(f);
+}
+
+void data::MemoryFile::RestoreFromFile(const std::string& file)
+{
+	FILE* f = nullptr;
+	fopen_s(&f, file.c_str(), "rb");
+
+	if (!f)
+	{
+		return;
+	}
+
+	size_t read = m_chunkSize;
+
+	char* buf = new char[m_chunkSize];
+
+	while (read > 0)
+	{
+		read = fread_s(buf, m_chunkSize, sizeof(char), m_chunkSize, f);
+
+		if (read > 0)
+		{
+			m_contents.push_back(buf);
+			m_lastChunkSize = read;
+			buf = new char[m_chunkSize];
+		}
+	}
+
+	delete[] buf;
+
+	fclose(f);
 }
