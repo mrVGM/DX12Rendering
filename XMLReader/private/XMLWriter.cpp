@@ -54,14 +54,14 @@ namespace
 
 				if (!m_node.m_content.empty())
 				{
-					m_ss << m_prefix << m_node.m_content << m_node.m_content << std::endl;
+					m_ss << m_prefix << "    " << m_node.m_content << m_node.m_content << std::endl;
 				}
 
 				m_state = ChildrenProcessing;
 
 				for (auto it = m_node.m_children.begin(); it != m_node.m_children.end(); ++it)
 				{
-					Builder* b = new Builder(m_builderStack, *it, m_prefix + m_prefix);
+					Builder* b = new Builder(m_builderStack, *it, m_prefix + "    ");
 					m_childBuilders.push_back(b);
 				}
 
@@ -78,6 +78,10 @@ namespace
 				}
 
 				m_childBuilders.clear();
+
+				m_ss << m_prefix << "</" << m_node.m_tagName << ">" << std::endl;
+
+				m_state = State::Finished;
 
 				break;
 			}
@@ -115,6 +119,9 @@ namespace
 
 std::string xml_writer::Node::ToString()
 {
+	std::stringstream ss;
+	ss << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << std::endl;
 	std::string res = NodeToString("", *this);
-	return res;
+	ss << res;
+	return ss.str();
 }
