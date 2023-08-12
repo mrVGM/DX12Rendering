@@ -4,6 +4,8 @@ add_library (DataLib
 	"public/DataLib.h"
 	"public/json.hpp"
 	"private/DataLib.cpp"
+	"public/MemoryFile.h"
+	"private/MemoryFile.cpp"
 )
 
 target_include_directories(DataLib INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
