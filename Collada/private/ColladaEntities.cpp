@@ -189,3 +189,91 @@ void collada::Geometry::Deserialize(data::MemoryFileReader& reader)
 		}
 	}
 }
+
+void collada::Scene::ConstructInstanceBuffers()
+{
+	m_instanceBuffers.clear();
+	m_objectInstanceMap.clear();
+
+	for (std::map<std::string, Geometry>::const_iterator it = m_geometries.begin();
+		it != m_geometries.end(); ++it) {
+		m_instanceBuffers.insert(std::pair<std::string, InstanceBuffer>(it->first, InstanceBuffer()));
+	}
+
+	for (std::map<std::string, Object>::const_iterator it = m_objects.begin();
+		it != m_objects.end(); ++it) {
+		InstanceBuffer& cur = m_instanceBuffers[it->second.m_geometry];
+
+		cur.m_data.push_back(it->second.m_instanceData);
+		m_objectInstanceMap[it->first] = cur.m_data.size() - 1;
+	}
+}
+
+
+void collada::Object::Serialize(data::MemoryFileWriter& writer)
+{
+	std::map<std::string, int> nameIds;
+
+	for (auto it = m_materialOverrides.begin(); it != m_materialOverrides.end(); ++it)
+	{
+		const std::string& curMaterialOverride = *it;
+		nameIds[curMaterialOverride] = 0;
+	}
+	nameIds[m_geometry] = 0;
+
+	{
+		data::BinChunk namesChunk;
+
+		unsigned int size = sizeof(unsigned int);
+
+		std::vector<std::string> names;
+		int index = 0;
+		for (auto it = nameIds.begin(); it != nameIds.end(); ++it)
+		{
+			names.push_back(it->first);
+			it->second = index++;
+
+			size += it->first.size() + 1;
+		}
+
+		namesChunk.m_size = size;
+		namesChunk.m_data = new char[size];
+
+		memset(namesChunk.m_data, 0, size);
+
+		void* curPtr = namesChunk.m_data;
+		{
+			unsigned int* countNames = static_cast<unsigned int*>(curPtr);
+			*countNames = names.size();
+			++countNames;
+			curPtr = countNames;
+		}
+
+		{
+			char* namePtr = static_cast<char*>(curPtr);
+			for (auto it = names.begin(); it != names.end(); ++it)
+			{
+				const std::string& curName = *it;
+				memcpy(namePtr, curName.c_str(), curName.size());
+				namePtr += curName.size() + 1;
+			}
+		}
+
+		namesChunk.Write(writer);
+	}
+
+	{
+		data::BinChunk transformChunk;
+		transformChunk.m_size = _countof(m_transform) * sizeof(float);
+		transformChunk.m_data = new char[transformChunk.m_size];
+
+		memcpy(transformChunk.m_data, m_transform, transformChunk.m_size);
+
+		transformChunk.Write(writer);
+	}
+
+}
+
+void collada::Object::Deserialize(data::MemoryFileReader& reader)
+{
+}

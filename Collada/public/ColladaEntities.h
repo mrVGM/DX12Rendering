@@ -53,8 +53,10 @@ namespace collada
 		std::list<std::string> m_materialOverrides;
 
 		void CalcPositionRotationScale(bool invertAxis);
-	private:
 		void InvertAxis();
+
+		void Serialize(data::MemoryFileWriter& writer);
+		void Deserialize(data::MemoryFileReader& reader);
 	};
 
 	struct InstanceBuffer
@@ -75,5 +77,7 @@ namespace collada
 		std::map<std::string, int> m_objectInstanceMap;
 		std::map<std::string, InstanceBuffer> m_instanceBuffers;
 		std::map<std::string, ColladaMaterial> m_materials;
+
+		void ConstructInstanceBuffers();
 	};
 }

@@ -503,25 +503,6 @@ namespace
 		return true;
 	}
 
-	void ConstructInstanceBuffers(Scene& scene)
-	{
-		scene.m_instanceBuffers.clear();
-		scene.m_objectInstanceMap.clear();
-
-		for (std::map<std::string, Geometry>::const_iterator it = scene.m_geometries.begin();
-			it != scene.m_geometries.end(); ++it) {
-			scene.m_instanceBuffers.insert(std::pair<std::string, InstanceBuffer>(it->first, InstanceBuffer()));
-		}
-
-		for (std::map<std::string, Object>::const_iterator it = scene.m_objects.begin();
-			it != scene.m_objects.end(); ++it) {
-			InstanceBuffer& cur = scene.m_instanceBuffers[it->second.m_geometry];
-			
-			cur.m_data.push_back(it->second.m_instanceData);
-			scene.m_objectInstanceMap[it->first] = cur.m_data.size() - 1;
-		}
-	}
-
 	float clamp(float x, float minValue, float maxValue)
 	{
 		if (x < minValue) {
@@ -764,7 +745,7 @@ bool collada::ConvertToScene(const std::list<Node*>& nodes, collada::Scene& scen
 		}
 	}
 
-	ConstructInstanceBuffers(scene);
+	scene.ConstructInstanceBuffers();
 
 	return true;
 }
