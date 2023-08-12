@@ -23,17 +23,14 @@ void scene_converter::Boot()
 		collada::ColladaScene cs;
 		cs.Load(data::GetLibrary().GetRootDir() + it->second.m_dae);
 
-		collada::Geometry& refGeo = cs.GetScene().m_geometries.begin()->second;
-		{
-			data::MemoryFileWriter writer(mf);
-			refGeo.Serialize(writer);
-		}
+		data::MemoryFileWriter writer(mf);
+		cs.GetScene().Serialize(writer);
 
-		{
-			data::MemoryFileReader reader(mf);
-			collada::Geometry geo;
-			geo.Deserialize(reader);
-		}
+		data::MemoryFileReader reader(mf);
+		collada::Scene restored;
+		restored.Deserialize(reader);
+
+		bool t = true;
 	}
 }
 

@@ -13,7 +13,7 @@ namespace
 	};
 }
 
-void collada::Geometry::Serialize(data::MemoryFileWriter& writer)
+void collada::Geometry::Serialize(data::MemoryFileWriter& writer, int id)
 {
 	std::map<std::string, int> nameIds;
 
@@ -62,6 +62,18 @@ void collada::Geometry::Serialize(data::MemoryFileWriter& writer)
 		}
 
 		namesChunk.Write(writer);
+	}
+
+	{
+		data::BinChunk idChunk;
+
+		idChunk.m_size = sizeof(int);
+		idChunk.m_data = new char[sizeof(int)];
+
+		int* idPtr = reinterpret_cast<int*>(idChunk.m_data);
+		*idPtr = id;
+
+		idChunk.Write(writer);
 	}
 
 	{
@@ -119,7 +131,7 @@ void collada::Geometry::Serialize(data::MemoryFileWriter& writer)
 	}
 }
 
-void collada::Geometry::Deserialize(data::MemoryFileReader& reader)
+void collada::Geometry::Deserialize(data::MemoryFileReader& reader, int& id)
 {
 	std::vector<std::string> names;
 
@@ -139,6 +151,13 @@ void collada::Geometry::Deserialize(data::MemoryFileReader& reader)
 
 			namesPtr += tmp.size() + 1;
 		}
+	}
+
+	{
+		data::BinChunk idChunk;
+		idChunk.Read(reader);
+
+		id = *reinterpret_cast<int*>(idChunk.m_data);
 	}
 
 	{
@@ -209,8 +228,143 @@ void collada::Scene::ConstructInstanceBuffers()
 	}
 }
 
+void collada::Scene::Serialize(data::MemoryFileWriter& writer)
+{
+	std::map<std::string, int> nameIds;
 
-void collada::Object::Serialize(data::MemoryFileWriter& writer)
+	for (auto it = m_geometries.begin(); it != m_geometries.end(); ++it)
+	{
+		const std::string& geometryName = it->first;
+		nameIds[geometryName] = 0;
+	}
+
+	for (auto it = m_objects.begin(); it != m_objects.end(); ++it)
+	{
+		const std::string& objectName = it->first;
+		nameIds[objectName] = 0;
+	}
+
+	{
+		data::BinChunk namesChunk;
+
+		unsigned int size = sizeof(unsigned int);
+
+		std::vector<std::string> names;
+		int index = 0;
+		for (auto it = nameIds.begin(); it != nameIds.end(); ++it)
+		{
+			names.push_back(it->first);
+			it->second = index++;
+
+			size += it->first.size() + 1;
+		}
+
+		namesChunk.m_size = size;
+		namesChunk.m_data = new char[size];
+
+		memset(namesChunk.m_data, 0, size);
+
+		void* curPtr = namesChunk.m_data;
+		{
+			unsigned int* countNames = static_cast<unsigned int*>(curPtr);
+			*countNames = names.size();
+			++countNames;
+			curPtr = countNames;
+		}
+
+		{
+			char* namePtr = static_cast<char*>(curPtr);
+			for (auto it = names.begin(); it != names.end(); ++it)
+			{
+				const std::string& curName = *it;
+				memcpy(namePtr, curName.c_str(), curName.size());
+				namePtr += curName.size() + 1;
+			}
+		}
+
+		namesChunk.Write(writer);
+	}
+
+	{
+		data::BinChunk countsChunk;
+		countsChunk.m_size = 2 * sizeof(unsigned int);
+
+		countsChunk.m_data = new char[countsChunk.m_size * sizeof(unsigned int)];
+		unsigned int* geoCount = reinterpret_cast<unsigned int*>(countsChunk.m_data);
+		unsigned int* objCount = geoCount + 1;
+
+		*geoCount = m_geometries.size();
+		*objCount = m_objects.size();
+
+		countsChunk.Write(writer);
+	}
+
+	for (auto it = m_geometries.begin(); it != m_geometries.end(); ++it)
+	{
+		it->second.Serialize(writer, nameIds[it->first]);
+	}
+
+	for (auto it = m_objects.begin(); it != m_objects.end(); ++it)
+	{
+		it->second.Serialize(writer, nameIds[it->first]);
+	}
+}
+
+void collada::Scene::Deserialize(data::MemoryFileReader& reader)
+{
+	std::vector<std::string> names;
+
+	{
+		data::BinChunk namesChunk;
+		namesChunk.Read(reader);
+
+
+		unsigned int* namesCount = reinterpret_cast<unsigned int*>(namesChunk.m_data);
+
+		char* namesPtr = reinterpret_cast<char*>(namesCount + 1);
+
+		for (unsigned int i = 0; i < *namesCount; ++i)
+		{
+			std::string& tmp = names.emplace_back();
+			tmp = namesPtr;
+
+			namesPtr += tmp.size() + 1;
+		}
+	}
+
+	unsigned int geoCount;
+	unsigned int objCount;
+
+	{
+		data::BinChunk countsChunk;
+		countsChunk.Read(reader);
+
+		unsigned int* intData = reinterpret_cast<unsigned int*>(countsChunk.m_data);
+		geoCount = intData[0];
+		objCount = intData[1];
+	}
+
+	for (unsigned int i = 0; i < geoCount; ++i)
+	{
+		Geometry geo;
+		int id;
+		geo.Deserialize(reader, id);
+
+		m_geometries[names[id]] = geo;
+	}
+
+	for (unsigned int i = 0; i < objCount; ++i)
+	{
+		Object obj;
+		int id;
+		obj.Deserialize(reader, id);
+
+		m_objects[names[id]] = obj;
+	}
+}
+
+
+void collada::Object::Serialize(data::MemoryFileWriter& writer, int id)
 {
 	std::map<std::string, int> nameIds;
 
@@ -263,6 +417,18 @@ void collada::Object::Serialize(data::MemoryFileWriter& writer)
 	}
 
 	{
+		data::BinChunk idChunk;
+
+		idChunk.m_size = sizeof(int);
+		idChunk.m_data = new char[sizeof(int)];
+
+		int* idPtr = reinterpret_cast<int*>(idChunk.m_data);
+		*idPtr = id;
+
+		idChunk.Write(writer);
+	}
+
+	{
 		data::BinChunk transformChunk;
 		transformChunk.m_size = _countof(m_transform) * sizeof(float);
 		transformChunk.m_data = new char[transformChunk.m_size];
@@ -272,8 +438,83 @@ void collada::Object::Serialize(data::MemoryFileWriter& writer)
 		transformChunk.Write(writer);
 	}
 
+	{
+		data::BinChunk geoAndMaterialsChunk;
+
+		unsigned int size = sizeof(unsigned int);
+		size += sizeof(int);
+		size += m_materialOverrides.size() * sizeof(int);
+
+		geoAndMaterialsChunk.m_size = size;
+		geoAndMaterialsChunk.m_data = new char[geoAndMaterialsChunk.m_size];
+
+		unsigned int* cnt = reinterpret_cast<unsigned int*>(geoAndMaterialsChunk.m_data);
+
+		*cnt = m_materialOverrides.size();
+
+		int* geometryPtr = reinterpret_cast<int*>(cnt + 1);
+		int* overridesPtr = geometryPtr + 1;
+
+		*geometryPtr = nameIds[m_geometry];
+		for (auto it = m_materialOverrides.begin(); it != m_materialOverrides.end(); ++it)
+		{
+			*overridesPtr = nameIds[*it];
+			++overridesPtr;
+		}
+
+		geoAndMaterialsChunk.Write(writer);
+	}
 }
 
-void collada::Object::Deserialize(data::MemoryFileReader& reader)
+void collada::Object::Deserialize(data::MemoryFileReader& reader, int& id)
 {
+	std::vector<std::string> names;
+
+	{
+		data::BinChunk namesChunk;
+		namesChunk.Read(reader);
+
+
+		unsigned int* namesCount = reinterpret_cast<unsigned int*>(namesChunk.m_data);
+
+		char* namesPtr = reinterpret_cast<char*>(namesCount + 1);
+
+		for (unsigned int i = 0; i < *namesCount; ++i)
+		{
+			std::string& tmp = names.emplace_back();
+			tmp = namesPtr;
+
+			namesPtr += tmp.size() + 1;
+		}
+	}
+
+	{
+		data::BinChunk idChunk;
+		idChunk.Read(reader);
+
+		id = *reinterpret_cast<int*>(idChunk.m_data);
+	}
+
+	{
+		data::BinChunk transformChunk;
+		transformChunk.Read(reader);
+
+		memcpy(m_transform, transformChunk.m_data, _countof(m_transform) * sizeof(float));
+	}
+
+	{
+		data::BinChunk geoAndMaterialsChunk;
+		geoAndMaterialsChunk.Read(reader);
+
+		unsigned int* numOverrides = reinterpret_cast<unsigned int*>(geoAndMaterialsChunk.m_data);
+		int* geo = reinterpret_cast<int*>(numOverrides + 1);
+		int* overrides = geo + 1;
+
+		m_geometry = names[*geo];
+
+		for (int i = 0; i < *numOverrides; ++i)
+		{
+			m_materialOverrides.push_back(names[overrides[i]]);
+		}
+	}
 }

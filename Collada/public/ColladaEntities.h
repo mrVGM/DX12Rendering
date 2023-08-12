@@ -33,8 +33,8 @@ namespace collada
 		std::list<int> m_indices;
 		std::list<MaterialIndexRange> m_materials;
 
-		void Serialize(data::MemoryFileWriter& writer);
-		void Deserialize(data::MemoryFileReader& reader);
+		void Serialize(data::MemoryFileWriter& writer, int id);
+		void Deserialize(data::MemoryFileReader& reader, int& id);
 	};
 
 	struct GeometryInstanceData
@@ -55,8 +55,8 @@ namespace collada
 		void CalcPositionRotationScale(bool invertAxis);
 		void InvertAxis();
 
-		void Serialize(data::MemoryFileWriter& writer);
-		void Deserialize(data::MemoryFileReader& reader);
+		void Serialize(data::MemoryFileWriter& writer, int id);
+		void Deserialize(data::MemoryFileReader& reader, int& id);
 	};
 
 	struct InstanceBuffer
@@ -79,5 +79,8 @@ namespace collada
 		std::map<std::string, ColladaMaterial> m_materials;
 
 		void ConstructInstanceBuffers();
+
+		void Serialize(data::MemoryFileWriter& writer);
+		void Deserialize(data::MemoryFileReader& reader);
 	};
 }
