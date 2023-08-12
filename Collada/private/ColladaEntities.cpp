@@ -1,6 +1,7 @@
 #include "ColladaEntities.h"
 
 #include "DataLib.h"
+#include "MemoryFile.h"
 
 namespace
 {
@@ -12,7 +13,7 @@ namespace
 	};
 }
 
-void collada::Geometry::Serialize(data::BinWriter& file)
+void collada::Geometry::Serialize(data::MemoryFileWriter& writer)
 {
 	std::map<std::string, int> nameIds;
 
@@ -60,7 +61,7 @@ void collada::Geometry::Serialize(data::BinWriter& file)
 			}
 		}
 
-		namesChunk.Write(file);
+		namesChunk.Write(writer);
 	}
 
 	{
@@ -75,7 +76,7 @@ void collada::Geometry::Serialize(data::BinWriter& file)
 			++curData;
 		}
 
-		verticesChunk.Write(file);
+		verticesChunk.Write(writer);
 	}
 
 	{
@@ -90,7 +91,7 @@ void collada::Geometry::Serialize(data::BinWriter& file)
 			++curData;
 		}
 
-		indicesChunk.Write(file);
+		indicesChunk.Write(writer);
 	}
 	
 	{
@@ -114,17 +115,17 @@ void collada::Geometry::Serialize(data::BinWriter& file)
 			++curData;
 		}
 
-		materialsChunk.Write(file);
+		materialsChunk.Write(writer);
 	}
 }
 
-void collada::Geometry::Deserialize(data::BinReader& file)
+void collada::Geometry::Deserialize(data::MemoryFileReader& reader)
 {
 	std::vector<std::string> names;
 
 	{
 		data::BinChunk namesChunk;
-		namesChunk.Read(file);
+		namesChunk.Read(reader);
 
 
 		unsigned int* namesCount = reinterpret_cast<unsigned int*>(namesChunk.m_data);
@@ -142,7 +143,7 @@ void collada::Geometry::Deserialize(data::BinReader& file)
 
 	{
 		data::BinChunk verticesChunk;
-		verticesChunk.Read(file);
+		verticesChunk.Read(reader);
 
 		int vertexCount = verticesChunk.m_size / sizeof(Vertex);
 
@@ -157,7 +158,7 @@ void collada::Geometry::Deserialize(data::BinReader& file)
 
 	{
 		data::BinChunk indicesChunk;
-		indicesChunk.Read(file);
+		indicesChunk.Read(reader);
 
 		int indexCount = indicesChunk.m_size / sizeof(int);
 
@@ -172,7 +173,7 @@ void collada::Geometry::Deserialize(data::BinReader& file)
 
 	{
 		data::BinChunk materialsChunk;
-		materialsChunk.Read(file);
+		materialsChunk.Read(reader);
 
 		int materialsCount = materialsChunk.m_size / sizeof(MaterialRangeSerializable);
 

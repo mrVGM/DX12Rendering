@@ -47,6 +47,7 @@ namespace data
 		size_t GetFileSize();
 
 	public:
+		MemoryFile();
 		MemoryFile(const MemoryFile& other) = delete;
 		MemoryFile& operator=(const MemoryFile& other) = delete;
 		~MemoryFile();

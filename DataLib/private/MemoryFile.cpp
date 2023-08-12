@@ -25,7 +25,7 @@ void data::MemoryFile::Write(size_t position, size_t size, void* data)
 		size_t startChunkOffset = position - startChunkIndex * m_chunkSize;
 		curChunkOffset = startChunkOffset;
 
-		for (size_t i = 0; i <= startChunkIndex; ++i)
+		for (size_t i = 0; i < startChunkIndex; ++i)
 		{
 			++curChunkIt;
 		}
@@ -39,7 +39,7 @@ void data::MemoryFile::Write(size_t position, size_t size, void* data)
 
 		size_t toWrite = std::min(size - written, m_chunkSize - curChunkOffset);
 
-		memcpy(charDataDst, charDataDst, toWrite);
+		memcpy(charDataDst, charDataSrc, toWrite);
 
 		curChunkOffset += toWrite;
 
@@ -113,6 +113,10 @@ size_t data::MemoryFile::GetFileSize()
 	return (m_contents.size() - 1) * m_chunkSize + m_lastChunkSize;
 }
 
+data::MemoryFile::MemoryFile()
+{
+}
+
 data::MemoryFile::~MemoryFile()
 {
 	for (auto it = m_contents.begin(); it != m_contents.end(); ++it)
@@ -139,5 +143,8 @@ data::MemoryFileReader::MemoryFileReader(MemoryFile& file) :
 
 size_t data::MemoryFileReader::Read(void* data, size_t size)
 {
-	return m_file.Read(m_position, size, data);
+	size_t read = m_file.Read(m_position, size, data);
+	m_position += read;
+
+	return read;
 }

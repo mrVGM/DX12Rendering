@@ -139,7 +139,7 @@ const std::string& data::DataLib::GetRootDir() const
 	return libDir;
 }
 
-void data::BinChunk::Read(BinReader& br)
+void data::BinChunk::Read(MemoryFileReader& reader)
 {
 	if (m_data)
 	{
@@ -149,21 +149,21 @@ void data::BinChunk::Read(BinReader& br)
 	m_size = 0;
 
 	char* size = reinterpret_cast<char*>(&m_size);
-	br.Read(size, sizeof(m_size));
+	reader.Read(size, sizeof(m_size));
 
 	m_data = new char[m_size];
-	br.Read(m_data, m_size);
+	reader.Read(m_data, m_size);
 }
 
-void data::BinChunk::Write(BinWriter& bw)
+void data::BinChunk::Write(MemoryFileWriter& writer)
 {
 	if (!m_data)
 	{
 		throw "No data stored in the Chunk!";
 	}
 
-	bw.Write(reinterpret_cast<char*>(&m_size), sizeof(m_size));
-	bw.Write(m_data, m_size);
+	writer.Write(reinterpret_cast<char*>(&m_size), sizeof(m_size));
+	writer.Write(m_data, m_size);
 }
 
 data::BinChunk::~BinChunk()
@@ -175,48 +175,4 @@ data::BinChunk::~BinChunk()
 
 	m_data = nullptr;
 	m_size = 0;
-}
-
-data::BinReader::BinReader(const std::string& fileName)
-{
-	fopen_s(&m_file, fileName.c_str(), "r");
-	if (!m_file)
-	{
-		throw "Can't open file!";
-	}
-}
-
-
-data::BinReader::~BinReader()
-{
-	fclose(m_file);
-}
-
-unsigned int data::BinReader::Read(char* buf, int bufSize)
-{
-	unsigned int read = fread_s(buf, bufSize, 1, bufSize, m_file);
-	m_filePos += read;
-	return read;
-}
-
-
-data::BinWriter::BinWriter(const std::string& fileName)
-{
-	fopen_s(&m_file, fileName.c_str(), "wb");
-	if (!m_file)
-	{
-		throw "Can't open file!";
-	}
-}
-
-data::BinWriter::~BinWriter()
-{
-	fclose(m_file);
-}
-
-unsigned int data::BinWriter::Write(char* buf, int bufSize)
-{
-	unsigned int written = fwrite(buf, 1, bufSize, m_file);
-	m_filePos += written;
-	return written;
 }

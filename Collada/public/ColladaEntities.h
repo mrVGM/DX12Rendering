@@ -3,6 +3,7 @@
 #include "symbol.h"
 
 #include "DataLib.h"
+#include "MemoryFile.h"
 
 #include <string>
 #include <list>
@@ -32,8 +33,8 @@ namespace collada
 		std::list<int> m_indices;
 		std::list<MaterialIndexRange> m_materials;
 
-		void Serialize(data::BinWriter& file);
-		void Deserialize(data::BinReader& file);
+		void Serialize(data::MemoryFileWriter& writer);
+		void Deserialize(data::MemoryFileReader& reader);
 	};
 
 	struct GeometryInstanceData
