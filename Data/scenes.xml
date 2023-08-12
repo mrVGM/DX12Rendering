@@ -3,8 +3,8 @@
 	<scenes_to_convert>
 		<house>
 			<dae>"geo/house_scene.dae"</dae>
-			<bin>"geo/house_scene.scene"</bin>
-			<materials>"geo/house_scene.xml"</materials>
+			<bin>"geo/house/house_scene.scene"</bin>
+			<materials>"geo/house/house_scene_materials.xml"</materials>
 		</house>
 	</scenes_to_convert>
 </settings>

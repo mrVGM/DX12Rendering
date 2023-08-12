@@ -46,8 +46,18 @@ void collada::SceneSettings::LoadSceneSettings()
 			return node->m_tagName == "dae";
 		});
 
+		const xml_reader::Node* bin = xml_reader::FindChildNode(cur, [](const xml_reader::Node* node) {
+			return node->m_tagName == "bin";
+		});
+
+		const xml_reader::Node* materials = xml_reader::FindChildNode(cur, [](const xml_reader::Node* node) {
+			return node->m_tagName == "materials";
+		});
+
 		const std::string& daePath = dae->m_data.front()->m_symbolData.m_string;
-		SceneInfo si{ daePath };
+		const std::string& binPath = bin->m_data.front()->m_symbolData.m_string;
+		const std::string& materialsPath = materials->m_data.front()->m_symbolData.m_string;
+		SceneInfo si{ daePath, binPath, materialsPath };
 
 		m_settings.m_scenes[cur->m_tagName] = si;
 	}

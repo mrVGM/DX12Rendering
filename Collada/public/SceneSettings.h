@@ -16,6 +16,8 @@ namespace collada
 		struct SceneInfo
 		{
 			std::string m_dae;
+			std::string m_binFile;
+			std::string m_materialsFile;
 		};
 
 		struct Settings
