@@ -7,6 +7,8 @@ add_library (XMLReader
 	"private/TreeBuilder.cpp"
 	"private/XMLReaderMeta.h"
 	"private/XMLReaderMeta.cpp"
+	"public/XMLWriter.h"
+	"private/XMLWriter.cpp"
 )
 
 target_include_directories(XMLReader INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
