@@ -1,28 +1,28 @@
-#include "SceneConverterSettings.h"
+#include "SceneSettings.h"
 
-#include "SceneConverterSettingsMeta.h"
+#include "SceneSettingsMeta.h"
 
 #include "XMLReader.h"
 
 #include "AppSettings.h"
 #include "AppSettingsMeta.h"
 
-scene_converter::SceneConverterSettings::SceneConverterSettings() :
-	settings::SettingsReader(SceneConverterSettingsMeta::GetInstance())
+collada::SceneSettings::SceneSettings() :
+	settings::SettingsReader(SceneSettingsMeta::GetInstance())
 {
 	LoadSceneSettings();
 }
 
-scene_converter::SceneConverterSettings::~SceneConverterSettings()
+collada::SceneSettings::~SceneSettings()
 {
 }
 
-scene_converter::SceneConverterSettings::Settings& scene_converter::SceneConverterSettings::GetSettings()
+collada::SceneSettings::Settings& collada::SceneSettings::GetSettings()
 {
 	return m_settings;
 }
 
-void scene_converter::SceneConverterSettings::LoadSceneSettings()
+void collada::SceneSettings::LoadSceneSettings()
 {
 	settings::AppSettings* appSettings = settings::AppSettings::GetAppSettings();
 	const settings::AppSettings::Settings& settings = appSettings->GetSettings();
@@ -51,5 +51,4 @@ void scene_converter::SceneConverterSettings::LoadSceneSettings()
 
 		m_settings.m_scenes[cur->m_tagName] = si;
 	}
-	bool t = true;
 }

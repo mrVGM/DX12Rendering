@@ -2,7 +2,7 @@
 
 #include "SceneConverterEntryPoint.h"
 
-#include "SceneConverterSettings.h"
+#include "SceneSettings.h"
 
 #include "DataLib.h"
 #include "ColladaScene.h"
@@ -13,9 +13,9 @@ void scene_converter::Boot()
 {
 	std::cout << "Scene Converter!" << std::endl;
 
-	SceneConverterSettings* settings = new SceneConverterSettings();
+	collada::SceneSettings* settings = new collada::SceneSettings();
 
-	SceneConverterSettings::Settings& sceneSettings = settings->GetSettings();
+	collada::SceneSettings::Settings& sceneSettings = settings->GetSettings();
 
 	data::MemoryFile mf;
 	std::string file = data::GetLibrary().GetRootDir() + "asd.bin";

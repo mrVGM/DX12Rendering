@@ -7,9 +7,9 @@
 #include <string>
 #include <map>
 
-namespace scene_converter
+namespace collada
 {
-	class SceneConverterSettings : public settings::SettingsReader
+	class SceneSettings : public settings::SettingsReader
 	{
 	public:
 
@@ -27,8 +27,8 @@ namespace scene_converter
 
 		void LoadSceneSettings();
 	public:
-		SceneConverterSettings();
-		virtual ~SceneConverterSettings();
+		SceneSettings();
+		virtual ~SceneSettings();
 
 		Settings& GetSettings();
 	};

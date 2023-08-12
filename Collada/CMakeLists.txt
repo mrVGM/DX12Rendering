@@ -8,12 +8,17 @@ add_library (Collada
 	"private/ColladaSceneMeta.cpp"
 	"public/ColladaScene.h"
 	"private/ColladaScene.cpp"
- "private/ColladaEntities.cpp")
+	"private/ColladaEntities.cpp"
+	"public/SceneSettingsMeta.h"
+	"private/SceneSettingsMeta.cpp"
+	"public/SceneSettings.h"
+	"private/SceneSettings.cpp"
+)
 
 target_include_directories(Collada INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Collada PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(Collada PRIVATE DataLib)
+target_link_libraries(Collada PRIVATE DataLib AppSettings)
 target_link_libraries(Collada INTERFACE PUBLIC Parser Base XMLReader)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
