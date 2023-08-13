@@ -50,12 +50,18 @@ namespace
 					m_ss << " " << it->first << "=" << "\"" << it->second << "\"";
 				}
 
-				m_ss << ">" << std::endl;
+				m_ss << ">";
 
 				if (!m_node.m_content.empty())
 				{
-					m_ss << m_prefix << "    " << m_node.m_content << std::endl;
+					m_ss << m_node.m_content
+						<< "</" << m_node.m_tagName << ">" << std::endl;
+
+					m_state = Finished;
+					break;
 				}
+
+				m_ss << std::endl;
 
 				m_state = ChildrenProcessing;
 

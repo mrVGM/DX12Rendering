@@ -4,8 +4,6 @@
 
 #include "XMLReader.h"
 
-#include <sstream>
-
 rendering::SceneMaterialsSettings::SceneMaterialsSettings(const std::string& filename) :
 	settings::SettingsReader(SceneMaterialsSettingsMeta::GetInstance()),
 	m_filename(filename)
@@ -36,18 +34,15 @@ void rendering::SceneMaterialsSettings::LoadSceneMaterialsSettings(std::map<std:
 			return node->m_tagName == "diffuse";
 		});
 
-		outMaterials[cur->m_tagName] = collada::ColladaMaterial();
-		collada::ColladaMaterial& mat = outMaterials[cur->m_tagName];
-		mat.m_name = cur->m_tagName;
+		outMaterials[cur->m_tagProps["id"]] = collada::ColladaMaterial();
+		collada::ColladaMaterial& mat = outMaterials[cur->m_tagProps["id"]];
+		mat.m_name = cur->m_tagProps["id"];
 
 		int colorIndex = 0;
-		std::stringstream ss;
 		for (auto dataIt = diffuse->m_data.begin(); dataIt != diffuse->m_data.end(); ++dataIt)
 		{
 			scripting::ISymbol* curSymbol = *dataIt;
-			ss << curSymbol->m_symbolData.m_string;
-
-			ss >> mat.m_diffuseColor[colorIndex++];
+			mat.m_diffuseColor[colorIndex++] = curSymbol->m_symbolData.m_number;
 		}
 	}
 }

@@ -584,7 +584,7 @@ void rendering::DXScene::LoadColladaScene(const std::string& sceneId, jobs::Job*
 		{
 			collada::SceneSettings::Settings& sceneSettings = m_sceneSettings->GetSettings();
 			collada::SceneSettings::SceneInfo& sceneInfo = sceneSettings.m_scenes[m_context.m_sceneId];
-			m_context.m_materialSettingsReader = new SceneMaterialsSettings(data::GetLibrary().GetRootDir() + sceneInfo.m_materialsFile);
+			m_context.m_materialSettingsReader = new SceneMaterialsSettings(sceneInfo.m_materialsFile);
 
 			core::utils::RunAsync(new LoadColladaSceneJob(m_context));
 		}

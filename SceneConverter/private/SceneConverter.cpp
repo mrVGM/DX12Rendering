@@ -25,7 +25,8 @@ namespace
 			const collada::ColladaMaterial& cur = it->second;
 
 			xml_writer::Node& mat = settings.m_children.emplace_back();
-			mat.m_tagName = cur.m_name;
+			mat.m_tagName = "material";
+			mat.m_tagProps["id"] = cur.m_name;
 
 			xml_writer::Node& diffuse = mat.m_children.emplace_back();
 			diffuse.m_tagName = "diffuse";
@@ -34,7 +35,7 @@ namespace
 			ss << cur.m_diffuseColor[0] << ' '
 				<< cur.m_diffuseColor[1] << ' '
 				<< cur.m_diffuseColor[2] << ' '
-				<< cur.m_diffuseColor[3] << ' ';
+				<< cur.m_diffuseColor[3];
 
 			diffuse.m_content = ss.str();
 		}
