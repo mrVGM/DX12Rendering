@@ -439,6 +439,16 @@ void collada::Object::Serialize(data::MemoryFileWriter& writer, int id)
 	}
 
 	{
+		data::BinChunk instanceDataChunk;
+		instanceDataChunk.m_size = sizeof(m_instanceData);
+		instanceDataChunk.m_data = new char[instanceDataChunk.m_size];
+
+		memcpy(instanceDataChunk.m_data, &m_instanceData, instanceDataChunk.m_size);
+
+		instanceDataChunk.Write(writer);
+	}
+
+	{
 		data::BinChunk geoAndMaterialsChunk;
 
 		unsigned int size = sizeof(unsigned int);
@@ -500,6 +510,13 @@ void collada::Object::Deserialize(data::MemoryFileReader& reader, int& id)
 		transformChunk.Read(reader);
 
 		memcpy(m_transform, transformChunk.m_data, _countof(m_transform) * sizeof(float));
+	}
+
+	{
+		data::BinChunk instanceDataChunk;
+		instanceDataChunk.Read(reader);
+
+		m_instanceData = *reinterpret_cast<GeometryInstanceData*>(instanceDataChunk.m_data);
 	}
 
 	{
