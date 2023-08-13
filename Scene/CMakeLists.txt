@@ -9,6 +9,10 @@ add_library (Scene
 	"private/SceneLoadedNotificationMeta.cpp"
 	"private/utils.h"
 	"private/utils.cpp"
+	"private/SceneMaterialsSettingsMeta.cpp"
+	"private/SceneMaterialsSettingsMeta.h"
+	"private/SceneMaterialsSettings.cpp"
+	"private/SceneMaterialsSettings.h"
 )
 
 target_include_directories(Scene INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

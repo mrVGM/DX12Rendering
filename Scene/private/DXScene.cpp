@@ -15,11 +15,12 @@
 #include "Notifications.h"
 #include "SceneLoadedNotificationMeta.h"
 
-#include <list>
+#include "SceneMaterialsSettings.h"
 
 #include "ColladaEntities.h"
-
 #include "utils.h"
+
+#include <list>
 
 namespace
 {
@@ -494,8 +495,9 @@ void rendering::DXScene::LoadColladaScene(const std::string& sceneId, jobs::Job*
 		DXScene* m_dxScene = nullptr;
 		std::string m_sceneId;
 		collada::ColladaScene* m_scene = nullptr;
+		SceneMaterialsSettings* m_materialSettingsReader = nullptr;
+
 		jobs::Job* m_done = nullptr;
-		jobs::JobSystem* m_jobSystem = nullptr;
 	};
 
 	class BuffersLoaded : public jobs::Job
@@ -561,12 +563,35 @@ void rendering::DXScene::LoadColladaScene(const std::string& sceneId, jobs::Job*
 			m_context.m_scene->GetScene().Deserialize(reader);
 			m_context.m_scene->GetScene().ConstructInstanceBuffers();
 
+			m_context.m_materialSettingsReader->LoadSceneMaterialsSettings(m_context.m_scene->GetScene().m_materials);
+
+			core::utils::DisposeBaseObject(*m_context.m_materialSettingsReader);
 			core::utils::RunSync(new PostLoadColladaSceneJob(m_context));
 		}
 	};
 
-	JobContext ctx{ this, sceneId, new collada::ColladaScene(), done };
-	core::utils::RunAsync(new LoadColladaSceneJob(ctx));
+	class CreateMaterialsReader : public jobs::Job
+	{
+	private:
+		JobContext m_context;
+	public:
+		CreateMaterialsReader(const JobContext& context) :
+			m_context(context)
+		{
+		}
+
+		void Do() override
+		{
+			collada::SceneSettings::Settings& sceneSettings = m_sceneSettings->GetSettings();
+			collada::SceneSettings::SceneInfo& sceneInfo = sceneSettings.m_scenes[m_context.m_sceneId];
+			m_context.m_materialSettingsReader = new SceneMaterialsSettings(data::GetLibrary().GetRootDir() + sceneInfo.m_materialsFile);
+
+			core::utils::RunAsync(new LoadColladaSceneJob(m_context));
+		}
+	};
+
+	JobContext ctx{ this, sceneId, new collada::ColladaScene(), nullptr, done };
+	core::utils::RunSync(new CreateMaterialsReader(ctx));
 }
 
 void rendering::DXScene::LoadGeometryBuffers(int sceneIndex, const std::string& geometryName, SceneResources& sceneResources, jobs::Job* done)
