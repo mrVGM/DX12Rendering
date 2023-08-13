@@ -40,6 +40,8 @@
 #include "AppSettings.h"
 #include "AppSettingsMeta.h"
 
+#include "RendererSettings.h"
+
 #include "MaterialUtils.h"
 
 #include "RendererEntryPoint.h"
@@ -185,6 +187,8 @@ namespace
 	void InitBaseObjects()
 	{
 		using namespace rendering;
+
+		new RendererSettings();
 
 		core::Boot();
 

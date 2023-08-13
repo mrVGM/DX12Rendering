@@ -19,6 +19,7 @@
 #include "DXDepthStencilTextureMeta.h"
 #include "DXDepthStencilDescriptorHeapMeta.h"
 #include "AppSettingsMeta.h"
+#include "RendererSettingsMeta.h"
 
 #include "DXShader.h"
 
@@ -182,6 +183,20 @@ settings::AppSettings* rendering::utils::GetAppSettings()
 
 	settings::AppSettings* appSettings = static_cast<settings::AppSettings*>(obj);
 	return appSettings;
+}
+
+rendering::RendererSettings* rendering::utils::GetRendererSettings()
+{
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+	BaseObject* obj = container.GetObjectOfClass(RendererSettingsMeta::GetInstance());
+
+	if (!obj)
+	{
+		throw "Can't find Renderer Settings!";
+	}
+
+	RendererSettings* rendererSettings = static_cast<RendererSettings*>(obj);
+	return rendererSettings;
 }
 
 void rendering::utils::RunSync(jobs::Job* job)

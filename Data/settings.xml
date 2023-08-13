@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <settings>
 	<scene>"geo/house_scene.dae"</scene>
-	<entry_point>"SceneConverter"</entry_point>
+	<entry_point>"Renderer"</entry_point>
 	<other_settings>
 		<shader_repo>"shader_repo.xml"</shader_repo>
 		<image_loading>"image_loading.xml"</image_loading>
 		<scene_converter>"scenes.xml"</scene_converter>
+		<renderer>"renderer.xml"</renderer>
 	</other_settings>
 </settings>

@@ -17,6 +17,8 @@
 
 #include "AppSettings.h"
 
+#include "RendererSettings.h"
+
 #include "DXUnlitErrorMaterial.h"
 
 #include "DXDescriptorHeap.h"
@@ -29,17 +31,18 @@ namespace rendering
 	{
 		void CacheObjects();
 
-		rendering::Updater* GetUpdater();
-		rendering::Window* GetWindow();
-		rendering::DXRenderer* GetRenderer();
-		rendering::DXDevice* GetDevice();
-		rendering::DXSwapChain* GetSwapChain();
-		rendering::DXCommandQueue* GetCommandQueue();
-		rendering::DXCopyCommandQueue* GetCopyCommandQueue();
-		rendering::DXCamera* GetCamera();
-		rendering::DXMutableBuffer* GetCameraBuffer();
-		rendering::DXScene* GetScene();
+		Updater* GetUpdater();
+		Window* GetWindow();
+		DXRenderer* GetRenderer();
+		DXDevice* GetDevice();
+		DXSwapChain* GetSwapChain();
+		DXCommandQueue* GetCommandQueue();
+		DXCopyCommandQueue* GetCopyCommandQueue();
+		DXCamera* GetCamera();
+		DXMutableBuffer* GetCameraBuffer();
+		DXScene* GetScene();
 		settings::AppSettings* GetAppSettings();
+		RendererSettings* GetRendererSettings();
 
 		rendering::DXMaterialRepo* GetMaterialRepo();
 
