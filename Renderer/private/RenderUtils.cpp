@@ -18,7 +18,6 @@
 #include "DXRendererMeta.h"
 #include "DXDepthStencilTextureMeta.h"
 #include "DXDepthStencilDescriptorHeapMeta.h"
-#include "AppSettingsMeta.h"
 #include "RendererSettingsMeta.h"
 
 #include "DXShader.h"
@@ -169,20 +168,6 @@ rendering::DXScene* rendering::utils::GetScene()
 	BaseObject* obj = container.GetObjectOfClass(DXSceneMeta::GetInstance());
 	m_scene = static_cast<DXScene*>(obj);
 	return m_scene;
-}
-
-settings::AppSettings* rendering::utils::GetAppSettings()
-{
-	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-	BaseObject* obj = container.GetObjectOfClass(settings::AppSettingsMeta::GetInstance());
-
-	if (!obj)
-	{
-		throw "Can't find AppSettings!";
-	}
-
-	settings::AppSettings* appSettings = static_cast<settings::AppSettings*>(obj);
-	return appSettings;
 }
 
 rendering::RendererSettings* rendering::utils::GetRendererSettings()

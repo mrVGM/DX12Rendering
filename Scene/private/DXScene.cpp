@@ -19,8 +19,21 @@
 
 #include "ColladaEntities.h"
 
+#include "utils.h"
+
 namespace
 {
+	collada::SceneSettings* m_sceneSettings = nullptr;
+
+	void CacheObjects()
+	{
+		using namespace rendering;
+		if (!m_sceneSettings)
+		{
+			m_sceneSettings = GetSceneSettings();
+		}
+	}
+
 	void LoadVertexBuffer(const collada::Geometry& geo, rendering::DXBuffer*& buffer, jobs::Job* done)
 	{
 		using namespace rendering;
@@ -467,18 +480,19 @@ namespace
 rendering::DXScene::DXScene() :
 	BaseObject(DXSceneMeta::GetInstance())
 {
+	CacheObjects();
 }
 
 rendering::DXScene::~DXScene()
 {
 }
 
-void rendering::DXScene::LoadColladaScene(const std::string& filePath, jobs::Job* done)
+void rendering::DXScene::LoadColladaScene(const std::string& sceneId, jobs::Job* done)
 {
 	struct JobContext
 	{
 		DXScene* m_dxScene = nullptr;
-		std::string m_filePath;
+		std::string m_sceneId;
 		collada::ColladaScene* m_scene = nullptr;
 		jobs::Job* m_done = nullptr;
 		jobs::JobSystem* m_jobSystem = nullptr;
@@ -537,12 +551,21 @@ void rendering::DXScene::LoadColladaScene(const std::string& filePath, jobs::Job
 
 		void Do() override
 		{
-			m_context.m_scene->Load(m_context.m_filePath);
+			collada::SceneSettings::Settings& sceneSettings = m_sceneSettings->GetSettings();
+			collada::SceneSettings::SceneInfo& sceneInfo = sceneSettings.m_scenes[m_context.m_sceneId];
+
+			data::MemoryFile mf;
+			mf.RestoreFromFile(data::GetLibrary().GetRootDir() + sceneInfo.m_binFile);
+
+			data::MemoryFileReader reader(mf);
+			m_context.m_scene->GetScene().Deserialize(reader);
+			m_context.m_scene->GetScene().ConstructInstanceBuffers();
+
 			core::utils::RunSync(new PostLoadColladaSceneJob(m_context));
 		}
 	};
 
-	JobContext ctx{ this, filePath, new collada::ColladaScene(), done };
+	JobContext ctx{ this, sceneId, new collada::ColladaScene(), done };
 	core::utils::RunAsync(new LoadColladaSceneJob(ctx));
 }
 

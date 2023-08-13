@@ -37,10 +37,8 @@
 #include "DXDepthStencilTextureMeta.h"
 #include "DXDepthStencilDescriptorHeapMeta.h"
 
-#include "AppSettings.h"
-#include "AppSettingsMeta.h"
-
 #include "RendererSettings.h"
+#include "SceneSettings.h"
 
 #include "MaterialUtils.h"
 
@@ -52,7 +50,7 @@
 
 namespace
 {
-	settings::AppSettings* m_appSettings = nullptr;
+	rendering::RendererSettings* m_rendererSettings = nullptr;
 
 	struct BootContext
 	{
@@ -175,8 +173,8 @@ namespace
 				new DXScene();
 				DXScene* scene = utils::GetScene();
 
-				const settings::AppSettings::Settings& settings = m_appSettings->GetSettings();
-				std::string scenePath = data::GetLibrary().GetRootDir() + settings.m_sceneName;
+				const rendering::RendererSettings::Settings& settings = m_rendererSettings->GetSettings();
+				std::string scenePath = settings.m_sceneToLoad;
 				scene->LoadColladaScene(scenePath, new SceneLoaded());
 			}
 		};
@@ -187,8 +185,6 @@ namespace
 	void InitBaseObjects()
 	{
 		using namespace rendering;
-
-		new RendererSettings();
 
 		core::Boot();
 
@@ -223,10 +219,8 @@ namespace
 
 void rendering::Boot()
 {
-	if (!m_appSettings)
-	{
-		m_appSettings = utils::GetAppSettings();
-	}
+	m_rendererSettings = new RendererSettings();
+	new collada::SceneSettings();
 
 	InitBaseObjects();
 

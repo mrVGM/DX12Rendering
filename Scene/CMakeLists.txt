@@ -7,6 +7,8 @@ add_library (Scene
 	"private/DXSceneMeta.cpp"
 	"public/SceneLoadedNotificationMeta.h"
 	"private/SceneLoadedNotificationMeta.cpp"
+	"private/utils.h"
+	"private/utils.cpp"
 )
 
 target_include_directories(Scene INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
