@@ -5,7 +5,6 @@ add_executable (Main
 )
 
 target_link_libraries(Main PRIVATE
-	DataLib
 	App
 	AppSettings
 )

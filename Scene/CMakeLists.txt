@@ -12,7 +12,7 @@ add_library (Scene
 target_include_directories(Scene INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Scene PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(Scene INTERFACE PUBLIC Collada RenderingCore Notifications)
+target_link_libraries(Scene PUBLIC Collada RenderingCore Notifications)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Scene PROPERTY CXX_STANDARD 20)

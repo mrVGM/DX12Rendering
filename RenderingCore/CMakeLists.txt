@@ -85,7 +85,7 @@ add_library (RenderingCore
 target_include_directories(RenderingCore INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(RenderingCore PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(RenderingCore INTERFACE PUBLIC Base Jobs DataLib Notifications)
+target_link_libraries(RenderingCore PUBLIC Jobs DataLib Notifications)
 
 target_link_libraries(RenderingCore PRIVATE "d3d12.lib" "dxgi.lib" "d3dcompiler.lib" "dxguid.lib")
 

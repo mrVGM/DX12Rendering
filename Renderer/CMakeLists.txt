@@ -40,9 +40,8 @@ add_library (Renderer
 target_include_directories(Renderer INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Renderer PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(Renderer INTERFACE PUBLIC 
+target_link_libraries(Renderer PUBLIC 
 	Jobs 
-	DataLib 
 	Collada 
 	RenderingCore 
 	Scene 

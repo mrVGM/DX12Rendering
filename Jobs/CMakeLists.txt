@@ -14,7 +14,7 @@ add_library (Jobs
 target_include_directories(Jobs INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Jobs PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(Jobs INTERFACE PUBLIC Base)
+target_link_libraries(Jobs PUBLIC Base)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Jobs PROPERTY CXX_STANDARD 20)

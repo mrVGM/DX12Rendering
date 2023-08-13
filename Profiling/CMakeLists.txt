@@ -14,7 +14,7 @@ add_library (Profiling
 target_include_directories(Profiling INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Profiling PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(Profiling INTERFACE PUBLIC Base Jobs)
+target_link_libraries(Profiling PUBLIC Jobs)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Profiling PROPERTY CXX_STANDARD 20)

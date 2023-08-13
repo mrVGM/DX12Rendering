@@ -28,8 +28,7 @@ add_library (ImageLoading
 target_include_directories(ImageLoading INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(ImageLoading PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(ImageLoading PRIVATE RenderingCore AppSettings XMLReader)
-target_link_libraries(ImageLoading PUBLIC INTERFACE Notifications)
+target_link_libraries(ImageLoading PUBLIC Notifications RenderingCore AppSettings)
 target_link_libraries(ImageLoading PRIVATE "windowscodecs.lib")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

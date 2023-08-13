@@ -14,7 +14,7 @@ add_library (Notifications
 target_include_directories(Notifications INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Notifications PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(Notifications INTERFACE PUBLIC Jobs CommonResources)
+target_link_libraries(Notifications PUBLIC Jobs CommonResources)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Notifications PROPERTY CXX_STANDARD 20)

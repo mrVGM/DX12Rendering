@@ -30,8 +30,7 @@ add_library (Materials
 target_include_directories(Materials INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Materials PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(Materials PRIVATE AppSettings)
-target_link_libraries(Materials INTERFACE PUBLIC RenderingCore Collada Notifications)
+target_link_libraries(Materials PUBLIC RenderingCore Collada Notifications)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Materials PROPERTY CXX_STANDARD 20)
