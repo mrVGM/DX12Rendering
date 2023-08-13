@@ -54,7 +54,7 @@ namespace
 
 				if (!m_node.m_content.empty())
 				{
-					m_ss << m_prefix << "    " << m_node.m_content << m_node.m_content << std::endl;
+					m_ss << m_prefix << "    " << m_node.m_content << std::endl;
 				}
 
 				m_state = ChildrenProcessing;
