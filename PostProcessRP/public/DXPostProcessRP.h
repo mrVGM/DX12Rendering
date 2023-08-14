@@ -19,6 +19,13 @@ namespace rendering
 
 		void Create();
 		void RenderUnlit();
+
+		void CreateQuadVertexBuffer(jobs::Job* done);
+		void CreateQuadIndexBuffer(jobs::Job* done);
+
+		void CreateMaterials(jobs::Job* done);
+
+		void LoadBuffers(jobs::Job* done);
 	public:
 		DXPostProcessRP();
 		virtual ~DXPostProcessRP();
