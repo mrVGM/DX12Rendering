@@ -27,6 +27,7 @@ namespace
 {
     rendering::DXDevice* m_device = nullptr;
     rendering::DXSwapChain* m_swapChain = nullptr;
+    rendering::DXTexture* m_cameraDepthTexture = nullptr;
 
     void CacheObjects()
     {
@@ -42,6 +43,11 @@ namespace
         {
             m_swapChain = core::utils::GetSwapChain();
         }
+
+        if (!m_cameraDepthTexture)
+        {
+            m_cameraDepthTexture = GetCameraDepthTetxure();
+        }
     }
 }
 
@@ -51,6 +57,7 @@ rendering::DXOutlineMaterial::DXOutlineMaterial(const rendering::DXShader& verte
 {
     CacheObjects();
     CreatePipelineStateAndRootSignature();
+    CreateSRVHeap();
 }
 
 rendering::DXOutlineMaterial::~DXOutlineMaterial()
@@ -91,6 +98,11 @@ ID3D12CommandList* rendering::DXOutlineMaterial::GenerateCommandList(
     }
 
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+
+    ID3D12DescriptorHeap* descriptorHeaps[] = { m_srvHeap->GetDescriptorHeap() };
+    commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+
+    commandList->SetGraphicsRootDescriptorTable(0, descriptorHeaps[0]->GetGPUDescriptorHandleForHeapStart());
 
     commandList->RSSetViewports(1, &m_swapChain->GetViewport());
     commandList->RSSetScissorRects(1, &m_swapChain->GetScissorRect());
@@ -154,14 +166,34 @@ void rendering::DXOutlineMaterial::CreatePipelineStateAndRootSignature()
             featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
         }
 
+        D3D12_STATIC_SAMPLER_DESC sampler = {};
+        sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+        sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        sampler.MipLODBias = 0;
+        sampler.MaxAnisotropy = 0;
+        sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+        sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+        sampler.MinLOD = 0.0f;
+        sampler.MaxLOD = D3D12_FLOAT32_MAX;
+        sampler.ShaderRegister = 0;
+        sampler.RegisterSpace = 0;
+        sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
         D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
             D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
             D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
             D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
             D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 
+        CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
+        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
+        CD3DX12_ROOT_PARAMETER1 rootParameters[1];
+        rootParameters[0].InitAsDescriptorTable(_countof(ranges), ranges, D3D12_SHADER_VISIBILITY_PIXEL);
+
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-        rootSignatureDesc.Init_1_1(0, nullptr, 0, nullptr, rootSignatureFlags);
+        rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, &sampler, rootSignatureFlags);
 
         ComPtr<ID3DBlob> signature;
         ComPtr<ID3DBlob> error;
@@ -214,6 +246,13 @@ void rendering::DXOutlineMaterial::CreatePipelineStateAndRootSignature()
             device->GetDevice().CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)),
             "Can't create Graphics Pipeline State!")
     }
+}
+
+void rendering::DXOutlineMaterial::CreateSRVHeap()
+{
+    std::list<DXTexture*> textures;
+    textures.push_back(m_cameraDepthTexture);
+    m_srvHeap = DXDescriptorHeap::CreateSRVDescriptorHeap(DXDescriptorHeapMeta::GetInstance(), textures);
 }
 
 #undef THROW_ERROR

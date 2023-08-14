@@ -22,6 +22,10 @@
 #include "DXBuffer.h"
 #include "DXTexture.h"
 
+#include "CameraDepthTexLoadedNotificationMeta.h"
+
+#include "Notifications.h"
+
 namespace
 {
 	rendering::DXTexture* m_duffuseTex = nullptr;
@@ -503,6 +507,7 @@ namespace
 				m_ctx.m_tex->Place(*m_ctx.m_heap, 0);
 				m_cameraDepthTex = m_ctx.m_tex;
 				core::utils::RunSync(m_ctx.m_done);
+				notifications::Notify(CameraDepthTexLoadedNotificationMeta::GetInstance());
 			}
 		};
 

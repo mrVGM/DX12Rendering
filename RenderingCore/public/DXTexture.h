@@ -24,6 +24,8 @@ namespace rendering
 		DXTexture(const BaseObjectMeta& meta, const D3D12_RESOURCE_DESC& description);
 		virtual ~DXTexture();
 
+		bool IsLoaded() const;
+
 		void Place(DXHeap& heap, UINT64 heapOffset);
 
 		const D3D12_RESOURCE_DESC& GetTextureDescription() const;

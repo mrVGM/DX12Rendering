@@ -30,8 +30,9 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float4 worldPosition : WORLD_POS
     output.m_position = worldPosition;
     
     float4 depth = mul(m_camBuff.m_matrix, worldPosition);
-    depth /= depth.w;
-    output.m_depth = float2(depth.z, depth.z * worldPosition.z / m_camBuff.m_farPlane);
+    float depthW = depth.w;
+    depth /= depthW;
+    output.m_depth = float2(depth.z, depth.z * depthW / m_camBuff.m_farPlane);
     
     return output;
 }

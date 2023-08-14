@@ -23,6 +23,9 @@
 #include "DXBuffer.h"
 #include "DXBufferMeta.h"
 
+#include "CameraDepthTexLoadedNotificationMeta.h"
+#include "NotificationReceiver.h"
+
 #include "CoreUtils.h"
 #include "utils.h"
 
@@ -412,10 +415,38 @@ void rendering::DXPostProcessRP::CreateQuadIndexBuffer(jobs::Job* done)
 
 void rendering::DXPostProcessRP::CreateMaterials(jobs::Job* done)
 {
-    const shader_repo::ShaderSet& outlineMaterialSet = shader_repo::GetShaderSetByName("pp_outline_mat");
-    m_outlineMat = new DXOutlineMaterial(*outlineMaterialSet.m_vertexShader, *outlineMaterialSet.m_pixelShader);
+    DXTexture* cameraDepthTex = GetCameraDepthTetxure();
 
-    core::utils::RunSync(done);
+    if (cameraDepthTex && cameraDepthTex->IsLoaded()) {
+        const shader_repo::ShaderSet& outlineMaterialSet = shader_repo::GetShaderSetByName("pp_outline_mat");
+        m_outlineMat = new DXOutlineMaterial(*outlineMaterialSet.m_vertexShader, *outlineMaterialSet.m_pixelShader);
+
+        core::utils::RunSync(done);
+        return;
+    }
+
+    class WaitForCameraDepthTex : public notifications::NotificationReceiver
+    {
+    private:
+        jobs::Job* m_done = nullptr;
+    public:
+        WaitForCameraDepthTex(jobs::Job* done) :
+            NotificationReceiver(CameraDepthTexLoadedNotificationMeta::GetInstance()),
+            m_done(done)
+        {
+        }
+
+        void Notify() override
+        {
+            const shader_repo::ShaderSet& outlineMaterialSet = shader_repo::GetShaderSetByName("pp_outline_mat");
+            m_outlineMat = new DXOutlineMaterial(*outlineMaterialSet.m_vertexShader, *outlineMaterialSet.m_pixelShader);
+
+            core::utils::RunSync(m_done);
+            core::utils::DisposeBaseObject(*this);
+        }
+    };
+
+    new WaitForCameraDepthTex(done);
 }
 
 void rendering::DXPostProcessRP::LoadBuffers(jobs::Job* done)

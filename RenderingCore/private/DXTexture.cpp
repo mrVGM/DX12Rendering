@@ -36,6 +36,11 @@ rendering::DXTexture::~DXTexture()
 {
 }
 
+bool rendering::DXTexture::IsLoaded() const
+{
+	return m_heap;
+}
+
 void rendering::DXTexture::Place(DXHeap& heap, UINT64 heapOffset)
 {
 	D3D12_RESOURCE_DESC textureDesc = GetTextureDescription();

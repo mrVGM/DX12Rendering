@@ -21,7 +21,10 @@ namespace rendering
 
 		ID3D12CommandList* m_precalculatedLists[2] = {};
 
+		DXDescriptorHeap* m_srvHeap = nullptr;
+
 		void CreatePipelineStateAndRootSignature();
+		void CreateSRVHeap();
 	public:
 		DXOutlineMaterial(const DXShader& vertexShader, const DXShader& pixelShader);
 		virtual ~DXOutlineMaterial();

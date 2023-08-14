@@ -11,10 +11,10 @@ add_library (PostProcessRP
 	"private/Materials/DXOutlineMaterial.h"
 	"private/Materials/DXOutlineMaterialMeta.cpp"
 	"private/Materials/DXOutlineMaterialMeta.h"
-	 "private/Resources/CanvasIndexBufferMeta.cpp" 
-	 "private/Resources/CanvasIndexBufferMeta.h"
-	 "private/Resources/CanvasVertexBufferMeta.cpp"
-	 "private/Resources/CanvasVertexBufferMeta.h"
+	"private/Resources/CanvasIndexBufferMeta.cpp" 
+	"private/Resources/CanvasIndexBufferMeta.h"
+	"private/Resources/CanvasVertexBufferMeta.cpp"
+	"private/Resources/CanvasVertexBufferMeta.h"
 )
 
 target_include_directories(PostProcessRP INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

@@ -27,12 +27,14 @@ add_library (CommonResources
 	"private/MainJobSystemMeta.cpp"
 	"public/DXCameraDepthTexMeta.h"
 	"private/DXCameraDepthTexMeta.cpp"
+	"public/CameraDepthTexLoadedNotificationMeta.h"
+	"private/CameraDepthTexLoadedNotificationMeta.cpp"
 )
 
 target_include_directories(CommonResources INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(CommonResources PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(CommonResources PUBLIC RenderingCore)
+target_link_libraries(CommonResources PUBLIC RenderingCore Notifications)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET CommonResources PROPERTY CXX_STANDARD 20)
