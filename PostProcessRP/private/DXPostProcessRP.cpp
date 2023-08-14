@@ -16,6 +16,10 @@
 #include "Resources/CanvasVertexBufferMeta.h"
 #include "Resources/CanvasIndexBufferMeta.h"
 
+#include "ShaderRepo.h"
+
+#include "Materials/DXOutlineMaterial.h"
+
 #include "DXBuffer.h"
 #include "DXBufferMeta.h"
 
@@ -43,6 +47,8 @@ namespace
 
     rendering::DXBuffer* m_canvasVertexBuffer = nullptr;
     rendering::DXBuffer* m_canvasIndexBuffer = nullptr;
+
+    rendering::DXMaterial* m_outlineMat = nullptr;
 
     void CacheObjects()
     {
@@ -157,7 +163,32 @@ void rendering::DXPostProcessRP::Execute()
 
 void rendering::DXPostProcessRP::Load(jobs::Job* done)
 {
-    core::utils::RunSync(done);
+    struct Context
+    {
+        DXPostProcessRP* m_postProcessRP = nullptr;
+
+        jobs::Job* m_done = nullptr;
+    };
+
+    Context ctx{ this, done };
+
+    class BuffersLoaded : public jobs::Job
+    {
+    private:
+        Context m_ctx;
+    public:
+        BuffersLoaded(const Context& ctx) :
+            m_ctx(ctx)
+        {
+        }
+
+        void Do() override
+        {
+            m_ctx.m_postProcessRP->CreateMaterials(m_ctx.m_done);
+        }
+    };
+
+    LoadBuffers(new BuffersLoaded(ctx));
 }
 
 
@@ -446,6 +477,10 @@ void rendering::DXPostProcessRP::CreateQuadIndexBuffer(jobs::Job* done)
 
 void rendering::DXPostProcessRP::CreateMaterials(jobs::Job* done)
 {
+    const shader_repo::ShaderSet& outlineMaterialSet = shader_repo::GetShaderSetByName("pp_outline_mat");
+    m_outlineMat = new DXOutlineMaterial(*outlineMaterialSet.m_vertexShader, *outlineMaterialSet.m_pixelShader);
+
+    core::utils::RunSync(done);
 }
 
 void rendering::DXPostProcessRP::LoadBuffers(jobs::Job* done)

@@ -5,6 +5,7 @@
 		<vs_mainVS>"shaders/bin/vs_mainVS.fxc"</vs_mainVS>
 		<vs_shadowMapVS>"shaders/bin/vs_shadowMapVS.fxc"</vs_shadowMapVS>
 		<vs_displayCharVS>"shaders/bin/vs_displayCharVS.fxc"</vs_displayCharVS>
+		<vs_postProcessing>"shaders/bin/vs_postProcessVS.fxc"</vs_postProcessing>
 	</vertex_shaders>
 	<pixel_shaders>
 		<ps_deferred>"shaders/bin/ps_deferred.fxc"</ps_deferred>
@@ -22,6 +23,7 @@
 		<ps_shadowMaskPS>"shaders/bin/ps_shadowMaskPS.fxc"</ps_shadowMaskPS>
 		<ps_unlit>"shaders/bin/ps_unlit.fxc"</ps_unlit>
 		<ps_displayCharPS>"shaders/bin/ps_displayCharPS.fxc"</ps_displayCharPS>
+		<ps_postProcessing_outline>"shaders/bin/ps_ppOutline.fxc"</ps_postProcessing_outline>
 	</pixel_shaders>
 	<shader_sets>
 		<error>
@@ -80,5 +82,9 @@
 			<vertex>vs_displayCharVS</vertex>
 			<pixel>ps_displayCharPS</pixel>
 		</display_char_mat>
+		<pp_outline_mat>
+			<vertex>vs_postProcessing</vertex>
+			<pixel>ps_postProcessing_outline</pixel>
+		</pp_outline_mat>
 	</shader_sets>
 </settings>
