@@ -145,12 +145,13 @@ rendering::DXDeferredMaterial::DXDeferredMaterial(const rendering::DXShader& ver
         psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
         psoDesc.SampleMask = UINT_MAX;
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-        psoDesc.NumRenderTargets = 4;
+        psoDesc.NumRenderTargets = 5;
 
         psoDesc.RTVFormats[0] = DXGI_FORMAT_R32G32B32A32_FLOAT;
         psoDesc.RTVFormats[1] = DXGI_FORMAT_R32G32B32A32_FLOAT;
         psoDesc.RTVFormats[2] = DXGI_FORMAT_R32G32B32A32_FLOAT;
         psoDesc.RTVFormats[3] = DXGI_FORMAT_R32G32B32A32_FLOAT;
+        psoDesc.RTVFormats[4] = DXGI_FORMAT_R32G32_FLOAT;
 
         psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
         psoDesc.SampleDesc.Count = 1;
@@ -195,7 +196,8 @@ ID3D12CommandList* rendering::DXDeferredMaterial::GenerateCommandList(
         m_rtvHeap->GetDescriptorHandle(0),
         m_rtvHeap->GetDescriptorHandle(1),
         m_rtvHeap->GetDescriptorHandle(2),
-        m_rtvHeap->GetDescriptorHandle(3)
+        m_rtvHeap->GetDescriptorHandle(3),
+        m_rtvHeap->GetDescriptorHandle(4)
     };
     commandList->OMSetRenderTargets(_countof(handles), handles, FALSE, &dsHandle);
 
@@ -310,6 +312,7 @@ void rendering::DXDeferredMaterial::CreateRTVHeap()
     textures.push_back(deferred::GetGBufferSpecularTex());
     textures.push_back(deferred::GetGBufferNormalTex());
     textures.push_back(deferred::GetGBufferPositionTex());
+    textures.push_back(deferred::GetCameraDepthTex());
 
     m_rtvHeap = DXDescriptorHeap::CreateRTVDescriptorHeap(DXDescriptorHeapMeta::GetInstance(), textures);
 }

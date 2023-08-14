@@ -18,7 +18,7 @@ namespace rendering
 		DXTexture* GetGBufferDiffuseLitTex();
 		DXTexture* GetGBufferSpecularLitTex();
 
-		DXBuffer* GetLightsBuffer();
+		DXTexture* GetCameraDepthTex();
 
 		DXBuffer* GetRenderTextureVertexBuffer();
 

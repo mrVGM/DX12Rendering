@@ -11,6 +11,8 @@
 #include "resources/DXGBufferDiffuseLitTexMeta.h"
 #include "resources/DXGBufferSpecularLitTexMeta.h"
 
+#include "DXCameraDepthTexMeta.h"
+
 #include "DXHeap.h"
 #include "DXBufferMeta.h"
 #include "DXRenderTextureVertexBufferMeta.h"
@@ -31,6 +33,8 @@ namespace
 	rendering::DXTexture* m_ambientLitTex = nullptr;
 	rendering::DXTexture* m_diffuseLitTex = nullptr;
 	rendering::DXTexture* m_specularLitTex = nullptr;
+
+	rendering::DXTexture* m_cameraDepthTex= nullptr;
 
 	struct Vertex
 	{
@@ -468,6 +472,87 @@ namespace
 
 		core::utils::RunSync(new CreateTextures(*ctx));
 	}
+
+	void LoadCameraDepthTexture(jobs::Job* done)
+	{
+		using namespace rendering;
+
+		struct Context
+		{
+			DXTexture* m_tex = nullptr;
+			DXHeap* m_heap = nullptr;
+
+			jobs::Job* m_done = nullptr;
+		};
+
+		Context ctx;
+		ctx.m_done = done;
+
+		class HeapLoaded : public jobs::Job
+		{
+		private:
+			Context m_ctx;
+		public:
+			HeapLoaded(const Context& ctx) :
+				m_ctx(ctx)
+			{
+			}
+
+			void Do() override
+			{
+				m_ctx.m_tex->Place(*m_ctx.m_heap, 0);
+				m_cameraDepthTex = m_ctx.m_tex;
+				core::utils::RunSync(m_ctx.m_done);
+			}
+		};
+
+		class CreateTexture : public jobs::Job
+		{
+		private:
+			Context m_ctx;
+		public:
+			CreateTexture(const Context& ctx) :
+				m_ctx(ctx)
+			{
+			}
+
+			void Do() override
+			{
+				Window* wnd = core::utils::GetWindow();
+			
+				D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+				DXGI_FORMAT format = DXGI_FORMAT_R32G32_FLOAT;
+
+				CD3DX12_RESOURCE_DESC textureDesc = {};
+					textureDesc = CD3DX12_RESOURCE_DESC::Tex2D(
+					format,
+					wnd->m_width,
+					wnd->m_height,
+					1,
+					0,
+					1,
+					0,
+					flags
+				);
+			
+				m_ctx.m_tex = new DXTexture(
+					DXCameraDepthTexMeta::GetInstance(),
+					textureDesc
+				);
+
+
+				m_ctx.m_heap = new DXHeap();
+				m_ctx.m_heap->SetHeapSize(m_ctx.m_tex->GetTextureAllocationInfo().SizeInBytes);
+				m_ctx.m_heap->SetHeapType(D3D12_HEAP_TYPE_DEFAULT);
+				m_ctx.m_heap->SetHeapFlags(D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES);
+				m_ctx.m_heap->Create();
+
+				m_ctx.m_heap->MakeResident(new HeapLoaded(m_ctx));
+			}
+		};
+
+		core::utils::RunSync(new CreateTexture(ctx));
+	}
 }
 
 rendering::DXTexture* rendering::deferred::GetGBufferDiffuseTex()
@@ -505,6 +590,11 @@ rendering::DXTexture* rendering::deferred::GetGBufferSpecularLitTex()
 	return m_specularLitTex;
 }
 
+rendering::DXTexture* rendering::deferred::GetCameraDepthTex()
+{
+	return m_cameraDepthTex;
+}
+
 rendering::DXBuffer* rendering::deferred::GetRenderTextureVertexBuffer()
 {
 	return m_renderTextureVertexBuffer;
@@ -514,7 +604,7 @@ void rendering::deferred::LoadGBuffer(jobs::Job* done)
 {
 	struct Context
 	{
-		int m_itemsToLoad = 2;
+		int m_itemsToLoad = 3;
 		jobs::Job* m_done = nullptr;
 	};
 
@@ -546,6 +636,7 @@ void rendering::deferred::LoadGBuffer(jobs::Job* done)
 	ctx->m_done = done;
 
 	LoadRenderTextures(new ItemLoaded(*ctx));
+	LoadCameraDepthTexture(new ItemLoaded(*ctx));
 	LoadRenderTextureVertexBuffer(new ItemLoaded(*ctx));
 }
 
