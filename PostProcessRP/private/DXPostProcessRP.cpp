@@ -81,84 +81,15 @@ namespace
 
 void rendering::DXPostProcessRP::Create()
 {
-    using Microsoft::WRL::ComPtr;
-
-    DXDevice* device = core::utils::GetDevice();
-    if (!device)
-    {
-        throw "No device found!";
-    }
-
-    THROW_ERROR(
-        device->GetDevice().CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator)),
-        "Can't create Command Allocator!")
-
-    THROW_ERROR(
-        device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&m_startList)),
-        "Can't create Command List!")
-
-    THROW_ERROR(
-        m_startList->Close(),
-        "Can't close command List!")
-
-    THROW_ERROR(
-        device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&m_endList)),
-        "Can't create Command List!")
-
-    THROW_ERROR(
-        m_endList->Close(),
-        "Can't close command List!")
 }
 
 void rendering::DXPostProcessRP::Prepare()
 {
-    THROW_ERROR(
-        m_commandAllocator->Reset(),
-        "Can't reset Command Allocator!")
-
-    THROW_ERROR(
-        m_startList->Reset(m_commandAllocator.Get(), nullptr),
-        "Can't reset Command List!")
-
-    {
-        CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_swapChain->GetCurrentRenderTarget(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-        m_startList->ResourceBarrier(1, &barrier);
-    }
-
-    THROW_ERROR(
-        m_startList->Close(),
-        "Can't close command List!")
-
-    THROW_ERROR(
-        m_endList->Reset(m_commandAllocator.Get(), nullptr),
-        "Can't reset Command List!")
-
-    {
-        CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::CD3DX12_RESOURCE_BARRIER::Transition(m_swapChain->GetCurrentRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-        m_endList->ResourceBarrier(1, &barrier);
-    }
-
-    THROW_ERROR(
-        m_endList->Close(),
-        "Can't close Command List!")
-
-
-
 }
 
 void rendering::DXPostProcessRP::Execute()
 {
-    {
-        ID3D12CommandList* ppCommandLists[] = { m_startList.Get() };
-        m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-    }
-
-    RenderUnlit();
-
-    {
-        ID3D12CommandList* ppCommandLists[] = { m_endList.Get() };
-        m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-    }
+    RenderPP();
 }
 
 void rendering::DXPostProcessRP::Load(jobs::Job* done)
@@ -204,8 +135,12 @@ rendering::DXPostProcessRP::~DXPostProcessRP()
 }
 
 
-void rendering::DXPostProcessRP::RenderUnlit()
+void rendering::DXPostProcessRP::RenderPP()
 {
+    DXBuffer* dummy = nullptr;
+    ID3D12CommandList* lists[] = { m_outlineMat->GenerateCommandList(*m_canvasVertexBuffer, *m_canvasIndexBuffer, *dummy, 0, 6, 0) };
+
+    m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(lists), lists);
 }
 
 

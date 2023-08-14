@@ -13,12 +13,8 @@ namespace rendering
 {
 	class DXPostProcessRP : public RenderPass
 	{
-		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocator;
-		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_startList;
-		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_endList;
-
 		void Create();
-		void RenderUnlit();
+		void RenderPP();
 
 		void CreateQuadVertexBuffer(jobs::Job* done);
 		void CreateQuadIndexBuffer(jobs::Job* done);
