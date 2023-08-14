@@ -19,6 +19,9 @@
 #include "DXDeferredRPMeta.h"
 #include "DXOverlayRP.h"
 #include "DXOverlayRPMeta.h"
+#include "DXPostProcessRP.h"
+#include "DXPostProcessRPMeta.h"
+
 
 #include "WaitFence.h"
 
@@ -35,6 +38,7 @@ namespace
 	rendering::DXClearDSTRP* m_clearDSTRP = nullptr;
 	rendering::DXUnlitRP* m_unlitRP = nullptr;
 	rendering::DXDeferredRP* m_deferredRP = nullptr;
+	rendering::DXPostProcessRP* m_postProcessRP = nullptr;
 	rendering::overlay::DXOverlayRP* m_overlayRP = nullptr;
 
 
@@ -139,6 +143,23 @@ namespace
 		m_overlayRP = static_cast<rendering::overlay::DXOverlayRP*>(obj);
 		return m_overlayRP;
 	}
+
+	rendering::DXPostProcessRP* GetPostProcessRP()
+	{
+		if (m_postProcessRP)
+		{
+			return m_postProcessRP;
+		}
+		BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+		BaseObject* obj = container.GetObjectOfClass(rendering::DXPostProcessRPMeta::GetInstance());
+		if (!obj)
+		{
+			obj = new rendering::DXPostProcessRP();
+		}
+
+		m_postProcessRP = static_cast<rendering::DXPostProcessRP*>(obj);
+		return m_postProcessRP;
+	}
 }
 
 rendering::DXRenderer::DXRenderer() :
@@ -159,12 +180,14 @@ void rendering::DXRenderer::Render(jobs::Job* done)
 	DXClearDSTRP* clearDST = GetClearDSTRP();
 	DXUnlitRP* unlitRP = GetUnlitRP();
 	DXDeferredRP* deferredRP = GetDeferredRP();
+	DXPostProcessRP* postProcessRP = GetPostProcessRP();
 	overlay::DXOverlayRP* overlayRP = GetOverlayRP();
 
 	clearRT->Prepare();
 	clearDST->Prepare();
 	deferredRP->Prepare();
 	unlitRP->Prepare();
+	postProcessRP->Prepare();
 	overlayRP->Prepare();
 
 	DXFence* fence = GetRenderFence();
@@ -174,6 +197,7 @@ void rendering::DXRenderer::Render(jobs::Job* done)
 	clearDST->Execute();
 	deferredRP->Execute();
 	unlitRP->Execute();
+	postProcessRP->Execute();
 	overlayRP->Execute();
 
 	DXCommandQueue* commandQueue = utils::GetCommandQueue();
@@ -222,7 +246,7 @@ void rendering::DXRenderer::LoadRPs(jobs::Job* done)
 {
 	struct Context
 	{
-		int m_jobsInProgress = 5;
+		int m_jobsInProgress = 6;
 		jobs::Job* m_done = nullptr;
 	};
 
@@ -280,6 +304,11 @@ void rendering::DXRenderer::LoadRPs(jobs::Job* done)
 			
 			{
 				RenderPass* rp = GetDeferredRP();
+				rp->Load(new LoadReady(m_ctx));
+			}
+
+			{
+				RenderPass* rp = GetPostProcessRP();
 				rp->Load(new LoadReady(m_ctx));
 			}
 
