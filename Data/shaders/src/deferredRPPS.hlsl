@@ -106,6 +106,7 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
             specularColor = clamp(specularColor, 0, 1);
         }
 
+        if (false)
         {
             float3 eyeDir = normalize(m_camBuff.m_position - positionTex.xyz);
             eyeDir = normalize(eyeDir);
