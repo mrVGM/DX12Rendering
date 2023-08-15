@@ -27,6 +27,12 @@ if (FAILED(hRes)) {\
 
 namespace
 {
+    struct OutlineSettings
+    {
+        float m_color[4];
+    };
+
+
     rendering::DXDevice* m_device = nullptr;
     rendering::DXSwapChain* m_swapChain = nullptr;
     rendering::DXTexture* m_cameraDepthTexture = nullptr;
@@ -104,7 +110,8 @@ ID3D12CommandList* rendering::DXOutlineMaterial::GenerateCommandList(
     ID3D12DescriptorHeap* descriptorHeaps[] = { m_srvHeap->GetDescriptorHeap() };
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-    commandList->SetGraphicsRootDescriptorTable(0, descriptorHeaps[0]->GetGPUDescriptorHandleForHeapStart());
+    commandList->SetGraphicsRootConstantBufferView(0, m_settingsBuffer->GetBuffer()->GetBuffer()->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootDescriptorTable(1, descriptorHeaps[0]->GetGPUDescriptorHandleForHeapStart());
 
     commandList->RSSetViewports(1, &m_swapChain->GetViewport());
     commandList->RSSetScissorRects(1, &m_swapChain->GetScissorRect());
@@ -189,10 +196,12 @@ void rendering::DXOutlineMaterial::CreatePipelineStateAndRootSignature()
             D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
             D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 
+        CD3DX12_ROOT_PARAMETER1 rootParameters[2];
+        rootParameters[0].InitAsConstantBufferView(0, 0);
+
         CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
         ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
-        CD3DX12_ROOT_PARAMETER1 rootParameters[1];
-        rootParameters[0].InitAsDescriptorTable(_countof(ranges), ranges, D3D12_SHADER_VISIBILITY_PIXEL);
+        rootParameters[1].InitAsDescriptorTable(_countof(ranges), ranges, D3D12_SHADER_VISIBILITY_PIXEL);
 
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
         rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, &sampler, rootSignatureFlags);
@@ -259,8 +268,48 @@ void rendering::DXOutlineMaterial::CreateSRVHeap()
 
 void rendering::DXOutlineMaterial::LoadSettingsBuffer(jobs::Job* done)
 {
+    struct Context
+    {
+        DXOutlineMaterial* m_self = nullptr;
+
+        jobs::Job* m_done = nullptr;
+    };
+
+    Context ctx { this, done };
+
+    class SettingsBufferLoaded : public jobs::Job
+    {
+    private:
+        Context m_ctx;
+    public:
+        SettingsBufferLoaded(const Context& ctx) :
+            m_ctx(ctx)
+        {
+        }
+
+        void Do() override
+        {
+            DXMutableBuffer* mutableBuffer = m_ctx.m_self->m_settingsBuffer;
+            DXBuffer* uploadBuffer = mutableBuffer->GetUploadBuffer();
+
+            void* data = uploadBuffer->Map();
+            OutlineSettings* outlineSettings = static_cast<OutlineSettings*>(data);
+
+            outlineSettings->m_color[0] = 1;
+            outlineSettings->m_color[1] = 1;
+            outlineSettings->m_color[2] = 0;
+            outlineSettings->m_color[3] = 1;
+
+            uploadBuffer->Unmap();
+
+            mutableBuffer->SetDirty();
+
+            core::utils::RunSync(m_ctx.m_done);
+        }
+    };
+
     m_settingsBuffer = new DXMutableBuffer(OutlineSettingsBufferMeta::GetInstance(), 256, 256);
-    m_settingsBuffer->Load(done);
+    m_settingsBuffer->Load(new SettingsBufferLoaded(ctx));
 }
 
 #undef THROW_ERROR
