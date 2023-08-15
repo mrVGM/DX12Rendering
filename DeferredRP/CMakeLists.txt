@@ -37,10 +37,6 @@ add_library (DeferredRP
 	"private/HelperMaterials/DXDisplaySMMaterialMeta.h"
 	"private/HelperMaterials/DXDisplaySMMaterial.cpp"
 	"private/HelperMaterials/DXDisplaySMMaterial.h"
-	"private/HelperMaterials/DXPostProcessMaterialMeta.h"
-	"private/HelperMaterials/DXPostProcessMaterialMeta.cpp"
-	"private/HelperMaterials/DXPostProcessMaterial.h"
-	"private/HelperMaterials/DXPostProcessMaterial.cpp"
 )
 
 target_include_directories(DeferredRP INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

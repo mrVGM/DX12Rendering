@@ -18,7 +18,6 @@
 
 #include "HelperMaterials/DXLightsCalculationsMaterial.h"
 #include "HelperMaterials/DXPostLightsCalculationsMaterial.h"
-#include "HelperMaterials/DXPostProcessMaterial.h"
 
 #include "LightsManager.h"
 #include "LightsManagerMeta.h"
@@ -55,7 +54,6 @@ namespace
 {
     rendering::DXMaterial* m_lightCalculationsMat = nullptr;
     rendering::DXMaterial* m_postLightCalculationsMat = nullptr;
-    rendering::DXMaterial* m_edgeOutlineFilterMat = nullptr;
 
     rendering::LightsManager* m_lightsManager = nullptr;
 
@@ -399,16 +397,6 @@ void rendering::DXDeferredRP::Execute()
         ID3D12CommandList* ppCommandLists[] = { commandList };
         m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
     }
-
-    {
-        m_edgeOutlineFilterMat->ResetCommandLists();
-        DXBuffer* dummy = nullptr;
-        ID3D12CommandList* commandList = m_edgeOutlineFilterMat->GenerateCommandList(
-            *deferred::GetRenderTextureVertexBuffer(),
-            *dummy, *dummy, 0, 0, 0);
-        ID3D12CommandList* ppCommandLists[] = { commandList };
-        m_commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-    }
 }
 
 void rendering::DXDeferredRP::LoadLightsBuffer(jobs::Job* done)
@@ -452,12 +440,6 @@ void rendering::DXDeferredRP::Load(jobs::Job* done)
             m_postLightCalculationsMat = new DXPostLightsCalculationsMaterial(
                 *deferredRPPostLightingShaderSet.m_vertexShader,
                 *deferredRPPostLightingShaderSet.m_pixelShader);
-
-            const shader_repo::ShaderSet& outlineShaderSet = shader_repo::GetShaderSetByName("outline_mat");
-            m_edgeOutlineFilterMat = new DXPostProcessMaterial(
-                *outlineShaderSet.m_vertexShader,
-                *outlineShaderSet.m_pixelShader
-            );
 
             core::utils::RunSync(m_ctx.m_done);
         }
