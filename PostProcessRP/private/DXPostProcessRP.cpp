@@ -419,9 +419,9 @@ void rendering::DXPostProcessRP::CreateMaterials(jobs::Job* done)
 
     if (cameraDepthTex && cameraDepthTex->IsLoaded()) {
         const shader_repo::ShaderSet& outlineMaterialSet = shader_repo::GetShaderSetByName("pp_outline_mat");
-        m_outlineMat = new DXOutlineMaterial(*outlineMaterialSet.m_vertexShader, *outlineMaterialSet.m_pixelShader);
-
-        core::utils::RunSync(done);
+        DXOutlineMaterial* mat = new DXOutlineMaterial(*outlineMaterialSet.m_vertexShader, *outlineMaterialSet.m_pixelShader);
+        m_outlineMat = mat;
+        mat->LoadSettingsBuffer(done);
         return;
     }
 
@@ -439,9 +439,11 @@ void rendering::DXPostProcessRP::CreateMaterials(jobs::Job* done)
         void Notify() override
         {
             const shader_repo::ShaderSet& outlineMaterialSet = shader_repo::GetShaderSetByName("pp_outline_mat");
-            m_outlineMat = new DXOutlineMaterial(*outlineMaterialSet.m_vertexShader, *outlineMaterialSet.m_pixelShader);
+            
+            DXOutlineMaterial* mat = new DXOutlineMaterial(*outlineMaterialSet.m_vertexShader, *outlineMaterialSet.m_pixelShader);
+            m_outlineMat = mat;
+            mat->LoadSettingsBuffer(m_done);
 
-            core::utils::RunSync(m_done);
             core::utils::DisposeBaseObject(*this);
         }
     };

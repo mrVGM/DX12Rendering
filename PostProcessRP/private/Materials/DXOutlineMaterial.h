@@ -8,11 +8,11 @@ namespace rendering
 {
 	class DXDescriptorHeap;
 	class DXTexture;
+	class DXMutableBuffer;
 }
 
 namespace rendering
 {
-
 	class DXOutlineMaterial : public rendering::DXMaterial
 	{
 	private:
@@ -23,8 +23,11 @@ namespace rendering
 
 		DXDescriptorHeap* m_srvHeap = nullptr;
 
+		DXMutableBuffer* m_settingsBuffer = nullptr;
+
 		void CreatePipelineStateAndRootSignature();
 		void CreateSRVHeap();
+
 	public:
 		DXOutlineMaterial(const DXShader& vertexShader, const DXShader& pixelShader);
 		virtual ~DXOutlineMaterial();
@@ -36,5 +39,7 @@ namespace rendering
 			UINT startIndex,
 			UINT indexCount,
 			UINT instanceIndex) override;
+
+		void LoadSettingsBuffer(jobs::Job* done);
 	};
 }

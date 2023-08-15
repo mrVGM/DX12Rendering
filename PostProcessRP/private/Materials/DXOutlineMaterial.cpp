@@ -13,6 +13,8 @@
 #include "DXDescriptorHeapMeta.h"
 
 #include "DXBuffer.h"
+#include "DXMutableBuffer.h"
+#include "Resources/OutlineSettingsBufferMeta.h"
 
 #include "utils.h"
 
@@ -253,6 +255,12 @@ void rendering::DXOutlineMaterial::CreateSRVHeap()
     std::list<DXTexture*> textures;
     textures.push_back(m_cameraDepthTexture);
     m_srvHeap = DXDescriptorHeap::CreateSRVDescriptorHeap(DXDescriptorHeapMeta::GetInstance(), textures);
+}
+
+void rendering::DXOutlineMaterial::LoadSettingsBuffer(jobs::Job* done)
+{
+    m_settingsBuffer = new DXMutableBuffer(OutlineSettingsBufferMeta::GetInstance(), 256, 256);
+    m_settingsBuffer->Load(done);
 }
 
 #undef THROW_ERROR
