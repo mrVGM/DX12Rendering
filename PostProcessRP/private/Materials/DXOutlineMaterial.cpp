@@ -39,7 +39,8 @@ namespace
         float m_color[4] = {};
 
         float m_scale = 1;
-        float m_depthThreshold = 1;
+        float m_depthThreshold = 0;
+        float m_normalThreshold = 0;
     };
 
 
@@ -230,7 +231,7 @@ void rendering::DXOutlineMaterial::CreatePipelineStateAndRootSignature()
         rootParameters[0].InitAsConstantBufferView(0, 0);
 
         CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
-        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
+        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3, 0, 0);
         rootParameters[1].InitAsDescriptorTable(_countof(ranges), ranges, D3D12_SHADER_VISIBILITY_PIXEL);
 
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
@@ -334,6 +335,8 @@ void rendering::DXOutlineMaterial::LoadSettingsBuffer(jobs::Job* done)
 
             outlineSettings->m_scale = m_outlineSettings->GetSettings().m_scale;
             outlineSettings->m_depthThreshold = m_outlineSettings->GetSettings().m_depthThreshold;
+            outlineSettings->m_depthThreshold = m_outlineSettings->GetSettings().m_depthThreshold;
+            outlineSettings->m_normalThreshold = m_outlineSettings->GetSettings().m_normalThreshold;
 
             uploadBuffer->Unmap();
 

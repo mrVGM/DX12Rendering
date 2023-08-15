@@ -6,6 +6,7 @@ struct OutlineSettings
     float4 m_color;
     float m_scale;
     float m_depthThreshold;
+    float m_normalThreshold;
 };
 
 cbuffer SettingsBuff : register(b0)
@@ -49,7 +50,21 @@ float4 PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
     
     edgeDepth = edgeDepth > m_settingsBuff.m_depthThreshold ? 1 : 0;
     
-    float4 res = float4(edgeDepth, edgeDepth, edgeDepth, 1);
+    float3 normal0 = p_normals.Sample(p_sampler, bottomLeftUV).xyz;
+    float3 normal1 = p_normals.Sample(p_sampler, topRightUV).xyz;
+    float3 normal2 = p_normals.Sample(p_sampler, bottomRightUV).xyz;
+    float3 normal3 = p_normals.Sample(p_sampler, topLeftUV).xyz;
+    
+    
+    float3 normalFiniteDifference0 = normal1 - normal0;
+    float3 normalFiniteDifference1 = normal3 - normal2;
+
+    float edgeNormal = sqrt(dot(normalFiniteDifference0, normalFiniteDifference0) + dot(normalFiniteDifference1, normalFiniteDifference1));
+    edgeNormal = edgeNormal > m_settingsBuff.m_normalThreshold ? 1 : 0;
+    
+    float edge = max(edgeDepth, edgeNormal);
+    
+    float4 res = float4(edge, edge, edge, 1);
     res *= m_settingsBuff.m_color;
     
     return res;

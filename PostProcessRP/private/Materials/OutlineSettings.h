@@ -16,6 +16,7 @@ namespace rendering
 			float m_color[4];
 			float m_scale;
 			float m_depthThreshold;
+			float m_normalThreshold;
 		};
 	private:
 		Settings m_settings;

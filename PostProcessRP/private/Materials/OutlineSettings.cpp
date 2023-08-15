@@ -67,4 +67,12 @@ void rendering::OutlineSettings::LoadOutlineSettings()
 
 		m_settings.m_depthThreshold = depthThreshold->m_data.front()->m_symbolData.m_number;
 	}
+
+	{
+		const xml_reader::Node* normalThreshold = xml_reader::FindChildNode(settingsNode, [](const xml_reader::Node* node) {
+			return node->m_tagName == "normal_threshold";
+		});
+
+		m_settings.m_normalThreshold = normalThreshold->m_data.front()->m_symbolData.m_number;
+	}
 }
