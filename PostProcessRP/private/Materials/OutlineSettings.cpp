@@ -90,9 +90,9 @@ void rendering::OutlineSettings::LoadOutlineSettings()
 		});
 
 		int index = 0;
-		for (auto it = distanceLimits->m_children.begin(); it != distanceLimits->m_children.end(); ++it)
+		for (auto it = distanceLimits->m_data.begin(); it != distanceLimits->m_data.end(); ++it)
 		{
-			m_settings.m_distanceLimits[index++] = (*it)->m_data.front()->m_symbolData.m_number;
+			m_settings.m_distanceLimits[index++] = (*it)->m_symbolData.m_number;
 			if (index >= _countof(m_settings.m_distanceLimits))
 			{
 				break;

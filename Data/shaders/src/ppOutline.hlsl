@@ -99,12 +99,11 @@ float4 PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
             d = 1;
         }
         edge = smoothstep(
-            m_settingsBuff.m_distanceLimits.x / camRange,
+            0,
             m_settingsBuff.m_distanceLimits.y / camRange,
             d
         );
         
-        edge *= smoothstep(0, 5 / camRange, depth0);
         edge = 1 - edge;
     }
     

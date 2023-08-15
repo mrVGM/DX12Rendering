@@ -43,7 +43,7 @@ namespace
         float m_normalThreshold = 0;
         float m_angleFactor = 0;
 
-        float m_distanceLimits[2];
+        float m_distanceLimits[2] = {};
     };
 
 
@@ -346,7 +346,6 @@ void rendering::DXOutlineMaterial::LoadSettingsBuffer(jobs::Job* done)
             memcpy(outlineSettings->m_color, m_outlineSettings->GetSettings().m_color, 4 * sizeof(float));
 
             outlineSettings->m_scale = m_outlineSettings->GetSettings().m_scale;
-            outlineSettings->m_depthThreshold = m_outlineSettings->GetSettings().m_depthThreshold;
             outlineSettings->m_depthThreshold = m_outlineSettings->GetSettings().m_depthThreshold;
             outlineSettings->m_normalThreshold = m_outlineSettings->GetSettings().m_normalThreshold;
             outlineSettings->m_angleFactor = m_outlineSettings->GetSettings().m_angleFactor;
