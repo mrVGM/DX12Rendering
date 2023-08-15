@@ -61,14 +61,22 @@ float4 PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
     float depthFiniteDifference0 = depth1 - depth0;
     float depthFiniteDifference1 = depth3 - depth2;
     
-    float eyeDir = normalize(m_camBuff.m_position - worldPos);
+    float3 eyeDir = -m_camBuff.m_fwd;
     float angleFactor = saturate(dot(normal0, eyeDir));
+    angleFactor = saturate(angleFactor);
     angleFactor = 1 - angleFactor;
     
-    angleFactor = 0;
+    static float f = 0.3;
+    if (angleFactor < f)
+    {
+        angleFactor = 0;
+    }
+    else
+    {
+        angleFactor = (angleFactor - f) / (1 - f);
+    }
     
     float depthThreshold = (1 - angleFactor) * m_settingsBuff.m_depthThreshold + angleFactor;
-    //depthThreshold = m_settingsBuff.m_depthThreshold;
     
     float edgeDepth = sqrt(pow(depthFiniteDifference0, 2) + pow(depthFiniteDifference1, 2));
     edgeDepth = edgeDepth > depthThreshold ? 1 : 0;
