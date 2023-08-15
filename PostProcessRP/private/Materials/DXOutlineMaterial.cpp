@@ -51,6 +51,8 @@ namespace
     rendering::DXTexture* m_normalsTexture = nullptr;
     rendering::DXTexture* m_positionTexture = nullptr;
 
+    rendering::DXMutableBuffer* m_cameraBuffer = nullptr;
+
     rendering::OutlineSettings* m_outlineSettings = nullptr;
 
     void CacheObjects()
@@ -81,6 +83,11 @@ namespace
         if (!m_positionTexture)
         {
             m_positionTexture = GetPositionTetxure();
+        }
+
+        if (!m_cameraBuffer)
+        {
+            m_cameraBuffer = GetCameraBuffer();
         }
     }
 }
@@ -141,8 +148,9 @@ ID3D12CommandList* rendering::DXOutlineMaterial::GenerateCommandList(
     ID3D12DescriptorHeap* descriptorHeaps[] = { m_srvHeap->GetDescriptorHeap() };
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-    commandList->SetGraphicsRootConstantBufferView(0, m_settingsBuffer->GetBuffer()->GetBuffer()->GetGPUVirtualAddress());
-    commandList->SetGraphicsRootDescriptorTable(1, descriptorHeaps[0]->GetGPUDescriptorHandleForHeapStart());
+    commandList->SetGraphicsRootConstantBufferView(0, m_cameraBuffer->GetBuffer()->GetBuffer()->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootConstantBufferView(1, m_settingsBuffer->GetBuffer()->GetBuffer()->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootDescriptorTable(2, descriptorHeaps[0]->GetGPUDescriptorHandleForHeapStart());
 
     commandList->RSSetViewports(1, &m_swapChain->GetViewport());
     commandList->RSSetScissorRects(1, &m_swapChain->GetScissorRect());
@@ -227,12 +235,13 @@ void rendering::DXOutlineMaterial::CreatePipelineStateAndRootSignature()
             D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
             D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 
-        CD3DX12_ROOT_PARAMETER1 rootParameters[2];
+        CD3DX12_ROOT_PARAMETER1 rootParameters[3];
         rootParameters[0].InitAsConstantBufferView(0, 0);
+        rootParameters[1].InitAsConstantBufferView(1, 0);
 
         CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
         ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3, 0, 0);
-        rootParameters[1].InitAsDescriptorTable(_countof(ranges), ranges, D3D12_SHADER_VISIBILITY_PIXEL);
+        rootParameters[2].InitAsDescriptorTable(_countof(ranges), ranges, D3D12_SHADER_VISIBILITY_PIXEL);
 
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
         rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, &sampler, rootSignatureFlags);
