@@ -15,6 +15,8 @@ cbuffer SettingsBuff : register(b0)
 
 
 Texture2D p_cameraDepth : register(t0);
+Texture2D p_normals : register(t1);
+Texture2D p_position : register(t2);
 
 SamplerState p_sampler : register(s0);
 

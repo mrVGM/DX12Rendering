@@ -2,7 +2,10 @@
 
 #include "d3dx12.h"
 
-#include "DXDepthStencilTextureMeta.h"
+#include "TextureLoadedNotificationMeta.h"
+
+#include "Notifications.h"
+
 #include "CoreUtils.h"
 
 #include "DXHeap.h"
@@ -62,6 +65,8 @@ void rendering::DXTexture::Place(DXHeap& heap, UINT64 heapOffset)
 		"Can't place texture in the heap!")
 
 	m_heap = &heap;
+
+	notifications::Notify(TextureLoadedNotificationMeta::GetInstance());
 }
 
 ID3D12Resource* rendering::DXTexture::GetTexture() const

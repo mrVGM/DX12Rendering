@@ -4,7 +4,10 @@
 
 #include "Resources/CanvasVertexBufferMeta.h"
 #include "Resources/CanvasIndexBufferMeta.h"
+
 #include "DXCameraDepthTexMeta.h"
+#include "DXGBufferNormalTexMeta.h"
+#include "DXGBufferPositionTexMeta.h"
 
 #include "BaseObjectContainer.h"
 
@@ -58,6 +61,36 @@ rendering::DXTexture* rendering::GetCameraDepthTetxure()
 	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
 
 	BaseObject* obj = container.GetObjectOfClass(DXCameraDepthTexMeta::GetInstance());
+
+	if (!obj)
+	{
+		return nullptr;
+	}
+
+	DXTexture* texture = static_cast<DXTexture*>(obj);
+	return texture;
+}
+
+rendering::DXTexture* rendering::GetNormalsTetxure()
+{
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+
+	BaseObject* obj = container.GetObjectOfClass(deferred::DXGBufferNormalTexMeta::GetInstance());
+
+	if (!obj)
+	{
+		return nullptr;
+	}
+
+	DXTexture* texture = static_cast<DXTexture*>(obj);
+	return texture;
+}
+
+rendering::DXTexture* rendering::GetPositionTetxure()
+{
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+
+	BaseObject* obj = container.GetObjectOfClass(deferred::DXGBufferPositionTexMeta::GetInstance());
 
 	if (!obj)
 	{

@@ -45,7 +45,10 @@ namespace
 
     rendering::DXDevice* m_device = nullptr;
     rendering::DXSwapChain* m_swapChain = nullptr;
+
     rendering::DXTexture* m_cameraDepthTexture = nullptr;
+    rendering::DXTexture* m_normalsTexture = nullptr;
+    rendering::DXTexture* m_positionTexture = nullptr;
 
     rendering::OutlineSettings* m_outlineSettings = nullptr;
 
@@ -67,6 +70,16 @@ namespace
         if (!m_cameraDepthTexture)
         {
             m_cameraDepthTexture = GetCameraDepthTetxure();
+        }
+
+        if (!m_normalsTexture)
+        {
+            m_normalsTexture = GetNormalsTetxure();
+        }
+
+        if (!m_positionTexture)
+        {
+            m_positionTexture = GetPositionTetxure();
         }
     }
 }
@@ -280,6 +293,8 @@ void rendering::DXOutlineMaterial::CreateSRVHeap()
 {
     std::list<DXTexture*> textures;
     textures.push_back(m_cameraDepthTexture);
+    textures.push_back(m_normalsTexture);
+    textures.push_back(m_positionTexture);
     m_srvHeap = DXDescriptorHeap::CreateSRVDescriptorHeap(DXDescriptorHeapMeta::GetInstance(), textures);
 }
 

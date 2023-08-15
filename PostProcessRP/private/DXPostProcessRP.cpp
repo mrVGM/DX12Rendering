@@ -23,7 +23,7 @@
 #include "DXBuffer.h"
 #include "DXBufferMeta.h"
 
-#include "CameraDepthTexLoadedNotificationMeta.h"
+#include "TextureLoadedNotificationMeta.h"
 #include "NotificationReceiver.h"
 
 #include "CoreUtils.h"
@@ -79,6 +79,37 @@ namespace
 
             m_repo = static_cast<DXMaterialRepo*>(obj);
         }
+    }
+
+    bool CheckRequiredTextures()
+    {
+        using namespace rendering;
+
+        {
+            DXTexture* tex = GetCameraDepthTetxure();
+            if (!tex || !tex->IsLoaded())
+            {
+                return false;
+            }
+        }
+
+        {
+            DXTexture* tex = GetNormalsTetxure();
+            if (!tex || !tex->IsLoaded())
+            {
+                return false;
+            }
+        }
+
+        {
+            DXTexture* tex = GetPositionTetxure();
+            if (!tex || !tex->IsLoaded())
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
 
@@ -415,9 +446,8 @@ void rendering::DXPostProcessRP::CreateQuadIndexBuffer(jobs::Job* done)
 
 void rendering::DXPostProcessRP::CreateMaterials(jobs::Job* done)
 {
-    DXTexture* cameraDepthTex = GetCameraDepthTetxure();
-
-    if (cameraDepthTex && cameraDepthTex->IsLoaded()) {
+    if (CheckRequiredTextures())
+    {
         const shader_repo::ShaderSet& outlineMaterialSet = shader_repo::GetShaderSetByName("pp_outline_mat");
         DXOutlineMaterial* mat = new DXOutlineMaterial(*outlineMaterialSet.m_vertexShader, *outlineMaterialSet.m_pixelShader);
         m_outlineMat = mat;
@@ -431,20 +461,24 @@ void rendering::DXPostProcessRP::CreateMaterials(jobs::Job* done)
         jobs::Job* m_done = nullptr;
     public:
         WaitForCameraDepthTex(jobs::Job* done) :
-            NotificationReceiver(CameraDepthTexLoadedNotificationMeta::GetInstance()),
+            NotificationReceiver(TextureLoadedNotificationMeta::GetInstance()),
             m_done(done)
         {
         }
 
         void Notify() override
         {
+            if (!CheckRequiredTextures())
+            {
+                return;
+            }
+
             const shader_repo::ShaderSet& outlineMaterialSet = shader_repo::GetShaderSetByName("pp_outline_mat");
-            
             DXOutlineMaterial* mat = new DXOutlineMaterial(*outlineMaterialSet.m_vertexShader, *outlineMaterialSet.m_pixelShader);
             m_outlineMat = mat;
             mat->LoadSettingsBuffer(m_done);
 
-            core::utils::DisposeBaseObject(*this);
+            delete this;
         }
     };
 

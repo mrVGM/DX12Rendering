@@ -9,5 +9,8 @@ namespace rendering
 	DXMutableBuffer* GetCameraBuffer();
 	DXBuffer* GetCanvasVertexBuffer();
 	DXBuffer* GetCanvasIndexBuffer();
+
 	DXTexture* GetCameraDepthTetxure();
+	DXTexture* GetNormalsTetxure();
+	DXTexture* GetPositionTetxure();
 }

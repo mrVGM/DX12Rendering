@@ -27,8 +27,8 @@ add_library (CommonResources
 	"private/MainJobSystemMeta.cpp"
 	"public/DXCameraDepthTexMeta.h"
 	"private/DXCameraDepthTexMeta.cpp"
-	"public/CameraDepthTexLoadedNotificationMeta.h"
-	"private/CameraDepthTexLoadedNotificationMeta.cpp"
+	"public/TextureLoadedNotificationMeta.h"
+	"private/TextureLoadedNotificationMeta.cpp"
 )
 
 target_include_directories(CommonResources INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
