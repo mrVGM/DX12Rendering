@@ -5,6 +5,7 @@ struct OutlineSettings
     
     float4 m_color;
     float m_scale;
+    float m_depthThreshold;
 };
 
 cbuffer SettingsBuff : register(b0)
@@ -42,7 +43,9 @@ float4 PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
     float depthFiniteDifference0 = depth1 - depth0;
     float depthFiniteDifference1 = depth3 - depth2;
     
-    float edgeDepth = sqrt(pow(depthFiniteDifference0, 2) + pow(depthFiniteDifference1, 2)) * 100;
+    float edgeDepth = sqrt(pow(depthFiniteDifference0, 2) + pow(depthFiniteDifference1, 2));
+    
+    edgeDepth = edgeDepth > m_settingsBuff.m_depthThreshold ? 1 : 0;
     
     float4 res = float4(edgeDepth, edgeDepth, edgeDepth, 1);
     res *= m_settingsBuff.m_color;

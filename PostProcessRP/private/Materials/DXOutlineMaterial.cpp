@@ -39,6 +39,7 @@ namespace
         float m_color[4] = {};
 
         float m_scale = 1;
+        float m_depthThreshold = 1;
     };
 
 
@@ -317,6 +318,7 @@ void rendering::DXOutlineMaterial::LoadSettingsBuffer(jobs::Job* done)
             memcpy(outlineSettings->m_color, m_outlineSettings->GetSettings().m_color, 4 * sizeof(float));
 
             outlineSettings->m_scale = m_outlineSettings->GetSettings().m_scale;
+            outlineSettings->m_depthThreshold = m_outlineSettings->GetSettings().m_depthThreshold;
 
             uploadBuffer->Unmap();
 

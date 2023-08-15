@@ -59,4 +59,12 @@ void rendering::OutlineSettings::LoadOutlineSettings()
 
 		m_settings.m_scale = scale->m_data.front()->m_symbolData.m_number;
 	}
+
+	{
+		const xml_reader::Node* depthThreshold = xml_reader::FindChildNode(settingsNode, [](const xml_reader::Node* node) {
+			return node->m_tagName == "depth_threshold";
+		});
+
+		m_settings.m_depthThreshold = depthThreshold->m_data.front()->m_symbolData.m_number;
+	}
 }
