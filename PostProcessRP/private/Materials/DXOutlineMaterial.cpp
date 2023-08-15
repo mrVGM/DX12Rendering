@@ -16,6 +16,8 @@
 #include "DXMutableBuffer.h"
 #include "Resources/OutlineSettingsBufferMeta.h"
 
+#include "Materials/OutlineSettings.h"
+
 #include "utils.h"
 
 #include "CoreUtils.h"
@@ -27,15 +29,24 @@ if (FAILED(hRes)) {\
 
 namespace
 {
-    struct OutlineSettings
+    struct OutlineBufferSettings
     {
-        float m_color[4];
+        int m_texWidth = 0;
+        int m_texHeight = 0;
+
+        float m_placeholder[2] = {};
+
+        float m_color[4] = {};
+
+        float m_scale = 1;
     };
 
 
     rendering::DXDevice* m_device = nullptr;
     rendering::DXSwapChain* m_swapChain = nullptr;
     rendering::DXTexture* m_cameraDepthTexture = nullptr;
+
+    rendering::OutlineSettings* m_outlineSettings = nullptr;
 
     void CacheObjects()
     {
@@ -63,6 +74,11 @@ namespace
 rendering::DXOutlineMaterial::DXOutlineMaterial(const rendering::DXShader& vertexShader, const rendering::DXShader& pixelShader) :
     DXMaterial(DXOutlineMaterialMeta::GetInstance(), vertexShader, pixelShader)
 {
+    if (!m_outlineSettings)
+    {
+        m_outlineSettings = new OutlineSettings();
+    }
+
     CacheObjects();
     CreatePipelineStateAndRootSignature();
     CreateSRVHeap();
@@ -293,12 +309,14 @@ void rendering::DXOutlineMaterial::LoadSettingsBuffer(jobs::Job* done)
             DXBuffer* uploadBuffer = mutableBuffer->GetUploadBuffer();
 
             void* data = uploadBuffer->Map();
-            OutlineSettings* outlineSettings = static_cast<OutlineSettings*>(data);
+            OutlineBufferSettings* outlineSettings = static_cast<OutlineBufferSettings*>(data);
 
-            outlineSettings->m_color[0] = 1;
-            outlineSettings->m_color[1] = 1;
-            outlineSettings->m_color[2] = 0;
-            outlineSettings->m_color[3] = 1;
+            outlineSettings->m_texWidth = m_cameraDepthTexture->GetTexture()->GetDesc().Width;
+            outlineSettings->m_texHeight = m_cameraDepthTexture->GetTexture()->GetDesc().Height;
+            
+            memcpy(outlineSettings->m_color, m_outlineSettings->GetSettings().m_color, 4 * sizeof(float));
+
+            outlineSettings->m_scale = m_outlineSettings->GetSettings().m_scale;
 
             uploadBuffer->Unmap();
 

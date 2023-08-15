@@ -17,6 +17,10 @@ add_library (PostProcessRP
 	"private/Resources/CanvasVertexBufferMeta.h"
 	"private/Resources/OutlineSettingsBufferMeta.h" 
 	"private/Resources/OutlineSettingsBufferMeta.cpp"
+	"private/Materials/OutlineSettings.cpp"
+	"private/Materials/OutlineSettings.h"
+	"private/Materials/OutlineSettingsMeta.cpp"
+	"private/Materials/OutlineSettingsMeta.h"
 )
 
 target_include_directories(PostProcessRP INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

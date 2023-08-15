@@ -1,6 +1,10 @@
 struct OutlineSettings
 {
+    int2 m_texSize;
+    float2 m_placeholder;
+    
     float4 m_color;
+    float m_scale;
 };
 
 cbuffer SettingsBuff : register(b0)
