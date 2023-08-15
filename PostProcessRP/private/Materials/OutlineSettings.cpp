@@ -75,4 +75,28 @@ void rendering::OutlineSettings::LoadOutlineSettings()
 
 		m_settings.m_normalThreshold = normalThreshold->m_data.front()->m_symbolData.m_number;
 	}
+
+	{
+		const xml_reader::Node* angleFactor = xml_reader::FindChildNode(settingsNode, [](const xml_reader::Node* node) {
+			return node->m_tagName == "angle_factor";
+		});
+
+		m_settings.m_angleFactor = angleFactor->m_data.front()->m_symbolData.m_number;
+	}
+
+	{
+		const xml_reader::Node* distanceLimits = xml_reader::FindChildNode(settingsNode, [](const xml_reader::Node* node) {
+			return node->m_tagName == "distance_threshold";
+		});
+
+		int index = 0;
+		for (auto it = distanceLimits->m_children.begin(); it != distanceLimits->m_children.end(); ++it)
+		{
+			m_settings.m_distanceLimits[index++] = (*it)->m_data.front()->m_symbolData.m_number;
+			if (index >= _countof(m_settings.m_distanceLimits))
+			{
+				break;
+			}
+		}
+	}
 }

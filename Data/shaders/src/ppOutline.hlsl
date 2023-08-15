@@ -6,9 +6,13 @@ struct OutlineSettings
     float2 m_placeholder;
     
     float4 m_color;
+    
     float m_scale;
     float m_depthThreshold;
     float m_normalThreshold;
+    float m_angleFactor;
+    
+    float2 m_distanceLimits;
 };
 
 cbuffer CamBuff : register(b0)
@@ -66,14 +70,16 @@ float4 PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
     angleFactor = saturate(angleFactor);
     angleFactor = 1 - angleFactor;
     
-    static float f = 0.3;
-    if (angleFactor < f)
     {
-        angleFactor = 0;
-    }
-    else
-    {
-        angleFactor = (angleFactor - f) / (1 - f);
+        float lowerBound = m_settingsBuff.m_angleFactor;
+        if (angleFactor < lowerBound)
+        {
+            angleFactor = 0;
+        }
+        else
+        {
+            angleFactor = (angleFactor - lowerBound) / (1 - lowerBound);
+        }
     }
     
     float depthThreshold = (1 - angleFactor) * m_settingsBuff.m_depthThreshold + angleFactor;
@@ -83,8 +89,26 @@ float4 PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
     
     float edge = max(edgeDepth, edgeNormal);
     
-    float4 res = float4(edge, edge, edge, 1);
-    res *= m_settingsBuff.m_color;
+    float camRange = m_camBuff.m_farPlane - m_camBuff.m_nearPlane;
+    
+    if (edge > 0)
+    {
+        float d = depth0;
+        if (dot(normal0, normal0) < 0.000001)
+        {
+            d = 1;
+        }
+        edge = smoothstep(
+            m_settingsBuff.m_distanceLimits.x / camRange,
+            m_settingsBuff.m_distanceLimits.y / camRange,
+            d
+        );
+        
+        edge *= smoothstep(0, 5 / camRange, depth0);
+        edge = 1 - edge;
+    }
+    
+    float4 res = edge * m_settingsBuff.m_color;
     
     return res;
 }

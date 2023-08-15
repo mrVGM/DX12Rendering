@@ -6,4 +6,6 @@
 	<scale>1</scale>
 	<depth_threshold>0.00003</depth_threshold>
 	<normal_threshold>0.7</normal_threshold>
+	<angle_factor>0.3</angle_factor>
+	<distance_threshold>7 8</distance_threshold>
 </settings>

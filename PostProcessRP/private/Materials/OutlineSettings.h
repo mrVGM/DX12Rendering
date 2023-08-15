@@ -17,6 +17,8 @@ namespace rendering
 			float m_scale;
 			float m_depthThreshold;
 			float m_normalThreshold;
+			float m_angleFactor;
+			float m_distanceLimits[2];
 		};
 	private:
 		Settings m_settings;

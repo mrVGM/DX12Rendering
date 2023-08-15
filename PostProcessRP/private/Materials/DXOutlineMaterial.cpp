@@ -41,6 +41,9 @@ namespace
         float m_scale = 1;
         float m_depthThreshold = 0;
         float m_normalThreshold = 0;
+        float m_angleFactor = 0;
+
+        float m_distanceLimits[2];
     };
 
 
@@ -346,6 +349,10 @@ void rendering::DXOutlineMaterial::LoadSettingsBuffer(jobs::Job* done)
             outlineSettings->m_depthThreshold = m_outlineSettings->GetSettings().m_depthThreshold;
             outlineSettings->m_depthThreshold = m_outlineSettings->GetSettings().m_depthThreshold;
             outlineSettings->m_normalThreshold = m_outlineSettings->GetSettings().m_normalThreshold;
+            outlineSettings->m_angleFactor = m_outlineSettings->GetSettings().m_angleFactor;
+       
+            outlineSettings->m_distanceLimits[0] = m_outlineSettings->GetSettings().m_distanceLimits[0];
+            outlineSettings->m_distanceLimits[1] = m_outlineSettings->GetSettings().m_distanceLimits[1];
 
             uploadBuffer->Unmap();
 
