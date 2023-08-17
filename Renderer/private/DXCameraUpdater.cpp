@@ -85,13 +85,32 @@ namespace
 			ShowCursor(true);
 		}
 
+
+		double m_mouseAngleSpeed = 0.1;
+		double m_angleSpeed = 80;
+		double m_moveSpeed = 0.3;
+
 		m_camera->m_aiming = inputInfo.m_rightMouseButtonDown;
 		if (m_camera->m_aiming) {
 			SetCursorPos((rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2);
-		}
 
-		double m_angleSpeed = 80;
-		double m_moveSpeed = 0.3;
+			m_camera->m_azimuth = -m_mouseAngleSpeed * (inputInfo.m_mouseMovement[0] - m_camera->m_cursorRelativePos[0]) + m_camera->m_anglesCache[0];
+			while (m_camera->m_azimuth >= 360) {
+				m_camera->m_azimuth -= 360;
+			}
+			while (m_camera->m_azimuth < 0) {
+				m_camera->m_azimuth += 360;
+			}
+
+			m_camera->m_altitude = -m_mouseAngleSpeed * (inputInfo.m_mouseMovement[1] - m_camera->m_cursorRelativePos[1]) + m_camera->m_anglesCache[1];
+			if (m_camera->m_altitude > 80) {
+				m_camera->m_altitude = 80;
+			}
+
+			if (m_camera->m_altitude < -80) {
+				m_camera->m_altitude = -80;
+			}
+		}
 
 		m_camera->m_azimuth += dt * m_angleSpeed * aimRight;
 		while (m_camera->m_azimuth >= 360) {

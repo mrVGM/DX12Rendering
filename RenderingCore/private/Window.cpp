@@ -230,7 +230,7 @@ void rendering::Window::RegisterRawInputDevice()
 	rid[0].usUsage = HID_USAGE_GENERIC_MOUSE;
 	rid[0].dwFlags = RIDEV_INPUTSINK;
 	rid[0].hwndTarget = m_hwnd;
-	RegisterRawInputDevices(rid, 1, sizeof(rid[0]));
+	RegisterRawInputDevices(rid, _countof(rid), sizeof(RAWINPUTDEVICE));
 }
 
 const rendering::InputInfo& rendering::Window::GetInputInfo()
