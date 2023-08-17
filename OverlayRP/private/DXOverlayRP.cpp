@@ -230,8 +230,6 @@ rendering::overlay::DXOverlayRP::DXOverlayRP() :
 {
     CacheObjects();
     Create();
-
-    m_textPanels.push_back(TextPanel{ "Hello World!", 100, 100 });
 }
 
 rendering::overlay::DXOverlayRP::~DXOverlayRP()

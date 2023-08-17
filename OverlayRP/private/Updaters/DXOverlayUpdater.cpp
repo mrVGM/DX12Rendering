@@ -61,18 +61,37 @@ void rendering::overlay::DXOverlayUpdater::Update(double dt)
 {
 	std::list<TextPanel>& textPanels = m_overlayRP->GetTextPannels();
 
-	if (textPanels.empty())
+	while (textPanels.size() < 3)
 	{
 		textPanels.push_back(TextPanel());
 	}
-	TextPanel& tp = textPanels.front();
+	auto it = textPanels.begin();
+	TextPanel& fstTP = *it++;
+	TextPanel& sndTP = *it++;
+	TextPanel& thirdTP = *it++;
 
-	tp.m_screenPosX = 10;
-	tp.m_screenPosY = 10;
+	{
+		fstTP.m_screenPosX = 10;
+		fstTP.m_screenPosY = 10;
 
-	std::stringstream ss;
-	ss << "FPS: " << 1 / dt;
-	tp.m_text = ss.str();
+		fstTP.m_text = "Move the Camera: WASD";
+	}
+
+	{
+		sndTP.m_screenPosX = 10;
+		sndTP.m_screenPosY = 28;
+
+		sndTP.m_text = "Rotate the Camera: Hold RMB";
+	}
+
+	{
+		thirdTP.m_screenPosX = 10;
+		thirdTP.m_screenPosY = 46;
+
+		std::stringstream ss;
+		ss << "FPS: " << 1 / dt;
+		thirdTP.m_text = ss.str();
+	}
 
 	void* data = m_quadInstanceBuffer->GetUploadBuffer()->Map();
 	CharInfo* charInfoData = static_cast<CharInfo*>(data);
