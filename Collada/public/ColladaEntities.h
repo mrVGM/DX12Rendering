@@ -67,7 +67,8 @@ namespace collada
 	struct ColladaMaterial
 	{
 		std::string m_name;
-		float m_diffuseColor[4];
+		float m_diffuseColor[4] = {};
+		float m_specularColor[4] = {};
 	};
 
 	struct Scene

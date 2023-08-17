@@ -19,6 +19,12 @@ namespace
 	bool m_materialLoadingEnabled = false;
 	std::list<const collada::ColladaMaterial*> m_materialsToLoad;
 
+	struct DeferredMaterialSettings
+	{
+		float m_diffuse[4];
+		float m_specular[4];
+	};
+
 	void LoadErrorMaterial()
 	{
 		using namespace rendering;
@@ -61,19 +67,11 @@ void rendering::material_utils::LoadMaterial(const collada::ColladaMaterial& mat
 		void Do() override
 		{
 			DXBuffer* buffer = m_ctx.m_material->GetSettingsBuffer();
-			float color[] =
-			{
-				m_ctx.m_colladaMaterial->m_diffuseColor[0],
-				m_ctx.m_colladaMaterial->m_diffuseColor[1],
-				m_ctx.m_colladaMaterial->m_diffuseColor[2],
-				m_ctx.m_colladaMaterial->m_diffuseColor[3],
 
-				0.3,
-				0.3,
-				0.3,
-				64
-			};
-			buffer->CopyData(color, _countof(color) * sizeof(float));
+			DeferredMaterialSettings settings;
+			memcpy(settings.m_diffuse, m_ctx.m_colladaMaterial->m_diffuseColor, _countof(settings.m_diffuse) * sizeof(float));
+			memcpy(settings.m_specular, m_ctx.m_colladaMaterial->m_specularColor, _countof(settings.m_specular) * sizeof(float));
+			buffer->CopyData(&settings, sizeof(settings));
 
 			DXMaterialRepo* repo = utils::GetMaterialRepo();
 			repo->Register(m_ctx.m_colladaMaterial->m_name, *m_ctx.m_material);
