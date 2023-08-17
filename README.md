@@ -10,3 +10,7 @@ Here are the main characteristics of the project:
 - There is also a minimal functionality for rendering text on the screen, which is currently used only for displaying debug messages.
 
 The next thing, I want to add to the project, is some support for rendering skinned meshes and playing animations...
+
+Here is a render of some cartoon house:
+
+![house_render](Data/images/house_render.gif)
