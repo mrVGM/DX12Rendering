@@ -19,9 +19,6 @@ namespace rendering
 
 	class CascadedSM : public shadow_mapping::ShadowMap
 	{
-	public:
-		static const UINT m_resolution;
-
 	private:
 		bool m_listsDirty = true;
 		int m_numCommandLists = 0;
@@ -30,8 +27,6 @@ namespace rendering
 		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocator;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_preSMRenderList;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_postSMRenderList;
-
-		const float m_cascadeSeparators[3] = { 20, 50, 200 };
 
 		DXMutableBuffer* m_smSettingsBuffer = nullptr;
 		DXTexture* m_smFilterTex = nullptr;

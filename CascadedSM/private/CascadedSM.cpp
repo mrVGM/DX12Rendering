@@ -46,6 +46,8 @@
 
 #include "DXMutableBuffer.h"
 
+#include "CascadedSMSettings.h"
+
 #include "CoreUtils.h"
 #include "utils.h"
 
@@ -79,6 +81,8 @@ namespace
 
 	rendering::DXMaterial* m_shadowMaskPCFFilterMat = nullptr;
 	rendering::DXMaterial* m_shadowMaskDitherFilterMat = nullptr;
+
+	rendering::CascadedSMSettings* m_cascadedSettings = nullptr;
 
 	void CacheObjects()
 	{
@@ -121,6 +125,11 @@ namespace
 		if (!m_renderTextureBuffer)
 		{
 			m_renderTextureBuffer = cascaded::GetRenderTextureBuffer();
+		}
+
+		if (!m_cascadedSettings)
+		{
+			m_cascadedSettings = cascaded::GetCascadedSettings();
 		}
 	}
 
@@ -172,7 +181,7 @@ namespace
 
 			void Do() override
 			{
-				UINT size = CascadedSM::m_resolution;
+				UINT size = m_cascadedSettings->GetSettings().m_resolution;
 
 				m_ctx.m_tex = DXTexture::CreateDepthStencilTexture(DXShadowMapDSMeta::GetInstance(), size, size);
 
@@ -302,7 +311,7 @@ namespace
 		origin = (minPoint + maxPoint) / 2;
 
 		{
-			float pixelSize = maxDist / CascadedSM::m_resolution;
+			float pixelSize = maxDist / m_cascadedSettings->GetSettings().m_resolution;
 			XMVECTOR tmp = origin;
 			tmp /= pixelSize;
 
@@ -361,8 +370,6 @@ namespace
 		}
 	};
 }
-
-const UINT rendering::CascadedSM::m_resolution = 2048;
 
 void rendering::CascadedSM::LoadSettingsBuffer(jobs::Job* done)
 {
@@ -465,7 +472,7 @@ void rendering::CascadedSM::LoadSMTexture(jobs::Job* done)
 
 		void Do() override
 		{
-			UINT size = CascadedSM::m_resolution;
+			UINT size = m_cascadedSettings->GetSettings().m_resolution;
 
 			m_ctx.m_tex = DXTexture::CreateRenderTargetTexture(DXShadowMapMeta::GetInstance(), size, size);
 
@@ -572,7 +579,7 @@ void rendering::CascadedSM::LoadSMFilterTexture(jobs::Job* done)
 
 		void Do() override
 		{
-			UINT size = CascadedSM::m_resolution;
+			UINT size = m_cascadedSettings->GetSettings().m_resolution;
 
 			m_ctx.m_tex = DXTexture::CreateRenderTargetTexture(DXShadowMapFilterTexMeta::GetInstance(), size, size);
 
@@ -797,12 +804,24 @@ void rendering::CascadedSM::UpdateSMSettings()
 
 	ShadowMapSettings settings;
 
+	float cascadeBounds[] = { 20, 50, 200 };
+
+	int index = 0;
+	for (auto it = m_cascadedSettings->GetSettings().m_bounds.begin(); it != m_cascadedSettings->GetSettings().m_bounds.end(); ++it)
+	{
+		cascadeBounds[index++] = *it;
+		if (index >= _countof(cascadeBounds))
+		{
+			break;
+		}
+	}
+
 	float planes[] =
 	{
 		m_camera->GetNearPlane(),
-		m_cascadeSeparators[0],
-		m_cascadeSeparators[1],
-		m_cascadeSeparators[2],
+		cascadeBounds[0],
+		cascadeBounds[1],
+		cascadeBounds[2],
 		m_camera->GetFarPlane(),
 	};
 
@@ -853,10 +872,10 @@ void rendering::CascadedSM::UpdateSMSettings()
 		singleSMSettings.m_position[3] = XMVectorGetW(origin);
 	}
 
-	settings.m_resolution = CascadedSM::m_resolution;
-	settings.m_saparators[0] = m_cascadeSeparators[0];
-	settings.m_saparators[1] = m_cascadeSeparators[1];
-	settings.m_saparators[2] = m_cascadeSeparators[2];
+	settings.m_resolution = m_cascadedSettings->GetSettings().m_resolution;
+	settings.m_saparators[0] = cascadeBounds[0];
+	settings.m_saparators[1] = cascadeBounds[1];
+	settings.m_saparators[2] = cascadeBounds[2];
 
 	void* data = m_smSettingsBuffer->GetUploadBuffer()->Map();
 	ShadowMapSettings* shadowMapSettingsData = static_cast<ShadowMapSettings*>(data);
@@ -948,6 +967,8 @@ void rendering::CascadedSM::PreparePostSMRenderList()
 rendering::CascadedSM::CascadedSM() :
 	ShadowMap(CascadedSMMeta::GetInstance())
 {
+	new CascadedSMSettings();
+
 	new SceneDirty(SceneLoadedNotificationMeta::GetInstance());
 	new SceneDirty(MaterialResisteredNotificationMeta::GetInstance());
 

@@ -8,5 +8,6 @@
 		<scene_converter>"scenes.xml"</scene_converter>
 		<renderer>"renderer.xml"</renderer>
 		<outline>"render_settings/outline_settings.xml"</outline>
+		<cascaded_sm>"render_settings/cascaded_sm.xml"</cascaded_sm>
 	</other_settings>
 </settings>

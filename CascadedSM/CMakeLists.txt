@@ -41,6 +41,10 @@ add_library (CascadedSM
 	"private/HelperMaterials/DXShadowMaskMaterial.h"
 	"private/HelperMaterials/DXShadowMaskMaterialMeta.cpp"
 	"private/HelperMaterials/DXShadowMaskMaterialMeta.h"
+	"private/CascadedSMSettings.cpp"
+	"private/CascadedSMSettings.h"
+	"private/CascadedSMSettingsMeta.cpp"
+	"private/CascadedSMSettingsMeta.h"
 )
 
 target_include_directories(CascadedSM INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

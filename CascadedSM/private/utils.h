@@ -8,6 +8,7 @@
 #include "DXMaterialRepo.h"
 #include "DXBuffer.h"
 #include "DXMutableBuffer.h"
+#include "CascadedSMSettings.h"
 
 
 namespace rendering::cascaded
@@ -26,4 +27,6 @@ namespace rendering::cascaded
 	DXBuffer* GetRenderTextureBuffer();
 
 	DXMaterialRepo* GetMaterialRepo();
+
+	CascadedSMSettings* GetCascadedSettings();
 }

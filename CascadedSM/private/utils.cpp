@@ -15,6 +15,8 @@
 #include "DXBuffer.h"
 #include "DXMaterialRepoMeta.h"
 
+#include "CascadedSMSettingsMeta.h"
+
 #include "BaseObjectContainer.h"
 
 rendering::ILightsManager* rendering::cascaded::GetLightsManager()
@@ -181,4 +183,19 @@ rendering::DXMaterialRepo* rendering::cascaded::GetMaterialRepo()
 
 	DXMaterialRepo* materialRepo = static_cast<DXMaterialRepo*>(obj);
 	return materialRepo;
+}
+
+rendering::CascadedSMSettings* rendering::cascaded::GetCascadedSettings()
+{
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+
+	BaseObject* obj = container.GetObjectOfClass(CascadedSMSettingsMeta::GetInstance());
+
+	if (!obj)
+	{
+		throw "Can't find Cascaded Settings!";
+	}
+
+	CascadedSMSettings* cascadedSettings = static_cast<CascadedSMSettings*>(obj);
+	return cascadedSettings;
 }
