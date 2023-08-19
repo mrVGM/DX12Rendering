@@ -176,10 +176,218 @@ namespace
 		delete[] matrixTmp;
 	}
 
+	void ReadVertexWeightsArray(const xml_reader::Node* skinTag, std::vector<float>& weights)
+	{
+		using namespace xml_reader;
+
+		const Node* vertexWeightsTag = FindChildNode(skinTag, [](const Node* n) {
+			bool res = n->m_tagName == "vertex_weights";
+			return res;
+		});
+
+		const Node* inputTag = FindChildNode(vertexWeightsTag, [](const Node* n) {
+			if (n->m_tagName != "input")
+			{
+				return false;
+			}
+
+			if (n->m_tagProps.find("semantic")->second != "WEIGHT")
+			{
+				return false;
+			}
+			return true;
+		});
+
+		std::string sourceTagId = inputTag->m_tagProps.find("source")->second;
+		sourceTagId = sourceTagId.substr(1);
+
+		const Node* weightsArraySourceTag = FindChildNode(skinTag, [=](const Node* n) {
+			if (n->m_tagName != "source")
+			{
+				return false;
+			}
+
+			if (n->m_tagProps.find("id")->second != sourceTagId)
+			{
+				return false;
+			}
+
+			return true;
+		});
+
+		const Node* accessorTag = FindChildNode(weightsArraySourceTag, [](const Node* n) {
+			if (n->m_tagName != "accessor")
+			{
+				return false;
+			}
+
+			const Node* weightsArrayTag = FindChildNode(n, [](const Node* paramTag) {
+				if (paramTag->m_tagName != "param")
+				{
+					return false;
+				}
+				if (paramTag->m_tagProps.find("name")->second != "WEIGHT")
+				{
+					return false;
+				}
+
+				return true;
+			});
+
+			if (!weightsArrayTag)
+			{
+				return false;
+			}
+
+			return true;
+		});
+
+		const Node* arrayTag = nullptr;
+		{
+			std::string url = accessorTag->m_tagProps.find("source")->second;
+			url = url.substr(1);
+
+			arrayTag = FindChildNode(weightsArraySourceTag, [=](const Node* n) {
+				if (n->m_tagName != "float_array")
+				{
+					return false;
+				}
+
+				if (n->m_tagProps.find("id")->second != url)
+				{
+					return false;
+				}
+
+				return true;
+			});
+		}
+
+		int weightsSize = 0;
+		{
+			std::stringstream ss(accessorTag->m_tagProps.find("count")->second);
+			ss >> weightsSize;
+		}
+
+		auto it = arrayTag->m_data.begin();
+		for (int i = 0; i < weightsSize; ++i)
+		{
+			weights.push_back((*it++)->m_symbolData.m_number);
+		}
+	}
+
+	struct JointWeightPair
+	{
+		int m_joint;
+		int m_weight;
+	};
+	struct VertexWeights
+	{
+		std::vector<JointWeightPair> m_weights;
+	};
+
+	void ReadVertexJointWeightsFromSkinTag(const xml_reader::Node* skinTag, std::vector<VertexWeights>& weights)
+	{
+		using namespace xml_reader;
+
+		const Node* vertexWeightsTag = FindChildNode(skinTag, [](const Node* n) {
+			bool res = n->m_tagName == "vertex_weights";
+			return res;
+		});
+
+		const Node* weightInputTag = FindChildNode(vertexWeightsTag, [](const Node* n) {
+			if (n->m_tagName != "input")
+			{
+				return false;
+			}
+
+			if (n->m_tagProps.find("semantic")->second != "WEIGHT")
+			{
+				return false;
+			}
+			return true;
+		});
+
+		const Node* jointInputTag = FindChildNode(vertexWeightsTag, [](const Node* n) {
+			if (n->m_tagName != "input")
+			{
+				return false;
+			}
+
+			if (n->m_tagProps.find("semantic")->second != "JOINT")
+			{
+				return false;
+			}
+			return true;
+		});
+
+		int weightOffset = 0;
+		int jointOffset = 0;
+		{
+			std::stringstream ss(weightInputTag->m_tagProps.find("offset")->second);
+			ss >> weightOffset;
+
+			ss.clear();
+			ss.str(jointInputTag->m_tagProps.find("offset")->second);
+			ss >> jointOffset;
+		}
+
+		const Node* vCount = FindChildNode(vertexWeightsTag, [](const Node* n) {
+			bool res = n->m_tagName == "vcount";
+			return res;
+		});
+		const Node* v = FindChildNode(vertexWeightsTag, [](const Node* n) {
+			bool res = n->m_tagName == "v";
+			return res;
+		});
+
+		int dataCount = 0;
+		{
+			std::stringstream ss(vertexWeightsTag->m_tagProps.find("count")->second);
+			ss >> dataCount;
+		}
+
+		auto vCountIt = vCount->m_data.begin();
+		auto vIt = v->m_data.begin();
+
+		for (int i = 0; i < dataCount; ++i)
+		{
+			int cur = (*vCountIt++)->m_symbolData.m_number;
+
+			VertexWeights& curWeights = weights.emplace_back();
+			for (int j = 0; j < cur; ++j)
+			{
+				float tmp[2] =
+				{
+					(*vIt++)->m_symbolData.m_number,
+					(*vIt++)->m_symbolData.m_number,
+				};
+
+				curWeights.m_weights.push_back(JointWeightPair{ static_cast<int>(tmp[jointOffset]), static_cast<int>(tmp[weightOffset]) });
+			}
+		}
+	}
+
 	void ReadJointsFromSkinTag(const xml_reader::Node* skinTag, collada::Skeleton& skeleton)
 	{
 		ReadJointNamesFromSkinTag(skinTag, skeleton);
 		ReadJointInverseBindMatricesFromSkinTag(skinTag, skeleton);
+
+		std::vector<float> weightsArray;
+		std::vector<VertexWeights> vertexWeights;
+		ReadVertexWeightsArray(skinTag, weightsArray);
+		ReadVertexJointWeightsFromSkinTag(skinTag, vertexWeights);
+
+		for (auto it = vertexWeights.begin(); it != vertexWeights.end(); ++it)
+		{
+			VertexWeights& cur = *it;
+
+			std::map<std::string, float>& weightsPerVertex = skeleton.m_weights.emplace_back();
+			for (auto jointIt = cur.m_weights.begin(); jointIt != cur.m_weights.end(); ++jointIt)
+			{
+				JointWeightPair& pair = *jointIt;
+				weightsPerVertex[skeleton.m_joints[pair.m_joint]] = weightsArray[pair.m_weight];
+			}
+		}
 	}
 }
 

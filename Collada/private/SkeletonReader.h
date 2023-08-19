@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 namespace xml_reader
 {
@@ -21,6 +22,7 @@ namespace collada
 	public:
 		std::vector<std::string> m_joints;
 		std::vector<Matrix> m_invertBindMatrices;
+		std::vector<std::map<std::string, float>> m_weights;
 
 		Skeleton(Scene& scene);
 		Skeleton(const Skeleton& other) = delete;
