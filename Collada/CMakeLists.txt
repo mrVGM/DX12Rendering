@@ -15,6 +15,7 @@ add_library (Collada
 	"private/SceneSettings.cpp"
 	"private/SkeletonReader.h"
 	"private/SkeletonReader.cpp"
+	"private/SceneBuilderUtils.h"
 )
 
 target_include_directories(Collada INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

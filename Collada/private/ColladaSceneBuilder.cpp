@@ -2,6 +2,7 @@
 
 #include "ColladaEntities.h"
 
+#include "SceneBuilderUtils.h"
 #include "SkeletonReader.h"
 
 #include <queue>
@@ -63,69 +64,6 @@ namespace
 
 	bool ReadMaterialTriangles(const Node* triangles, const Node* geometryNode, Geometry& geometry);
 
-	bool ReadGeometry(const std::string& id, const Node* geometry, bool invertAxis, Scene& scene)
-	{
-		if (scene.m_geometries.find(id) != scene.m_geometries.end()) {
-			return true;
-		}
-
-		scene.m_geometries.insert(std::pair<std::string, Geometry>(id, Geometry()));
-		Geometry& object = scene.m_geometries[id];
-
-		std::list<const Node*> trianglesTags;
-		FindChildTagsByName("triangles", geometry, trianglesTags);
-
-		int firstFreeIndex = 0;
-		for (std::list<const Node*>::const_iterator it = trianglesTags.begin();
-			it != trianglesTags.end(); ++it) {
-			const Node* trianglesTag = *it;
-
-			const std::string& materialName = trianglesTag->m_tagProps.find("material")->second;
-
-			if (!ReadMaterialTriangles(trianglesTag, geometry, object)) {
-				return false;
-			}
-
-			MaterialIndexRange mir;
-			mir.m_name = materialName;
-			mir.indexOffset = firstFreeIndex;
-			mir.indexCount = object.m_indices.size() - firstFreeIndex;
-			object.m_materials.push_back(mir);
-
-			firstFreeIndex = object.m_indices.size();
-		}
-
-		std::list<int>::iterator it = object.m_indices.begin();
-		while (it != object.m_indices.end()) {
-			std::list<int>::iterator second = it;
-			++second;
-			std::list<int>::iterator third = second;
-			++third;
-
-			int tmp = *second;
-			*second = *third;
-			*third = tmp;
-
-			it = third;
-			++it;
-		}
-
-		if (invertAxis) {
-			for (std::list<Vertex>::iterator it = object.m_vertices.begin(); it != object.m_vertices.end(); ++it) {
-				Vertex& cur = *it;
-				float tmp = cur.m_position[1];
-				cur.m_position[1] = cur.m_position[2];
-				cur.m_position[2] = tmp;
-
-				tmp = cur.m_normal[1];
-				cur.m_normal[1] = cur.m_normal[2];
-				cur.m_normal[2] = tmp;
-			}
-		}
-
-		return true;
-	}
-
 	bool ShouldInvertAxis(const Node* rootDataNode)
 	{
 		const Node* upAxis = FindChildTagByName("up_axis", rootDataNode);
@@ -148,6 +86,11 @@ namespace
 
 	Object* ReadObjectAndGeometryFromNode(const Node* node, const Node* rootDataNode, Scene& scene)
 	{
+		const Node* instanceGeometry = FindChildTagByName("instance_geometry", node);
+		if (!instanceGeometry) {
+			return nullptr;
+		}
+
 		std::list<const Node*> matrixContainer;
 		FindChildNodes(node, [](const Node* x) {
 			if (x->m_tagName != "matrix") {
@@ -180,11 +123,6 @@ namespace
 		for (std::list<scripting::ISymbol*>::const_iterator it = matrix->m_data.begin();
 			it != matrix->m_data.end(); ++it) {
 			obj.m_transform[index++] = (*it)->m_symbolData.m_number;
-		}
-
-		const Node* instanceGeometry = FindChildTagByName("instance_geometry", node);
-		if (!instanceGeometry) {
-			return nullptr;
 		}
 
 		std::string geometryURL;
@@ -714,7 +652,7 @@ bool collada::ConvertToScene(const std::list<Node*>& nodes, collada::Scene& scen
 	{
 		Object* object = ReadObjectAndGeometryFromNode(*it, dataContainerTag, scene);
 		if (!object) {
-			Skeleton skeleton;
+			Skeleton skeleton(scene);
 			skeleton.ReadFromNode(*it, dataContainerTag);
 
 			continue;
@@ -873,4 +811,68 @@ void collada::Object::CalcPositionRotationScale(bool invertAxis)
 			m_instanceData.m_rotation[3] = tmp;
 		}
 	}
+}
+
+
+bool collada::ReadGeometry(const std::string& id, const Node* geometry, bool invertAxis, Scene& scene)
+{
+	if (scene.m_geometries.find(id) != scene.m_geometries.end()) {
+		return true;
+	}
+
+	scene.m_geometries.insert(std::pair<std::string, Geometry>(id, Geometry()));
+	Geometry& object = scene.m_geometries[id];
+
+	std::list<const Node*> trianglesTags;
+	FindChildTagsByName("triangles", geometry, trianglesTags);
+
+	int firstFreeIndex = 0;
+	for (std::list<const Node*>::const_iterator it = trianglesTags.begin();
+		it != trianglesTags.end(); ++it) {
+		const Node* trianglesTag = *it;
+
+		const std::string& materialName = trianglesTag->m_tagProps.find("material")->second;
+
+		if (!ReadMaterialTriangles(trianglesTag, geometry, object)) {
+			return false;
+		}
+
+		MaterialIndexRange mir;
+		mir.m_name = materialName;
+		mir.indexOffset = firstFreeIndex;
+		mir.indexCount = object.m_indices.size() - firstFreeIndex;
+		object.m_materials.push_back(mir);
+
+		firstFreeIndex = object.m_indices.size();
+	}
+
+	std::list<int>::iterator it = object.m_indices.begin();
+	while (it != object.m_indices.end()) {
+		std::list<int>::iterator second = it;
+		++second;
+		std::list<int>::iterator third = second;
+		++third;
+
+		int tmp = *second;
+		*second = *third;
+		*third = tmp;
+
+		it = third;
+		++it;
+	}
+
+	if (invertAxis) {
+		for (std::list<Vertex>::iterator it = object.m_vertices.begin(); it != object.m_vertices.end(); ++it) {
+			Vertex& cur = *it;
+			float tmp = cur.m_position[1];
+			cur.m_position[1] = cur.m_position[2];
+			cur.m_position[2] = tmp;
+
+			tmp = cur.m_normal[1];
+			cur.m_normal[1] = cur.m_normal[2];
+			cur.m_normal[2] = tmp;
+		}
+	}
+
+	return true;
 }
