@@ -23,6 +23,7 @@ namespace collada
 		struct Settings
 		{
 			std::map<std::string, SceneInfo> m_scenes;
+			std::list<std::string> m_scenesToConvert;
 		};
 	private:
 		Settings m_settings;

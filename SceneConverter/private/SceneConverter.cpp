@@ -51,16 +51,18 @@ void scene_converter::Boot()
 
 	collada::SceneSettings::Settings& sceneSettings = settings->GetSettings();
 
-
-	for (auto it = sceneSettings.m_scenes.begin(); it != sceneSettings.m_scenes.end(); ++it)
+	for (auto it = sceneSettings.m_scenesToConvert.begin(); it != sceneSettings.m_scenesToConvert.end(); ++it)
 	{
-		std::cout << "Converting " << it->second.m_dae << " ..." << std::endl;
+		collada::SceneSettings::SceneInfo& cur = sceneSettings.m_scenes[*it];
+
+		std::cout << "Converting " << cur.m_dae << " ..." << std::endl;
 		collada::ColladaScene cs;
-		cs.Load(data::GetLibrary().GetRootDir() + it->second.m_dae);
+
+		cs.Load(data::GetLibrary().GetRootDir() + cur.m_dae);
 
 		data::MemoryFile mf;
-		std::string binFilePath = data::GetLibrary().GetRootDir() + it->second.m_binFile;
-		std::string materialsFilePath = data::GetLibrary().GetRootDir() + it->second.m_materialsFile;
+		std::string binFilePath = data::GetLibrary().GetRootDir() + cur.m_binFile;
+		std::string materialsFilePath = data::GetLibrary().GetRootDir() + cur.m_materialsFile;
 
 		data::MemoryFileWriter writer(mf);
 		cs.GetScene().Serialize(writer);
@@ -71,7 +73,7 @@ void scene_converter::Boot()
 		std::ofstream materialsFile(materialsFilePath);
 		materialsFile << materialsXML;
 
-		std::cout << it->second.m_dae << " converted and saved to " << it->second.m_binFile << "!" << std::endl;
+		std::cout << cur.m_dae << " converted and saved to " << cur.m_binFile << "!" << std::endl;
 	}
 }
 

@@ -6,8 +6,13 @@
 			<bin>"geo/house/house_scene.scene"</bin>
 			<materials>"geo/house/house_scene_materials.xml"</materials>
 		</house>
+		<cube>
+			<dae>"geo/cube.dae"</dae>
+			<bin>"geo/cube/cube.scene"</bin>
+			<materials>"geo/cube/cube_materials.xml"</materials>
+		</cube>
 	</scenes_list>
 	<scenes_to_convert>
-		house
+		cube
 	</scenes_to_convert>
 </settings>

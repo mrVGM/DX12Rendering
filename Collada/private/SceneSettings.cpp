@@ -34,31 +34,48 @@ void collada::SceneSettings::LoadSceneSettings()
 
 	const xml_reader::Node* settingsNode = FindSettingRootNode(nodes);
 
-	const xml_reader::Node* scenesList = xml_reader::FindChildNode(settingsNode, [](const xml_reader::Node* node) {
-		return node->m_tagName == "scenes_list";
-	});
-
-	for (auto it = scenesList->m_children.begin(); it != scenesList->m_children.end(); ++it)
 	{
-		xml_reader::Node* cur = *it;
-
-		const xml_reader::Node* dae = xml_reader::FindChildNode(cur, [](const xml_reader::Node* node) {
-			return node->m_tagName == "dae";
+		const xml_reader::Node* scenesList = xml_reader::FindChildNode(settingsNode, [](const xml_reader::Node* node) {
+			return node->m_tagName == "scenes_list";
 		});
 
-		const xml_reader::Node* bin = xml_reader::FindChildNode(cur, [](const xml_reader::Node* node) {
-			return node->m_tagName == "bin";
+		for (auto it = scenesList->m_children.begin(); it != scenesList->m_children.end(); ++it)
+		{
+			xml_reader::Node* cur = *it;
+
+			const xml_reader::Node* dae = xml_reader::FindChildNode(cur, [](const xml_reader::Node* node) {
+				return node->m_tagName == "dae";
+			});
+
+			const xml_reader::Node* bin = xml_reader::FindChildNode(cur, [](const xml_reader::Node* node) {
+				return node->m_tagName == "bin";
+			});
+
+			const xml_reader::Node* materials = xml_reader::FindChildNode(cur, [](const xml_reader::Node* node) {
+				return node->m_tagName == "materials";
+			});
+
+			const std::string& daePath = dae->m_data.front()->m_symbolData.m_string;
+			const std::string& binPath = bin->m_data.front()->m_symbolData.m_string;
+			const std::string& materialsPath = materials->m_data.front()->m_symbolData.m_string;
+			SceneInfo si{ daePath, binPath, materialsPath };
+
+			m_settings.m_scenes[cur->m_tagName] = si;
+		}
+	}
+
+	{
+		const xml_reader::Node* scenesToConvert = xml_reader::FindChildNode(settingsNode, [](const xml_reader::Node* node) {
+			return node->m_tagName == "scenes_to_convert";
 		});
 
-		const xml_reader::Node* materials = xml_reader::FindChildNode(cur, [](const xml_reader::Node* node) {
-			return node->m_tagName == "materials";
-		});
-
-		const std::string& daePath = dae->m_data.front()->m_symbolData.m_string;
-		const std::string& binPath = bin->m_data.front()->m_symbolData.m_string;
-		const std::string& materialsPath = materials->m_data.front()->m_symbolData.m_string;
-		SceneInfo si{ daePath, binPath, materialsPath };
-
-		m_settings.m_scenes[cur->m_tagName] = si;
+		if (scenesToConvert)
+		{
+			for (auto it = scenesToConvert->m_data.begin(); it != scenesToConvert->m_data.end(); ++it)
+			{
+				scripting::ISymbol* cur = *it;
+				m_settings.m_scenesToConvert.push_back(cur->m_symbolData.m_string);
+			}
+		}
 	}
 }
