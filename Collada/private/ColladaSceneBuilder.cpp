@@ -712,7 +712,7 @@ bool collada::ConvertToScene(const std::list<Node*>& nodes, collada::Scene& scen
 	{
 		Object* object = ReadObjectAndGeometryFromNode(*it, dataContainerTag, scene);
 		if (!object) {
-			return false;
+			continue;
 		}
 
 		std::list<std::pair<std::string, std::string>> bindings;

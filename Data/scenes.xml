@@ -11,8 +11,13 @@
 			<bin>"geo/cube/cube.scene"</bin>
 			<materials>"geo/cube/cube_materials.xml"</materials>
 		</cube>
+		<armature>
+			<dae>"geo/armature.dae"</dae>
+			<bin>"geo/armature/armature.scene"</bin>
+			<materials>"geo/armature/armature_materials.xml"</materials>
+		</armature>
 	</scenes_list>
 	<scenes_to_convert>
-		cube
+		armature
 	</scenes_to_convert>
 </settings>
