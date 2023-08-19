@@ -159,4 +159,5 @@ const xml_reader::Node* xml_reader::FindChildNode(const Node* rootNode, std::fun
 			nodesToCheck.push(*it);
 		}
 	}
+	return nullptr;
 }
