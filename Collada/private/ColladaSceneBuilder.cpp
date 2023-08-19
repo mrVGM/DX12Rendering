@@ -64,26 +64,6 @@ namespace
 
 	bool ReadMaterialTriangles(const Node* triangles, const Node* geometryNode, Geometry& geometry);
 
-	bool ShouldInvertAxis(const Node* rootDataNode)
-	{
-		const Node* upAxis = FindChildTagByName("up_axis", rootDataNode);
-
-		if (!upAxis) {
-			return false;
-		}
-
-		if (upAxis->m_data.size() != 1) {
-			return false;
-		}
-
-		const scripting::ISymbol* s = *upAxis->m_data.begin();
-		if (s->m_name == "Name" && s->m_symbolData.m_string == "Z_UP") {
-			return true;
-		}
-
-		return false;
-	}
-
 	Object* ReadObjectAndGeometryFromNode(const Node* node, const Node* rootDataNode, Scene& scene)
 	{
 		const Node* instanceGeometry = FindChildTagByName("instance_geometry", node);
@@ -875,4 +855,24 @@ bool collada::ReadGeometry(const std::string& id, const Node* geometry, bool inv
 	}
 
 	return true;
+}
+
+bool collada::ShouldInvertAxis(const Node* rootDataNode)
+{
+	const Node* upAxis = FindChildTagByName("up_axis", rootDataNode);
+
+	if (!upAxis) {
+		return false;
+	}
+
+	if (upAxis->m_data.size() != 1) {
+		return false;
+	}
+
+	const scripting::ISymbol* s = *upAxis->m_data.begin();
+	if (s->m_name == "Name" && s->m_symbolData.m_string == "Z_UP") {
+		return true;
+	}
+
+	return false;
 }
