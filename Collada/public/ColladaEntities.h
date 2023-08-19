@@ -11,6 +11,11 @@
 
 namespace collada
 {
+	struct Matrix
+	{
+		float m_coefs[16];
+	};
+
 	struct Vertex
 	{
 		float m_position[3] = {};

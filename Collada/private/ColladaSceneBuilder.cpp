@@ -2,6 +2,8 @@
 
 #include "ColladaEntities.h"
 
+#include "SkeletonReader.h"
+
 #include <queue>
 #include <functional>
 #include <sstream>
@@ -712,6 +714,9 @@ bool collada::ConvertToScene(const std::list<Node*>& nodes, collada::Scene& scen
 	{
 		Object* object = ReadObjectAndGeometryFromNode(*it, dataContainerTag, scene);
 		if (!object) {
+			Skeleton skeleton;
+			skeleton.ReadFromNode(*it, dataContainerTag);
+
 			continue;
 		}
 
