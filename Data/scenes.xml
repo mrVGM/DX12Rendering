@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <settings>
-	<scenes_to_convert>
+	<scenes_list>
 		<house>
 			<dae>"geo/house_scene.dae"</dae>
 			<bin>"geo/house/house_scene.scene"</bin>
 			<materials>"geo/house/house_scene_materials.xml"</materials>
 		</house>
+	</scenes_list>
+	<scenes_to_convert>
+		house
 	</scenes_to_convert>
 </settings>

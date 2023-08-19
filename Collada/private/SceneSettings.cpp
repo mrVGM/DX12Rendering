@@ -34,11 +34,11 @@ void collada::SceneSettings::LoadSceneSettings()
 
 	const xml_reader::Node* settingsNode = FindSettingRootNode(nodes);
 
-	const xml_reader::Node* scenesToConvert = xml_reader::FindChildNode(settingsNode, [](const xml_reader::Node* node) {
-		return node->m_tagName == "scenes_to_convert";
+	const xml_reader::Node* scenesList = xml_reader::FindChildNode(settingsNode, [](const xml_reader::Node* node) {
+		return node->m_tagName == "scenes_list";
 	});
 
-	for (auto it = scenesToConvert->m_children.begin(); it != scenesToConvert->m_children.end(); ++it)
+	for (auto it = scenesList->m_children.begin(); it != scenesList->m_children.end(); ++it)
 	{
 		xml_reader::Node* cur = *it;
 
