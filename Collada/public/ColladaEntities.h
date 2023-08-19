@@ -58,7 +58,6 @@ namespace collada
 		std::list<std::string> m_materialOverrides;
 
 		void CalcPositionRotationScale(bool invertAxis);
-		void InvertAxis();
 
 		void Serialize(data::MemoryFileWriter& writer, int id);
 		void Deserialize(data::MemoryFileReader& reader, int& id);

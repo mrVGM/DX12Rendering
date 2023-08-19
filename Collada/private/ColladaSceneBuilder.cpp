@@ -697,43 +697,6 @@ bool collada::Vertex::Equals(const Vertex& other) const
 	return true;
 }
 
-void collada::Object::InvertAxis()
-{
-	using namespace DirectX;
-	float yUp[16] = {
-		1,0,0,0,
-		0,0,1,0,
-		0,1,0,0,
-		0,0,0,1
-	};
-
-	XMMATRIX yUpMat(yUp);
-
-	XMMATRIX trMat(m_transform);
-	
-	trMat = yUpMat * trMat * yUpMat;
-
-	m_transform[0] = XMVectorGetX(trMat.r[0]);
-	m_transform[1] = XMVectorGetY(trMat.r[0]);
-	m_transform[2] = XMVectorGetZ(trMat.r[0]);
-	m_transform[3] = XMVectorGetW(trMat.r[0]);
-
-	m_transform[4] = XMVectorGetX(trMat.r[1]);
-	m_transform[5] = XMVectorGetY(trMat.r[1]);
-	m_transform[6] = XMVectorGetZ(trMat.r[1]);
-	m_transform[7] = XMVectorGetW(trMat.r[1]);
-
-	m_transform[8]  = XMVectorGetX(trMat.r[2]);
-	m_transform[9]  = XMVectorGetY(trMat.r[2]);
-	m_transform[10] = XMVectorGetZ(trMat.r[2]);
-	m_transform[11] = XMVectorGetW(trMat.r[2]);
-
-	m_transform[12] = XMVectorGetX(trMat.r[3]);
-	m_transform[13] = XMVectorGetY(trMat.r[3]);
-	m_transform[14] = XMVectorGetZ(trMat.r[3]);
-	m_transform[15] = XMVectorGetW(trMat.r[3]);
-}
-
 void collada::Object::CalcPositionRotationScale(bool invertAxis)
 {
 	using namespace DirectX;
