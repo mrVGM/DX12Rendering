@@ -542,14 +542,14 @@ int collada::Matrix::GetIndex(int row, int column)
 	return index;
 }
 
-float collada::Matrix::GetCoef(int row, int column)
+float collada::Matrix::GetCoef(int row, int column) const
 {
 	int index = GetIndex(row, column);
 
 	return m_coefs[index];
 }
 
-collada::Matrix collada::Matrix::Transpose()
+collada::Matrix collada::Matrix::Transpose() const
 {
 	Matrix res;
 
@@ -575,7 +575,7 @@ collada::Matrix collada::Matrix::Multiply(const collada::Matrix& m1, const colla
 			float c = 0;
 			for (int k = 0; k < 4; ++k)
 			{
-				c += m1.GetIndex(row, k) * m2.GetIndex(k, col);
+				c += m1.GetCoef(row, k) * m2.GetCoef(k, col);
 			}
 
 			res.m_coefs[Matrix::GetIndex(row, col)] = c;

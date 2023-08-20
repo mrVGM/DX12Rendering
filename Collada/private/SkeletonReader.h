@@ -30,6 +30,8 @@ namespace collada
 		SkeletonReader(const SkeletonReader& other) = delete;
 		SkeletonReader& operator=(const SkeletonReader& other) = delete;
 
-		bool ReadFromNode(const xml_reader::Node* node, const xml_reader::Node* containerNode);
+		bool ReadFromNode(const xml_reader::Node* node, const xml_reader::Node* containerNode, std::string& geometryName);
+
+		void ToSkeleton(collada::Skeleton& skeleton);
 	};
 }

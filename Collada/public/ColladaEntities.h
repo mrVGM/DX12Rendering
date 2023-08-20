@@ -18,8 +18,8 @@ namespace collada
 		static int GetIndex(int row, int column);
 		static Matrix Multiply(const Matrix& m1, const Matrix& m2);
 
-		float GetCoef(int row, int column);
-		Matrix Transpose();
+		float GetCoef(int row, int column) const;
+		Matrix Transpose() const;
 	};
 
 	struct Vertex

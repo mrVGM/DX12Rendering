@@ -407,7 +407,7 @@ namespace
 	}
 }
 
-bool collada::SkeletonReader::ReadFromNode(const xml_reader::Node* node, const xml_reader::Node* containerNode)
+bool collada::SkeletonReader::ReadFromNode(const xml_reader::Node* node, const xml_reader::Node* containerNode, std::string& geometryName)
 {
 	using namespace xml_reader;
 
@@ -473,7 +473,11 @@ bool collada::SkeletonReader::ReadFromNode(const xml_reader::Node* node, const x
 			return true;
 		});
 
-		ReadGeometry(geometrySource, geoNode, invertAxis, m_scene);
+		if (!ReadGeometry(geometrySource, geoNode, invertAxis, m_scene))
+		{
+			return false;
+		}
+		geometryName = geometrySource;
 	}
 
 	const Node* bindShapeMatrixTag = FindChildNode(skinTag, [=](const Node* n) {
@@ -503,4 +507,28 @@ bool collada::SkeletonReader::ReadFromNode(const xml_reader::Node* node, const x
 collada::SkeletonReader::SkeletonReader(Scene& scene) :
 	m_scene(scene)
 {
+}
+
+void collada::SkeletonReader::ToSkeleton(collada::Skeleton& skeleton)
+{
+	skeleton.m_joints = m_joints;
+	skeleton.m_bindShapeMatrix = m_bindShapeMatrix;
+
+	for (int i = 0; i < m_invertBindMatrices.size(); ++i)
+	{
+		skeleton.m_invertBindMatrices[m_joints[i]] = m_invertBindMatrices[i];
+	}
+
+	for (auto weightIt = m_weights.begin(); weightIt != m_weights.end(); ++weightIt)
+	{
+		std::list<Skeleton::VertexWeight>& weightsSet = skeleton.m_weights.emplace_back();
+		std::map<std::string, float>& cur = *weightIt;
+
+		for (auto it = cur.begin(); it != cur.end(); ++it)
+		{
+			Skeleton::VertexWeight& weight = weightsSet.emplace_back();
+			weight.m_joint = it->first;
+			weight.m_weight = it->second;
+		}
+	}
 }

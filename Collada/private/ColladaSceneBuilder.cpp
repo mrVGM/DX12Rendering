@@ -633,7 +633,15 @@ bool collada::ConvertToScene(const std::list<Node*>& nodes, collada::Scene& scen
 		Object* object = ReadObjectAndGeometryFromNode(*it, dataContainerTag, scene);
 		if (!object) {
 			SkeletonReader skeletonReader(scene);
-			skeletonReader.ReadFromNode(*it, dataContainerTag);
+			std::string geoName;
+			bool res = skeletonReader.ReadFromNode(*it, dataContainerTag, geoName);
+
+			if (res)
+			{
+				scene.m_skeletons[geoName] = Skeleton();
+				Skeleton& skel = scene.m_skeletons[geoName];
+				skeletonReader.ToSkeleton(skel);
+			}
 
 			continue;
 		}
