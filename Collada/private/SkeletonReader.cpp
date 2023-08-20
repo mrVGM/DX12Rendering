@@ -3,6 +3,7 @@
 #include "XMLReader.h"
 
 #include "SceneBuilderUtils.h"
+#include "ColladaEntities.h"
 
 #include <sstream>
 
@@ -23,19 +24,6 @@ namespace
 		res = res.Transpose();
 
 		return res;
-	}
-
-	void ReadMatricesFromNode(const xml_reader::Node* node, collada::Matrix* matrices, int numMatrices)
-	{
-		auto it = node->m_data.begin();
-
-		for (int matrixIndex = 0; matrixIndex < numMatrices; ++matrixIndex)
-		{
-			for (int i = 0; i < 16; ++i)
-			{
-				matrices[matrixIndex].m_coefs[i] = (*it++)->m_symbolData.m_number;
-			}
-		}
 	}
 
 	void ReadJointNamesFromSkinTag(const xml_reader::Node* skinTag, collada::SkeletonReader& skeleton)
@@ -411,10 +399,16 @@ bool collada::SkeletonReader::ReadFromNode(const xml_reader::Node* node, const x
 {
 	using namespace xml_reader;
 
-	const Node* controllerTag = FindChildNode(node, [](const Node* n) {
-		bool res = n->m_tagName == "instance_controller";
-		return res;
-	});
+	const Node* controllerTag = nullptr;
+	for (auto it = node->m_children.begin(); it != node->m_children.end(); ++it)
+	{
+		Node* cur = *it;
+		if (cur->m_tagName == "instance_controller")
+		{
+			controllerTag = cur;
+			break;
+		}
+	}
 	
 	if (!controllerTag)
 	{
@@ -529,6 +523,19 @@ void collada::SkeletonReader::ToSkeleton(collada::Skeleton& skeleton)
 			Skeleton::VertexWeight& weight = weightsSet.emplace_back();
 			weight.m_joint = it->first;
 			weight.m_weight = it->second;
+		}
+	}
+}
+
+void collada::ReadMatricesFromNode(const xml_reader::Node* node, collada::Matrix* matrices, int numMatrices)
+{
+	auto it = node->m_data.begin();
+
+	for (int matrixIndex = 0; matrixIndex < numMatrices; ++matrixIndex)
+	{
+		for (int i = 0; i < 16; ++i)
+		{
+			matrices[matrixIndex].m_coefs[i] = (*it++)->m_symbolData.m_number;
 		}
 	}
 }

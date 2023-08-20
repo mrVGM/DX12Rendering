@@ -641,9 +641,14 @@ bool collada::ConvertToScene(const std::list<Node*>& nodes, collada::Scene& scen
 				scene.m_skeletons[geoName] = Skeleton();
 				Skeleton& skel = scene.m_skeletons[geoName];
 				skeletonReader.ToSkeleton(skel);
+
+				object = ReadObject(*it, geoName, ShouldInvertAxis(dataContainerTag), scene);
 			}
 
-			continue;
+			if (!object)
+			{
+				continue;
+			}
 		}
 
 		std::list<std::pair<std::string, std::string>> bindings;
@@ -846,4 +851,36 @@ bool collada::ShouldInvertAxis(const Node* rootDataNode)
 	}
 
 	return false;
+}
+
+Object* collada::ReadObject(const xml_reader::Node* node, const std::string& geoName, bool invertAxis, Scene& scene)
+{
+	const Node* matrixNode = FindChildNode(node, [](const Node* n) {
+		if (n->m_tagName != "matrix")
+		{
+			return false;
+		}
+
+		return true;
+	});
+
+	if (!matrixNode)
+	{
+		return nullptr;
+	}
+
+	const std::string& objectName = node->m_tagProps.find("id")->second;
+	scene.m_objects.insert(std::pair<std::string, Object>(objectName, Object()));
+	Object& obj = scene.m_objects[objectName];
+
+	Matrix m[1] = {};
+	collada::ReadMatricesFromNode(matrixNode, m, _countof(m));
+
+	memcpy(obj.m_transform, m, sizeof(Matrix));
+
+	obj.m_geometry = geoName;
+
+	obj.CalcPositionRotationScale(invertAxis);
+
+	return &obj;
 }
