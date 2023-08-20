@@ -13,7 +13,13 @@ namespace collada
 {
 	struct Matrix
 	{
-		float m_coefs[16];
+		float m_coefs[16] = {};
+		
+		static int GetIndex(int row, int column);
+		static Matrix Multiply(const Matrix& m1, const Matrix& m2);
+
+		float GetCoef(int row, int column);
+		Matrix Transpose();
 	};
 
 	struct Vertex

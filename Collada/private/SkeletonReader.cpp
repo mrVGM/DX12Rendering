@@ -1,6 +1,5 @@
 #include "SkeletonReader.h"
 
-#include "ColladaEntities.h"
 #include "XMLReader.h"
 
 #include "SceneBuilderUtils.h"
@@ -9,6 +8,23 @@
 
 namespace
 {
+	collada::Matrix ChangeAxisOfMatrix(const collada::Matrix& matrix)
+	{
+		using namespace collada;
+
+
+		Matrix changeBasisMatrix;
+		changeBasisMatrix.m_coefs[Matrix::GetIndex(0, 0)] = 1;
+		changeBasisMatrix.m_coefs[Matrix::GetIndex(1, 2)] = 1;
+		changeBasisMatrix.m_coefs[Matrix::GetIndex(2, 1)] = 1;
+		changeBasisMatrix.m_coefs[Matrix::GetIndex(3, 3)] = 1;
+
+		Matrix res = Matrix::Multiply(Matrix::Multiply(changeBasisMatrix, matrix), changeBasisMatrix);
+		res = res.Transpose();
+
+		return res;
+	}
+
 	void ReadMatricesFromNode(const xml_reader::Node* node, collada::Matrix* matrices, int numMatrices)
 	{
 		auto it = node->m_data.begin();
@@ -405,6 +421,8 @@ bool collada::Skeleton::ReadFromNode(const xml_reader::Node* node, const xml_rea
 		return false;
 	}
 
+	bool invertAxis = ShouldInvertAxis(containerNode);
+
 	const Node* libraryControllersTag = FindChildNode(containerNode, [](const Node* n) {
 		bool res = n->m_tagName == "library_controllers";
 		return res;
@@ -455,7 +473,6 @@ bool collada::Skeleton::ReadFromNode(const xml_reader::Node* node, const xml_rea
 			return true;
 		});
 
-		bool invertAxis = ShouldInvertAxis(containerNode);
 		ReadGeometry(geometrySource, geoNode, invertAxis, m_scene);
 	}
 
@@ -464,11 +481,20 @@ bool collada::Skeleton::ReadFromNode(const xml_reader::Node* node, const xml_rea
 		return res;
 	});
 
-	Matrix bindShapeMatrix[1];
-
-	ReadMatricesFromNode(bindShapeMatrixTag, bindShapeMatrix, _countof(bindShapeMatrix));
+	ReadMatricesFromNode(bindShapeMatrixTag, &m_bindShapeMatrix, 1);
 
 	ReadJointsFromSkinTag(skinTag, *this);
+
+	if (invertAxis)
+	{
+		m_bindShapeMatrix = ChangeAxisOfMatrix(m_bindShapeMatrix);
+
+		for (auto it = m_invertBindMatrices.begin(); it != m_invertBindMatrices.end(); ++it)
+		{
+			Matrix& cur = *it;
+			cur = ChangeAxisOfMatrix(cur);
+		}
+	}
 
 	return true;
 }

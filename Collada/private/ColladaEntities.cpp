@@ -535,3 +535,42 @@ void collada::Object::Deserialize(data::MemoryFileReader& reader, int& id)
 		}
 	}
 }
+
+int collada::Matrix::GetIndex(int row, int column)
+{
+	int index = 4 * row + column;
+	return index;
+}
+
+float collada::Matrix::GetCoef(int row, int column)
+{
+	int index = GetIndex(row, column);
+
+	return m_coefs[index];
+}
+
+collada::Matrix collada::Matrix::Transpose()
+{
+	Matrix res;
+
+	for (int i = 0; i < 4; ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+		{
+			res.m_coefs[GetIndex(j, i)] = GetCoef(i, j);
+		}
+	}
+}
+
+collada::Matrix collada::Matrix::Multiply(const collada::Matrix& m1, const collada::Matrix& m2)
+{
+	Matrix res;
+
+	for (int i = 0; i < 4; ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+		{
+			res.m_coefs[GetIndex(j, i)] = GetCoef(i, j);
+		}
+	}
+}
