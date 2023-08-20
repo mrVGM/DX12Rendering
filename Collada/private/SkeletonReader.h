@@ -15,7 +15,7 @@ namespace collada
 {
 	class Scene;
 
-	class Skeleton
+	class SkeletonReader
 	{
 	private:
 		Scene& m_scene;
@@ -26,9 +26,9 @@ namespace collada
 		std::vector<Matrix> m_invertBindMatrices;
 		std::vector<std::map<std::string, float>> m_weights;
 		
-		Skeleton(Scene& scene);
-		Skeleton(const Skeleton& other) = delete;
-		Skeleton& operator=(const Skeleton& other) = delete;
+		SkeletonReader(Scene& scene);
+		SkeletonReader(const SkeletonReader& other) = delete;
+		SkeletonReader& operator=(const SkeletonReader& other) = delete;
 
 		bool ReadFromNode(const xml_reader::Node* node, const xml_reader::Node* containerNode);
 	};

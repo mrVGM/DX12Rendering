@@ -632,8 +632,8 @@ bool collada::ConvertToScene(const std::list<Node*>& nodes, collada::Scene& scen
 	{
 		Object* object = ReadObjectAndGeometryFromNode(*it, dataContainerTag, scene);
 		if (!object) {
-			Skeleton skeleton(scene);
-			skeleton.ReadFromNode(*it, dataContainerTag);
+			SkeletonReader skeletonReader(scene);
+			skeletonReader.ReadFromNode(*it, dataContainerTag);
 
 			continue;
 		}

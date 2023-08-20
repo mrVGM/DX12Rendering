@@ -48,6 +48,23 @@ namespace collada
 		void Deserialize(data::MemoryFileReader& reader, int& id);
 	};
 
+	struct Skeleton
+	{
+		struct VertexWeight
+		{
+			std::string m_joint;
+			float m_weight = 0;
+		};
+
+		std::vector<std::string> m_joints;
+		Matrix m_bindShapeMatrix;
+		std::map<std::string, Matrix> m_invertBindMatrices;
+		std::list<std::list<VertexWeight>> m_weights;
+
+		void Serialize(data::MemoryFileWriter& writer, int id);
+		void Deserialize(data::MemoryFileReader& reader, int& id);
+	};
+
 	struct GeometryInstanceData
 	{
 		float m_position[3];
@@ -84,6 +101,7 @@ namespace collada
 	struct Scene
 	{
 		std::map<std::string, Geometry> m_geometries;
+		std::map<std::string, Skeleton> m_skeletons;
 		std::map<std::string, Object> m_objects;
 		std::map<std::string, int> m_objectInstanceMap;
 		std::map<std::string, InstanceBuffer> m_instanceBuffers;

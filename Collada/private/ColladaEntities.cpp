@@ -584,3 +584,244 @@ collada::Matrix collada::Matrix::Multiply(const collada::Matrix& m1, const colla
 
 	return res;
 }
+
+namespace
+{
+	struct MatrixWithId
+	{
+		int m_id = -1;
+		collada::Matrix m_matrix;
+	};
+
+	struct WeightWithId
+	{
+		int m_jointId = -1;
+		float m_weight = 0;
+	};
+}
+
+void collada::Skeleton::Serialize(data::MemoryFileWriter& writer, int id)
+{
+	std::map<std::string, int> nameIds;
+
+	for (auto it = m_joints.begin(); it != m_joints.end(); ++it)
+	{
+		nameIds[*it] = 0;
+	}
+
+	{
+		data::BinChunk namesChunk;
+
+		unsigned int size = sizeof(unsigned int);
+
+		std::vector<std::string> names;
+		int index = 0;
+		for (auto it = nameIds.begin(); it != nameIds.end(); ++it)
+		{
+			names.push_back(it->first);
+			it->second = index++;
+
+			size += it->first.size() + 1;
+		}
+
+		namesChunk.m_size = size;
+		namesChunk.m_data = new char[size];
+
+		memset(namesChunk.m_data, 0, size);
+
+		void* curPtr = namesChunk.m_data;
+		{
+			unsigned int* countNames = static_cast<unsigned int*>(curPtr);
+			*countNames = names.size();
+			++countNames;
+			curPtr = countNames;
+		}
+
+		{
+			char* namePtr = static_cast<char*>(curPtr);
+			for (auto it = names.begin(); it != names.end(); ++it)
+			{
+				const std::string& curName = *it;
+				memcpy(namePtr, curName.c_str(), curName.size());
+				namePtr += curName.size() + 1;
+			}
+		}
+
+		namesChunk.Write(writer);
+	}
+
+	{
+		data::BinChunk idChunk;
+
+		idChunk.m_size = sizeof(int);
+		idChunk.m_data = new char[sizeof(int)];
+
+		int* idPtr = reinterpret_cast<int*>(idChunk.m_data);
+		*idPtr = id;
+
+		idChunk.Write(writer);
+	}
+
+	{
+		data::BinChunk bindShapeMatrixChunk;
+		bindShapeMatrixChunk.m_size = sizeof(Matrix);
+		bindShapeMatrixChunk.m_data = new char[bindShapeMatrixChunk.m_size];
+
+		Matrix* curData = reinterpret_cast<Matrix*>(bindShapeMatrixChunk.m_data);
+		*curData = m_bindShapeMatrix;
+
+		bindShapeMatrixChunk.Write(writer);
+	}
+
+	{
+		data::BinChunk invertBindMatricesChunk;
+		invertBindMatricesChunk.m_size = m_invertBindMatrices.size() * sizeof(MatrixWithId);
+		invertBindMatricesChunk.m_data = new char[invertBindMatricesChunk.m_size];
+
+		MatrixWithId* curData = reinterpret_cast<MatrixWithId*>(invertBindMatricesChunk.m_data);
+		for (auto it = m_invertBindMatrices.begin(); it != m_invertBindMatrices.end(); ++it)
+		{
+			curData->m_id = nameIds[it->first];
+			curData->m_matrix = it->second;
+			++curData;
+		}
+
+		invertBindMatricesChunk.Write(writer);
+	}
+
+	{
+		unsigned int allWeights = 0;
+		{
+			data::BinChunk weightsCountsChunk;
+			weightsCountsChunk.m_size = m_weights.size() * sizeof(unsigned int);
+			weightsCountsChunk.m_data = new char[weightsCountsChunk.m_size];
+
+			unsigned int* countsData = reinterpret_cast<unsigned int*>(weightsCountsChunk.m_data);
+			for (auto it = m_weights.begin(); it != m_weights.end(); ++it)
+			{
+				std::list<VertexWeight>& cur = *it;
+				*(countsData++) = cur.size();
+				allWeights += cur.size();
+			}
+
+			weightsCountsChunk.Write(writer);
+		}
+
+		{
+			struct WeightWithId
+			{
+				int m_jointId = -1;
+				float m_weight = 0;
+			};
+
+			data::BinChunk weightsChunk;
+			weightsChunk.m_size = allWeights * sizeof(WeightWithId);
+			weightsChunk.m_data = new char[weightsChunk.m_size];
+
+			WeightWithId* weightsData = reinterpret_cast<WeightWithId*>(weightsChunk.m_data);
+			for (auto it = m_weights.begin(); it != m_weights.end(); ++it)
+			{
+				std::list<VertexWeight>& cur = *it;
+				for (auto weightIt = cur.begin(); weightIt != cur.end(); ++weightIt)
+				{
+					VertexWeight& curWeight = *weightIt;
+					weightsData->m_jointId = nameIds[curWeight.m_joint];
+					weightsData->m_weight = curWeight.m_weight;
+
+					++weightsData;
+				}
+			}
+			weightsChunk.Write(writer);
+		}
+	}
+}
+
+void collada::Skeleton::Deserialize(data::MemoryFileReader& reader, int& id)
+{
+	std::vector<std::string> names;
+
+	{
+		data::BinChunk namesChunk;
+		namesChunk.Read(reader);
+
+
+		unsigned int* namesCount = reinterpret_cast<unsigned int*>(namesChunk.m_data);
+
+		char* namesPtr = reinterpret_cast<char*>(namesCount + 1);
+
+		for (unsigned int i = 0; i < *namesCount; ++i)
+		{
+			std::string& tmp = names.emplace_back();
+			tmp = namesPtr;
+
+			namesPtr += tmp.size() + 1;
+		}
+	}
+
+	{
+		data::BinChunk idChunk;
+		idChunk.Read(reader);
+
+		id = *reinterpret_cast<int*>(idChunk.m_data);
+	}
+
+	{
+		data::BinChunk bindShapeMatrixChunk;
+		bindShapeMatrixChunk.Read(reader);
+
+		m_bindShapeMatrix = *reinterpret_cast<Matrix*>(bindShapeMatrixChunk.m_data);
+	}
+
+	{
+		data::BinChunk invertBindMatricesChunk;
+		invertBindMatricesChunk.Read(reader);
+
+		int numElements = invertBindMatricesChunk.m_size / sizeof(MatrixWithId);
+
+		MatrixWithId* matrixData = reinterpret_cast<MatrixWithId*>(invertBindMatricesChunk.m_data);
+		for (int i = 0; i < numElements; ++i)
+		{
+			m_invertBindMatrices[names[matrixData->m_id]] = matrixData->m_matrix;
+			++matrixData;
+		}
+	}
+
+	{
+		std::list<unsigned int> numWeights;
+		{
+			data::BinChunk weightsCountsChunk;
+			weightsCountsChunk.Read(reader);
+
+			int count = weightsCountsChunk.m_size / sizeof(unsigned int);
+
+			unsigned int* countData = reinterpret_cast<unsigned int*>(weightsCountsChunk.m_data);
+			for (int i = 0; i < count; ++i)
+			{
+				numWeights.push_back(*countData++);
+			}
+		}
+
+		{
+			data::BinChunk weightsChunk;
+			weightsChunk.Read(reader);
+
+			WeightWithId* weightsData = reinterpret_cast<WeightWithId*>(weightsChunk.m_data);
+			for (auto it = numWeights.begin(); it != numWeights.end(); ++it)
+			{
+				unsigned int curCount = *it;
+
+				std::list<VertexWeight> weightList;
+				for (unsigned int i = 0; i < curCount; ++i)
+				{
+					VertexWeight& vw = weightList.emplace_back();
+					vw.m_joint = names[weightsData->m_jointId];
+					vw.m_weight = weightsData->m_weight;
+
+					++weightsData;
+				}
+
+				m_weights.push_back(weightList);
+			}
+		}
+	}
+}

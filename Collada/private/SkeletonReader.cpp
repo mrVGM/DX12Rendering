@@ -38,7 +38,7 @@ namespace
 		}
 	}
 
-	void ReadJointNamesFromSkinTag(const xml_reader::Node* skinTag, collada::Skeleton& skeleton)
+	void ReadJointNamesFromSkinTag(const xml_reader::Node* skinTag, collada::SkeletonReader& skeleton)
 	{
 		using namespace xml_reader;
 
@@ -89,7 +89,7 @@ namespace
 		}
 	}
 
-	void ReadJointInverseBindMatricesFromSkinTag(const xml_reader::Node* skinTag, collada::Skeleton& skeleton)
+	void ReadJointInverseBindMatricesFromSkinTag(const xml_reader::Node* skinTag, collada::SkeletonReader& skeleton)
 	{
 		using namespace xml_reader;
 
@@ -383,7 +383,7 @@ namespace
 		}
 	}
 
-	void ReadJointsFromSkinTag(const xml_reader::Node* skinTag, collada::Skeleton& skeleton)
+	void ReadJointsFromSkinTag(const xml_reader::Node* skinTag, collada::SkeletonReader& skeleton)
 	{
 		ReadJointNamesFromSkinTag(skinTag, skeleton);
 		ReadJointInverseBindMatricesFromSkinTag(skinTag, skeleton);
@@ -407,7 +407,7 @@ namespace
 	}
 }
 
-bool collada::Skeleton::ReadFromNode(const xml_reader::Node* node, const xml_reader::Node* containerNode)
+bool collada::SkeletonReader::ReadFromNode(const xml_reader::Node* node, const xml_reader::Node* containerNode)
 {
 	using namespace xml_reader;
 
@@ -500,7 +500,7 @@ bool collada::Skeleton::ReadFromNode(const xml_reader::Node* node, const xml_rea
 }
 
 
-collada::Skeleton::Skeleton(Scene& scene) :
+collada::SkeletonReader::SkeletonReader(Scene& scene) :
 	m_scene(scene)
 {
 }
