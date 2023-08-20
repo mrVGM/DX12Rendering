@@ -560,17 +560,27 @@ collada::Matrix collada::Matrix::Transpose()
 			res.m_coefs[GetIndex(j, i)] = GetCoef(i, j);
 		}
 	}
+
+	return res;
 }
 
 collada::Matrix collada::Matrix::Multiply(const collada::Matrix& m1, const collada::Matrix& m2)
 {
 	Matrix res;
 
-	for (int i = 0; i < 4; ++i)
+	for (int row = 0; row < 4; ++row)
 	{
-		for (int j = 0; j < 4; ++j)
+		for (int col = 0; col < 4; ++col)
 		{
-			res.m_coefs[GetIndex(j, i)] = GetCoef(i, j);
+			float c = 0;
+			for (int k = 0; k < 4; ++k)
+			{
+				c += m1.GetIndex(row, k) * m2.GetIndex(k, col);
+			}
+
+			res.m_coefs[Matrix::GetIndex(row, col)] = c;
 		}
 	}
+
+	return res;
 }
