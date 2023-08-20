@@ -287,14 +287,16 @@ void collada::Scene::Serialize(data::MemoryFileWriter& writer)
 
 	{
 		data::BinChunk countsChunk;
-		countsChunk.m_size = 2 * sizeof(unsigned int);
+		countsChunk.m_size = 3 * sizeof(unsigned int);
 
 		countsChunk.m_data = new char[countsChunk.m_size * sizeof(unsigned int)];
 		unsigned int* geoCount = reinterpret_cast<unsigned int*>(countsChunk.m_data);
 		unsigned int* objCount = geoCount + 1;
+		unsigned int* skeletonsCount = geoCount + 2;
 
 		*geoCount = m_geometries.size();
 		*objCount = m_objects.size();
+		*skeletonsCount = m_skeletons.size();
 
 		countsChunk.Write(writer);
 	}
@@ -305,6 +307,11 @@ void collada::Scene::Serialize(data::MemoryFileWriter& writer)
 	}
 
 	for (auto it = m_objects.begin(); it != m_objects.end(); ++it)
+	{
+		it->second.Serialize(writer, nameIds[it->first]);
+	}
+
+	for (auto it = m_skeletons.begin(); it != m_skeletons.end(); ++it)
 	{
 		it->second.Serialize(writer, nameIds[it->first]);
 	}
@@ -334,6 +341,7 @@ void collada::Scene::Deserialize(data::MemoryFileReader& reader)
 
 	unsigned int geoCount;
 	unsigned int objCount;
+	unsigned int skelCount;
 
 	{
 		data::BinChunk countsChunk;
@@ -342,6 +350,7 @@ void collada::Scene::Deserialize(data::MemoryFileReader& reader)
 		unsigned int* intData = reinterpret_cast<unsigned int*>(countsChunk.m_data);
 		geoCount = intData[0];
 		objCount = intData[1];
+		skelCount = intData[2];
 	}
 
 	for (unsigned int i = 0; i < geoCount; ++i)
@@ -360,6 +369,15 @@ void collada::Scene::Deserialize(data::MemoryFileReader& reader)
 		obj.Deserialize(reader, id);
 
 		m_objects[names[id]] = obj;
+	}
+
+	for (unsigned int i = 0; i < objCount; ++i)
+	{
+		Skeleton skel;
+		int id;
+		skel.Deserialize(reader, id);
+
+		m_skeletons[names[id]] = skel;
 	}
 }
 
