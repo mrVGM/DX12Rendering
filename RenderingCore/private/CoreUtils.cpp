@@ -23,6 +23,18 @@ namespace
 	jobs::JobSystem* m_mainJobSystem = nullptr;
 	jobs::JobSystem* m_loadJobSystem = nullptr;
 	rendering::DXCopyBuffers* m_copyBuffers = nullptr;
+
+
+	D3D12_INPUT_ELEMENT_DESC m_3DMaterialinputlayout[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+
+		{ "OBJECT_POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 0 },
+		{ "OBJECT_ROTATION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 12, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 0 },
+		{ "OBJECT_SCALE", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 28, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 0 },
+	};
 }
 
 namespace rendering::core::utils
@@ -166,5 +178,12 @@ namespace rendering::core::utils
 	void RunCopyLists(ID3D12CommandList* const* lists, UINT64 numLists, jobs::Job* done)
 	{
 		m_copyBuffers->Execute(lists, numLists, done);
+	}
+
+
+	void Get3DMaterialInputLayout(const D3D12_INPUT_ELEMENT_DESC*& layout, unsigned int& numElements)
+	{
+		layout = m_3DMaterialinputlayout;
+		numElements = _countof(m_3DMaterialinputlayout);
 	}
 }
