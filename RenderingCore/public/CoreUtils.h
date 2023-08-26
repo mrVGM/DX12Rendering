@@ -26,4 +26,5 @@ namespace rendering::core::utils
 	void RunCopyLists(ID3D12CommandList* const* lists, UINT64 numLists, jobs::Job* done);
 
 	void Get3DMaterialInputLayout(const D3D12_INPUT_ELEMENT_DESC*& layout, unsigned int& numElements);
+	void Get3DSkeletalMeshMaterialInputLayout(const D3D12_INPUT_ELEMENT_DESC*& layout, unsigned int& numElements);
 }
