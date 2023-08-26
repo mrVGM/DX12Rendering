@@ -682,6 +682,7 @@ bool collada::ConvertToScene(const std::list<Node*>& nodes, collada::Scene& scen
 	}
 
 	scene.ConstructInstanceBuffers();
+	scene.ConstructSkeletonBuffers();
 
 	return true;
 }

@@ -13,7 +13,13 @@ namespace collada
 {
 	struct Matrix
 	{
-		float m_coefs[16] = {};
+		float m_coefs[16] = 
+		{
+			1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1,
+		};
 		
 		static int GetIndex(int row, int column);
 		static Matrix Multiply(const Matrix& m1, const Matrix& m2);
@@ -29,6 +35,12 @@ namespace collada
 		float m_uv[2] = {};
 
 		bool Equals(const Vertex& other) const;
+	};
+
+	struct SkeletalMeshVertexWeights
+	{
+		int m_joints[4];
+		float m_weights[4];
 	};
 
 	struct MaterialIndexRange
@@ -86,6 +98,17 @@ namespace collada
 		void Deserialize(data::MemoryFileReader& reader, int& id);
 	};
 
+	struct SkeletonBuffer
+	{
+		Matrix m_bindPoseMatrix;
+		std::list<Matrix> m_invBindPoseMatrices;
+	};
+
+	struct SkeletonPoseBuffer
+	{
+		std::list<Matrix> m_jointTransforms;
+	};
+
 	struct InstanceBuffer
 	{
 		std::list<GeometryInstanceData> m_data;
@@ -106,8 +129,11 @@ namespace collada
 		std::map<std::string, int> m_objectInstanceMap;
 		std::map<std::string, InstanceBuffer> m_instanceBuffers;
 		std::map<std::string, ColladaMaterial> m_materials;
+		std::map<std::string, SkeletonBuffer> m_skeletonBuffers;
+		std::map<std::string, SkeletonPoseBuffer> m_skeletonPoseBuffers;
 
 		void ConstructInstanceBuffers();
+		void ConstructSkeletonBuffers();
 
 		void Serialize(data::MemoryFileWriter& writer);
 		void Deserialize(data::MemoryFileReader& reader);

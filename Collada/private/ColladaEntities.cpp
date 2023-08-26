@@ -228,6 +228,45 @@ void collada::Scene::ConstructInstanceBuffers()
 	}
 }
 
+void collada::Scene::ConstructSkeletonBuffers()
+{
+	m_skeletonBuffers.clear();
+	m_skeletonPoseBuffers.clear();
+
+	for (auto it = m_skeletons.begin();
+		it != m_skeletons.end(); ++it)
+	{
+
+		m_skeletonBuffers[it->first] = SkeletonBuffer();
+		SkeletonBuffer& curBuffer = m_skeletonBuffers[it->first];
+		curBuffer.m_bindPoseMatrix = it->second.m_bindShapeMatrix;
+
+		for (auto jointIt = it->second.m_joints.begin(); jointIt != it->second.m_joints.end(); ++jointIt)
+		{
+			curBuffer.m_invBindPoseMatrices.push_back(it->second.m_invertBindMatrices[*jointIt]);
+		}
+	}
+
+	for (auto it = m_objects.begin();
+		it != m_objects.end(); ++it)
+	{
+
+		auto skeletonIt = m_skeletons.find(it->second.m_geometry);
+		if (skeletonIt == m_skeletons.end())
+		{
+			continue;
+		}
+
+		m_skeletonPoseBuffers[it->first] = SkeletonPoseBuffer();
+		SkeletonPoseBuffer& poseBuffer = m_skeletonPoseBuffers[it->first];
+
+		for (auto jointIt = skeletonIt->second.m_joints.begin(); jointIt != skeletonIt->second.m_joints.end(); ++jointIt)
+		{
+			poseBuffer.m_jointTransforms.push_back(Matrix());
+		}
+	}
+}
+
 void collada::Scene::Serialize(data::MemoryFileWriter& writer)
 {
 	std::map<std::string, int> nameIds;
