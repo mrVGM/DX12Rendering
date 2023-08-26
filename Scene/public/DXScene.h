@@ -28,6 +28,7 @@ namespace rendering
 			DXBuffer* m_vertexBuffer = nullptr;
 			DXBuffer* m_indexBuffer = nullptr;
 			DXMutableBuffer* m_instanceBuffer = nullptr;
+			DXBuffer* m_skeletalMeshVertexBuffer = nullptr;
 		};
 		struct SceneResources
 		{
