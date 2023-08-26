@@ -562,6 +562,7 @@ void rendering::DXScene::LoadColladaScene(const std::string& sceneId, jobs::Job*
 			data::MemoryFileReader reader(mf);
 			m_context.m_scene->GetScene().Deserialize(reader);
 			m_context.m_scene->GetScene().ConstructInstanceBuffers();
+			m_context.m_scene->GetScene().ConstructSkeletonBuffers();
 
 			m_context.m_materialSettingsReader->LoadSceneMaterialsSettings(m_context.m_scene->GetScene().m_materials);
 
