@@ -417,6 +417,189 @@ namespace
 		core::utils::RunSync(new CreateObjects(*ctx));
 	}
 
+	void LoadSkeletonJointsBuffer(const collada::SkeletonBuffer* skeleton, rendering::DXBuffer*& buffer, jobs::Job* done)
+	{
+		using namespace rendering;
+
+		if (!skeleton)
+		{
+			core::utils::RunSync(done);
+			return;
+		}
+
+		struct Context
+		{
+			const collada::SkeletonBuffer* m_skel = nullptr;
+
+			DXBuffer** m_outBuffer = nullptr;
+
+			DXBuffer* m_uploadBuffer = nullptr;
+			DXHeap* m_uploadHeap = nullptr;
+
+			DXBuffer* m_buffer = nullptr;
+			DXHeap* m_heap = nullptr;
+
+			int m_buffersToLoad = 2;
+
+			jobs::Job* m_done = nullptr;
+		};
+
+		Context* ctx = new Context();
+		ctx->m_skel = skeleton;
+		ctx->m_outBuffer = &buffer;
+		ctx->m_done = done;
+
+		class Clear : public jobs::Job
+		{
+		private:
+			Context& m_ctx;
+		public:
+			Clear(Context& ctx) :
+				m_ctx(ctx)
+			{
+			}
+
+			void Do() override
+			{
+				*m_ctx.m_outBuffer = m_ctx.m_buffer;
+
+				core::utils::RunSync(m_ctx.m_done);
+
+				core::utils::DisposeBaseObject(*m_ctx.m_uploadBuffer);
+				core::utils::DisposeBaseObject(*m_ctx.m_uploadHeap);
+
+				delete& m_ctx;
+			}
+		};
+
+		class BufferLoaded : public jobs::Job
+		{
+		private:
+			Context& m_ctx;
+		public:
+			BufferLoaded(Context& ctx) :
+				m_ctx(ctx)
+			{
+			}
+
+			void Do() override
+			{
+				--m_ctx.m_buffersToLoad;
+
+				if (m_ctx.m_buffersToLoad > 0)
+				{
+					return;
+				}
+
+				m_ctx.m_uploadBuffer->CopyBuffer(*m_ctx.m_buffer, new Clear(m_ctx));
+			}
+		};
+
+		class UploadData : public jobs::Job
+		{
+		private:
+			Context& m_ctx;
+		public:
+			UploadData(Context& ctx) :
+				m_ctx(ctx)
+			{
+			}
+
+			void Do() override
+			{
+				void* data = m_ctx.m_uploadBuffer->Map();
+
+				collada::Matrix* curDataPosition = static_cast<collada::Matrix*>(data);
+
+				*curDataPosition++ = m_ctx.m_skel->m_bindPoseMatrix;
+				for (auto it = m_ctx.m_skel->m_invBindPoseMatrices.begin(); it != m_ctx.m_skel->m_invBindPoseMatrices.end(); ++it)
+				{
+					*curDataPosition++ = *it;
+				}
+
+				m_ctx.m_uploadBuffer->Unmap();
+
+				core::utils::RunSync(new BufferLoaded(m_ctx));
+			}
+		};
+
+		class UploadHeapResident : public jobs::Job
+		{
+		private:
+			Context& m_ctx;
+		public:
+			UploadHeapResident(Context& ctx) :
+				m_ctx(ctx)
+			{
+			}
+
+			void Do() override
+			{
+				m_ctx.m_uploadBuffer->Place(m_ctx.m_uploadHeap, 0);
+				core::utils::RunAsync(new UploadData(m_ctx));
+			}
+		};
+
+		class HeapResident : public jobs::Job
+		{
+		private:
+			Context& m_ctx;
+		public:
+			HeapResident(Context& ctx) :
+				m_ctx(ctx)
+			{
+			}
+
+			void Do() override
+			{
+				m_ctx.m_buffer->Place(m_ctx.m_heap, 0);
+				core::utils::RunSync(new BufferLoaded(m_ctx));
+			}
+		};
+
+		class CreateObjects : public jobs::Job
+		{
+		private:
+			Context& m_ctx;
+		public:
+			CreateObjects(Context& ctx) :
+				m_ctx(ctx)
+			{
+			}
+
+			void Do() override
+			{
+				UINT64 stride = sizeof(collada::Matrix);
+				UINT64 size = (m_ctx.m_skel->m_invBindPoseMatrices.size() + 1) * stride;
+
+				m_ctx.m_uploadBuffer = new DXBuffer(DXBufferMeta::GetInstance());
+				m_ctx.m_uploadBuffer->SetBufferSizeAndFlags(size, D3D12_RESOURCE_FLAG_NONE);
+				m_ctx.m_uploadBuffer->SetBufferStride(stride);
+
+				m_ctx.m_uploadHeap = new DXHeap();
+				m_ctx.m_uploadHeap->SetHeapSize(size);
+				m_ctx.m_uploadHeap->SetHeapType(D3D12_HEAP_TYPE_UPLOAD);
+				m_ctx.m_uploadHeap->SetHeapFlags(D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS);
+				m_ctx.m_uploadHeap->Create();
+
+				m_ctx.m_buffer = new DXBuffer(DXBufferMeta::GetInstance());
+				m_ctx.m_buffer->SetBufferSizeAndFlags(size, D3D12_RESOURCE_FLAG_NONE);
+				m_ctx.m_buffer->SetBufferStride(stride);
+
+				m_ctx.m_heap = new DXHeap();
+				m_ctx.m_heap->SetHeapSize(size);
+				m_ctx.m_heap->SetHeapType(D3D12_HEAP_TYPE_DEFAULT);
+				m_ctx.m_heap->SetHeapFlags(D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS);
+				m_ctx.m_heap->Create();
+
+				m_ctx.m_uploadHeap->MakeResident(new UploadHeapResident(m_ctx));
+				m_ctx.m_heap->MakeResident(new HeapResident(m_ctx));
+			}
+		};
+
+		core::utils::RunSync(new CreateObjects(*ctx));
+	}
+
 	void LoadIndexBuffer(const collada::Geometry& geo, rendering::DXBuffer*& buffer, jobs::Job* done)
 	{
 		using namespace rendering;
@@ -816,6 +999,14 @@ void rendering::DXScene::LoadGeometryBuffers(int sceneIndex, const std::string& 
 			skeleton = &it->second;
 		}
 	}
+	const collada::SkeletonBuffer* skeletonBuffer = nullptr;
+	{
+		auto it = scene.m_skeletonBuffers.find(geometryName);
+		if (it != scene.m_skeletonBuffers.end())
+		{
+			skeletonBuffer = &it->second;
+		}
+	}
 
 	struct Context
 	{
@@ -827,8 +1018,9 @@ void rendering::DXScene::LoadGeometryBuffers(int sceneIndex, const std::string& 
 		DXMutableBuffer* m_instanceBuffer = nullptr;
 
 		DXBuffer* m_skeletalMeshVertexBuffer = nullptr;
+		DXBuffer* m_skeletonBuffer = nullptr;
 
-		int m_jobsLeft = 4;
+		int m_jobsLeft = 5;
 		jobs::Job* m_done = nullptr;
 	};
 
@@ -860,6 +1052,7 @@ void rendering::DXScene::LoadGeometryBuffers(int sceneIndex, const std::string& 
 			tmp.m_indexBuffer = m_ctx.m_indexBuffer;
 			tmp.m_instanceBuffer = m_ctx.m_instanceBuffer;
 			tmp.m_skeletalMeshVertexBuffer = m_ctx.m_skeletalMeshVertexBuffer;
+			tmp.m_skeletonBuffer = m_ctx.m_skeletonBuffer;
 
 			m_ctx.m_sceneResources->m_geometryResources[m_ctx.m_geoName] = tmp;
 			core::utils::RunSync(m_ctx.m_done);
@@ -870,7 +1063,9 @@ void rendering::DXScene::LoadGeometryBuffers(int sceneIndex, const std::string& 
 	LoadVertexBuffer(geo, ctx->m_vertexBuffer, new JobDone(*ctx));
 	LoadIndexBuffer(geo, ctx->m_indexBuffer, new JobDone(*ctx));
 	LoadInstanceBuff(instanceBuffer, ctx->m_instanceBuffer, new JobDone(*ctx));
+
 	LoadSkeletalMeshVertexBuffer(skeleton, ctx->m_skeletalMeshVertexBuffer, new JobDone(*ctx));
+	LoadSkeletonJointsBuffer(skeletonBuffer, ctx->m_skeletonBuffer, new JobDone(*ctx));
 }
 
 void rendering::DXScene::LoadBuffers(int sceneIndex, jobs::Job* done)
