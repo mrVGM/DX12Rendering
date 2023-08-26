@@ -410,7 +410,7 @@ void collada::Scene::Deserialize(data::MemoryFileReader& reader)
 		m_objects[names[id]] = obj;
 	}
 
-	for (unsigned int i = 0; i < objCount; ++i)
+	for (unsigned int i = 0; i < skelCount; ++i)
 	{
 		Skeleton skel;
 		int id;
