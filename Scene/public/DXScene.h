@@ -32,13 +32,21 @@ namespace rendering
 			DXBuffer* m_skeletalMeshVertexBuffer = nullptr;
 			DXBuffer* m_skeletonBuffer = nullptr;
 		};
+
+		struct ObjectResources
+		{
+			DXMutableBuffer* m_skeletonPoseBuffer = nullptr;
+		};
+
 		struct SceneResources
 		{
 			std::map<std::string, GeometryResources> m_geometryResources;
+			std::map<std::string, ObjectResources> m_objectResources;
 		};
 
 	private:
 		void LoadGeometryBuffers(int sceneIndex, const std::string& geometryName, SceneResources& sceneResources, jobs::Job* done);
+		void LoadObjectBuffers(int sceneIndex, const std::string& objectName, SceneResources& sceneResources, jobs::Job* done);
 		
 		void LoadBuffers(int sceneIndex, jobs::Job* done);
 	public:

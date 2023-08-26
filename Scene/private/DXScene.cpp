@@ -863,6 +863,99 @@ namespace
 
 		core::utils::RunSync(new CreateObjects(ctx));
 	}
+
+	void LoadSkeletonPoseBuff(const collada::SkeletonPoseBuffer* poseBuffer, rendering::DXMutableBuffer*& buffer, jobs::Job* done)
+	{
+		using namespace rendering;
+
+		if (!poseBuffer)
+		{
+			core::utils::RunSync(done);
+			return;
+		}
+
+		struct Context
+		{
+			const collada::SkeletonPoseBuffer* m_poseBuff = nullptr;
+
+			DXMutableBuffer** m_outBuffer = nullptr;
+
+			DXMutableBuffer* m_buffer = nullptr;
+
+			jobs::Job* m_done = nullptr;
+		};
+
+		Context ctx;
+		ctx.m_poseBuff = poseBuffer;
+		ctx.m_outBuffer = &buffer;
+		ctx.m_done = done;
+
+		class DataUploaded : public jobs::Job
+		{
+		private:
+			Context m_ctx;
+		public:
+			DataUploaded(const Context& ctx) :
+				m_ctx(ctx)
+			{
+			}
+
+			void Do() override
+			{
+				*m_ctx.m_outBuffer = m_ctx.m_buffer;
+				core::utils::RunSync(m_ctx.m_done);
+			}
+		};
+
+		class UploadData : public jobs::Job
+		{
+		private:
+			Context m_ctx;
+		public:
+			UploadData(const Context& ctx) :
+				m_ctx(ctx)
+			{
+			}
+
+			void Do() override
+			{
+				void* data = m_ctx.m_buffer->GetUploadBuffer()->Map();
+
+				collada::Matrix* curDataPosition = static_cast<collada::Matrix*>(data);
+
+				for (auto it = m_ctx.m_poseBuff->m_jointTransforms.begin(); it != m_ctx.m_poseBuff->m_jointTransforms.end(); ++it)
+				{
+					*curDataPosition = *it;
+					++curDataPosition;
+				}
+
+				m_ctx.m_buffer->GetUploadBuffer()->Unmap();
+				m_ctx.m_buffer->Upload(new DataUploaded(m_ctx));
+			}
+		};
+
+		class CreateObjects : public jobs::Job
+		{
+		private:
+			Context m_ctx;
+		public:
+			CreateObjects(const Context& ctx) :
+				m_ctx(ctx)
+			{
+			}
+
+			void Do() override
+			{
+				UINT64 stride = sizeof(collada::Matrix);
+				UINT64 size = m_ctx.m_poseBuff->m_jointTransforms.size() * stride;
+
+				m_ctx.m_buffer = new DXMutableBuffer(DXMutableBufferMeta::GetInstance(), size, stride);
+				m_ctx.m_buffer->Load(new UploadData(m_ctx));
+			}
+		};
+
+		core::utils::RunSync(new CreateObjects(ctx));
+	}
 }
 
 
@@ -1068,6 +1161,67 @@ void rendering::DXScene::LoadGeometryBuffers(int sceneIndex, const std::string& 
 	LoadSkeletonJointsBuffer(skeletonBuffer, ctx->m_skeletonBuffer, new JobDone(*ctx));
 }
 
+void rendering::DXScene::LoadObjectBuffers(int sceneIndex, const std::string& objectName, SceneResources& sceneResources, jobs::Job* done)
+{
+	collada::ColladaScene* colladaScene = m_colladaScenes[sceneIndex];
+	const collada::Scene& scene = colladaScene->GetScene();
+	
+	const collada::SkeletonPoseBuffer* poseBuffer = nullptr;
+	{
+		auto it = scene.m_skeletonPoseBuffers.find(objectName);
+		if (it != scene.m_skeletonPoseBuffers.end())
+		{
+			poseBuffer = &(it->second);
+		}
+	}
+
+	struct Context
+	{
+		std::string m_objName;
+		SceneResources* m_sceneResources = nullptr;
+
+		DXMutableBuffer* m_poseBuffer = nullptr;
+
+		int m_jobsLeft = 1;
+		jobs::Job* m_done = nullptr;
+	};
+
+	Context* ctx = new Context();
+	ctx->m_objName = objectName;
+	ctx->m_sceneResources = &sceneResources;
+	ctx->m_done = done;
+
+	class JobDone : public jobs::Job
+	{
+	private:
+		Context& m_ctx;
+	public:
+		JobDone(Context& ctx) :
+			m_ctx(ctx)
+		{
+		}
+
+		void Do() override
+		{
+			--m_ctx.m_jobsLeft;
+			if (m_ctx.m_jobsLeft > 0)
+			{
+				return;
+			}
+
+			ObjectResources tmp;
+			tmp.m_skeletonPoseBuffer = m_ctx.m_poseBuffer;
+
+			m_ctx.m_sceneResources->m_objectResources[m_ctx.m_objName] = tmp;
+			core::utils::RunSync(m_ctx.m_done);
+			delete& m_ctx;
+		}
+	};
+
+	LoadSkeletonPoseBuff(poseBuffer, ctx->m_poseBuffer, new JobDone(*ctx));
+}
+
+
 void rendering::DXScene::LoadBuffers(int sceneIndex, jobs::Job* done)
 {
 	collada::ColladaScene* colladaScene = m_colladaScenes[sceneIndex];
@@ -1082,7 +1236,7 @@ void rendering::DXScene::LoadBuffers(int sceneIndex, jobs::Job* done)
 	};
 
 	Context* ctx = new Context();
-	ctx->m_itemsToLoad = scene.m_geometries.size();
+	ctx->m_itemsToLoad = scene.m_geometries.size() + scene.m_objects.size();
 	ctx->m_done = done;
 	
 	class ItemReady : public jobs::Job
@@ -1111,6 +1265,11 @@ void rendering::DXScene::LoadBuffers(int sceneIndex, jobs::Job* done)
 	for (auto it = scene.m_geometries.begin(); it != scene.m_geometries.end(); ++it)
 	{
 		LoadGeometryBuffers(sceneIndex, it->first, sceneResources, new ItemReady(*ctx));
+	}
+
+	for (auto it = scene.m_objects.begin(); it != scene.m_objects.end(); ++it)
+	{
+		LoadObjectBuffers(sceneIndex, it->first, sceneResources, new ItemReady(*ctx));
 	}
 }
 
