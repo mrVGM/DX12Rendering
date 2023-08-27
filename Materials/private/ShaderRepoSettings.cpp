@@ -99,6 +99,15 @@ void rendering::ShaderRepoSettings::LoadShaders()
 			shaderSet.m_vertexShader = m_settings.m_shaderMap[shaderName];
 		}
 
+		const xml_reader::Node* vertexSkeletalShader = xml_reader::FindChildNode(cur, [](const xml_reader::Node* node) {
+			return node->m_tagName == "vertex_skeletal";
+		});
+		if (vertexSkeletalShader)
+		{
+			std::string shaderName = vertexSkeletalShader->m_data.front()->m_symbolData.m_string;
+			shaderSet.m_vertexSkeletalShader = m_settings.m_shaderMap[shaderName];
+		}
+
 		const xml_reader::Node* pixelShader = xml_reader::FindChildNode(cur, [](const xml_reader::Node* node) {
 			return node->m_tagName == "pixel";
 		});

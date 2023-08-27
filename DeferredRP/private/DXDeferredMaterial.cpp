@@ -164,6 +164,89 @@ ID3D12CommandList* rendering::DXDeferredMaterial::GenerateCommandList(
     return commandList.Get();
 }
 
+ID3D12CommandList* rendering::DXDeferredMaterial::GenerateCommandListForSkeletalMesh(
+    const DXBuffer& vertexBuffer,
+    const DXBuffer& jointsBuffer,
+    const DXBuffer& indexBuffer,
+    const DXBuffer& instanceBuffer,
+    const DXBuffer& skeletonBuffer,
+    const DXBuffer& poseBuffer,
+    UINT startIndex,
+    UINT indexCount,
+    UINT instanceIndex)
+{
+    ID3D12Resource* curRT = m_swapChain->GetCurrentRenderTarget();
+
+    m_commandLists.push_back(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>());
+    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList = m_commandLists.back();
+
+    THROW_ERROR(
+        m_device->GetDevice().CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), m_pipelineStateForSkeletalMesh.Get(), IID_PPV_ARGS(&commandList)),
+        "Can't reset Command List!")
+
+    commandList->SetGraphicsRootSignature(m_rootSignatureForSkeletalMesh.Get());
+    commandList->SetGraphicsRootConstantBufferView(0, m_cameraBuffer->GetBuffer()->GetBuffer()->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootConstantBufferView(1, m_settingsBuffer->GetBuffer()->GetGPUVirtualAddress());
+
+    commandList->SetGraphicsRootShaderResourceView(2, skeletonBuffer.GetBuffer()->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootShaderResourceView(3, poseBuffer.GetBuffer()->GetGPUVirtualAddress());
+
+    commandList->RSSetViewports(1, &m_swapChain->GetViewport());
+    commandList->RSSetScissorRects(1, &m_swapChain->GetScissorRect());
+
+    D3D12_CPU_DESCRIPTOR_HANDLE dsHandle = m_depthStencilDescriptorHeap->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+    D3D12_CPU_DESCRIPTOR_HANDLE handles[] =
+    {
+        m_rtvHeap->GetDescriptorHandle(0),
+        m_rtvHeap->GetDescriptorHandle(1),
+        m_rtvHeap->GetDescriptorHandle(2),
+        m_rtvHeap->GetDescriptorHandle(3),
+        m_rtvHeap->GetDescriptorHandle(4)
+    };
+    commandList->OMSetRenderTargets(_countof(handles), handles, FALSE, &dsHandle);
+
+    D3D12_VERTEX_BUFFER_VIEW vertexBufferViews[3];
+    D3D12_VERTEX_BUFFER_VIEW& realVertexBufferView = vertexBufferViews[0];
+    realVertexBufferView.BufferLocation = vertexBuffer.GetBuffer()->GetGPUVirtualAddress();
+    realVertexBufferView.StrideInBytes = vertexBuffer.GetStride();
+    realVertexBufferView.SizeInBytes = vertexBuffer.GetBufferSize();
+
+    D3D12_VERTEX_BUFFER_VIEW& instanceBufferView = vertexBufferViews[1];
+    instanceBufferView.BufferLocation = instanceBuffer.GetBuffer()->GetGPUVirtualAddress();
+    instanceBufferView.StrideInBytes = instanceBuffer.GetStride();
+    instanceBufferView.SizeInBytes = instanceBuffer.GetBufferSize();
+
+    D3D12_VERTEX_BUFFER_VIEW& jointsBufferView = vertexBufferViews[2];
+    jointsBufferView.BufferLocation = jointsBuffer.GetBuffer()->GetGPUVirtualAddress();
+    jointsBufferView.StrideInBytes = jointsBuffer.GetStride();
+    jointsBufferView.SizeInBytes = jointsBuffer.GetBufferSize();
+
+    D3D12_INDEX_BUFFER_VIEW indexBufferView;
+    indexBufferView.BufferLocation = indexBuffer.GetBuffer()->GetGPUVirtualAddress();
+    indexBufferView.Format = DXGI_FORMAT_R32_UINT;
+    indexBufferView.SizeInBytes = indexBuffer.GetBufferSize();
+
+    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    commandList->IASetVertexBuffers(0, _countof(vertexBufferViews), vertexBufferViews);
+    commandList->IASetIndexBuffer(&indexBufferView);
+
+    int numInstances = instanceBuffer.GetBufferSize() / instanceBuffer.GetStride();
+    commandList->DrawIndexedInstanced(
+        indexCount,
+        1,
+        startIndex,
+        0,
+        instanceIndex
+    );
+
+    THROW_ERROR(
+        commandList->Close(),
+        "Can't close Command List!")
+
+    return commandList.Get();
+}
+
 void rendering::DXDeferredMaterial::CreateSettingsBuffer(jobs::Job* done)
 {
     struct Context

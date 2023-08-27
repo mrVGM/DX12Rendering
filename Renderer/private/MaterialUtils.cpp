@@ -90,7 +90,7 @@ void rendering::material_utils::LoadMaterial(const collada::ColladaMaterial& mat
 		void Do() override
 		{
 			const shader_repo::ShaderSet& deferredShaderSet = shader_repo::GetShaderSetByName("deferred_mat");
-			m_ctx.m_material = new DXDeferredMaterial(*deferredShaderSet.m_vertexShader, *deferredShaderSet.m_vertexShader, *deferredShaderSet.m_pixelShader);
+			m_ctx.m_material = new DXDeferredMaterial(*deferredShaderSet.m_vertexShader, *deferredShaderSet.m_vertexSkeletalShader, *deferredShaderSet.m_pixelShader);
 			m_ctx.m_material->CreateSettingsBuffer(new SettingsBufferReady(m_ctx));
 		}
 	};

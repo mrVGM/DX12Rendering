@@ -40,6 +40,17 @@ namespace rendering
 			UINT indexCount,
 			UINT instanceIndex) override;
 
+		ID3D12CommandList* GenerateCommandListForSkeletalMesh(
+			const DXBuffer& vertexBuffer,
+			const DXBuffer& jointsBuffer,
+			const DXBuffer& indexBuffer,
+			const DXBuffer& instanceBuffer,
+			const DXBuffer& skeletonBuffer,
+			const DXBuffer& poseBuffer,
+			UINT startIndex,
+			UINT indexCount,
+			UINT instanceIndex);
+
 		DXBuffer* GetSettingsBuffer();
 	};
 }

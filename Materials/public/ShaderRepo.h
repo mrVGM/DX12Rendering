@@ -16,6 +16,7 @@ namespace rendering
 		struct ShaderSet
 		{
 			DXShader* m_vertexShader = nullptr;
+			DXShader* m_vertexSkeletalShader = nullptr;
 			DXShader* m_pixelShader = nullptr;
 		};
 
