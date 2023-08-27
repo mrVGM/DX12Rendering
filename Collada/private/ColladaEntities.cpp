@@ -236,14 +236,92 @@ void collada::Scene::ConstructSkeletonBuffers()
 	for (auto it = m_skeletons.begin();
 		it != m_skeletons.end(); ++it)
 	{
-
-		m_skeletonBuffers[it->first] = SkeletonBuffer();
-		SkeletonBuffer& curBuffer = m_skeletonBuffers[it->first];
-		curBuffer.m_bindPoseMatrix = it->second.m_bindShapeMatrix;
-
-		for (auto jointIt = it->second.m_joints.begin(); jointIt != it->second.m_joints.end(); ++jointIt)
 		{
-			curBuffer.m_invBindPoseMatrices.push_back(it->second.m_invertBindMatrices[*jointIt]);
+			m_skeletonBuffers[it->first] = SkeletonBuffer();
+			SkeletonBuffer& curBuffer = m_skeletonBuffers[it->first];
+			curBuffer.m_bindPoseMatrix = it->second.m_bindShapeMatrix;
+
+			for (auto jointIt = it->second.m_joints.begin(); jointIt != it->second.m_joints.end(); ++jointIt)
+			{
+				curBuffer.m_invBindPoseMatrices.push_back(it->second.m_invertBindMatrices[*jointIt]);
+			}
+		}
+
+		{
+			const Geometry& geo = m_geometries[it->first];
+
+			m_vertexWeightsBuffers[it->first] = VertexWeightsBuffer();
+			VertexWeightsBuffer& curBuffer = m_vertexWeightsBuffers[it->first];
+
+			for (auto vertexIt = geo.m_vertices.begin(); vertexIt != geo.m_vertices.end(); ++vertexIt)
+			{
+				curBuffer.m_weights.emplace_back();
+			}
+
+			std::map<std::string, int> jointIDs;
+			{
+				int index = 0;
+				for (auto jointIt = it->second.m_joints.begin(); jointIt != it->second.m_joints.end(); ++jointIt)
+				{
+					jointIDs[*jointIt] = index++;
+				}
+			}
+
+			auto vertexIt = geo.m_vertices.begin();
+			auto vertexWeightsIt = curBuffer.m_weights.begin();
+			for (auto weightSetIt = it->second.m_weights.begin(); weightSetIt != it->second.m_weights.end(); ++weightSetIt)
+			{
+				SkeletalMeshVertexWeights& curSkeletalMeshVertex = *vertexWeightsIt++;
+				++vertexIt;
+
+				int index = 0;
+				for (auto weightIt = (*weightSetIt).begin(); weightIt != (*weightSetIt).end(); ++weightIt)
+				{
+					if (index >= 4)
+					{
+						break;
+					}
+
+					curSkeletalMeshVertex.m_joints[index] = jointIDs[(*weightIt).m_joint];
+					curSkeletalMeshVertex.m_weights[index] = (*weightIt).m_weight;
+
+					++index;
+				}
+			}
+
+			const float eps = 0.00001;
+			while (vertexWeightsIt != curBuffer.m_weights.end())
+			{
+				SkeletalMeshVertexWeights& curWeights = *vertexWeightsIt++;
+				const Vertex& curVertex = *vertexIt++;
+
+				auto searchVertexIt = geo.m_vertices.begin();
+				auto searchWeightIt = curBuffer.m_weights.begin();
+
+				const SkeletalMeshVertexWeights* weights = nullptr;
+				while (searchWeightIt != vertexWeightsIt)
+				{
+					const Vertex& searchVertex = *searchVertexIt;
+					float d =
+						(searchVertex.m_position[0] - curVertex.m_position[0]) * (searchVertex.m_position[0] - curVertex.m_position[0]) +
+						(searchVertex.m_position[1] - curVertex.m_position[1]) * (searchVertex.m_position[1] - curVertex.m_position[1]) +
+						(searchVertex.m_position[2] - curVertex.m_position[2]) * (searchVertex.m_position[2] - curVertex.m_position[2]);
+					
+					if (d < eps)
+					{
+						weights = &(*searchWeightIt);
+						break;
+					}
+
+					++searchVertexIt;
+					++searchWeightIt;
+				}
+
+				if (weights)
+				{
+					curWeights = *weights;
+				}
+			}
 		}
 	}
 

@@ -36,10 +36,10 @@ namespace collada
 
 		bool Equals(const Vertex& other) const;
 	};
-
+	
 	struct SkeletalMeshVertexWeights
 	{
-		int m_joints[4] = { -1, -1, -1, -1 };
+		int m_joints[4] = { -1, -1, -1, 1 };
 		float m_weights[4] = { -1, -1, -1, -1 };
 	};
 
@@ -109,6 +109,11 @@ namespace collada
 		std::list<Matrix> m_jointTransforms;
 	};
 
+	struct VertexWeightsBuffer
+	{
+		std::list<SkeletalMeshVertexWeights> m_weights;
+	};
+
 	struct InstanceBuffer
 	{
 		std::list<GeometryInstanceData> m_data;
@@ -131,6 +136,7 @@ namespace collada
 		std::map<std::string, ColladaMaterial> m_materials;
 		std::map<std::string, SkeletonBuffer> m_skeletonBuffers;
 		std::map<std::string, SkeletonPoseBuffer> m_skeletonPoseBuffers;
+		std::map<std::string, VertexWeightsBuffer> m_vertexWeightsBuffers;
 
 		void ConstructInstanceBuffers();
 		void ConstructSkeletonBuffers();

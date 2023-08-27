@@ -212,11 +212,11 @@ namespace
 		core::utils::RunSync(new CreateObjects(*ctx));
 	}
 
-	void LoadSkeletalMeshVertexBuffer(const collada::Skeleton* skeleton, rendering::DXBuffer*& buffer, jobs::Job* done)
+	void LoadSkeletalMeshVertexBuffer(const collada::VertexWeightsBuffer* vertexWeightsBuffer, rendering::DXBuffer*& buffer, jobs::Job* done)
 	{
 		using namespace rendering;
 
-		if (!skeleton)
+		if (!vertexWeightsBuffer)
 		{
 			core::utils::RunSync(done);
 			return;
@@ -224,7 +224,7 @@ namespace
 
 		struct Context
 		{
-			const collada::Skeleton* m_skel = nullptr;
+			const collada::VertexWeightsBuffer* m_vertexWeightsBuffer = nullptr;
 
 			DXBuffer** m_outBuffer = nullptr;
 
@@ -240,7 +240,7 @@ namespace
 		};
 
 		Context* ctx = new Context();
-		ctx->m_skel = skeleton;
+		ctx->m_vertexWeightsBuffer = vertexWeightsBuffer;
 		ctx->m_outBuffer = &buffer;
 		ctx->m_done = done;
 
@@ -304,34 +304,12 @@ namespace
 			{
 				void* data = m_ctx.m_uploadBuffer->Map();
 
+				collada::SkeletalMeshVertexWeights* weightsData = reinterpret_cast<collada::SkeletalMeshVertexWeights*>(data);
 
-				std::map<std::string, int> jointIDs;
+				for (auto it = m_ctx.m_vertexWeightsBuffer->m_weights.begin();
+					it != m_ctx.m_vertexWeightsBuffer->m_weights.end(); ++it)
 				{
-					int index = 0;
-					for (auto it = m_ctx.m_skel->m_joints.begin(); it != m_ctx.m_skel->m_joints.end(); ++it)
-					{
-						jointIDs[*it] = index++;
-					}
-				}
-
-				collada::SkeletalMeshVertexWeights* curDataPosition = static_cast<collada::SkeletalMeshVertexWeights*>(data);
-				for (auto it = m_ctx.m_skel->m_weights.begin(); it != m_ctx.m_skel->m_weights.end(); ++it)
-				{
-					collada::SkeletalMeshVertexWeights& curSkeletalMeshVertex = *curDataPosition++;
-
-					int index = 0;
-					for (auto weightIt = (*it).begin(); weightIt != (*it).end(); ++weightIt)
-					{
-						if (index >= 4)
-						{
-							break;
-						}
-
-						curSkeletalMeshVertex.m_joints[index] = jointIDs[(*weightIt).m_joint];
-						curSkeletalMeshVertex.m_weights[index] = (*weightIt).m_weight;
-
-						++index;
-					}
+					*weightsData++ = *it;
 				}
 
 				m_ctx.m_uploadBuffer->Unmap();
@@ -387,7 +365,7 @@ namespace
 			void Do() override
 			{
 				UINT64 stride = sizeof(collada::SkeletalMeshVertexWeights);
-				UINT64 size = m_ctx.m_skel->m_weights.size() * stride;
+				UINT64 size = m_ctx.m_vertexWeightsBuffer->m_weights.size() * stride;
 
 				m_ctx.m_uploadBuffer = new DXBuffer(DXBufferMeta::GetInstance());
 				m_ctx.m_uploadBuffer->SetBufferSizeAndFlags(size, D3D12_RESOURCE_FLAG_NONE);
@@ -1084,14 +1062,15 @@ void rendering::DXScene::LoadGeometryBuffers(int sceneIndex, const std::string& 
 	const collada::Geometry& geo = scene.m_geometries.find(geometryName)->second;
 	const collada::InstanceBuffer& instanceBuffer = scene.m_instanceBuffers.find(geometryName)->second;
 
-	const collada::Skeleton* skeleton = nullptr;
+	const collada::VertexWeightsBuffer* vertexWeightsBuffer = nullptr;
 	{
-		auto it = scene.m_skeletons.find(geometryName);
-		if (it != scene.m_skeletons.end())
+		auto it = scene.m_vertexWeightsBuffers.find(geometryName);
+		if (it != scene.m_vertexWeightsBuffers.end())
 		{
-			skeleton = &it->second;
+			vertexWeightsBuffer = &it->second;
 		}
 	}
+
 	const collada::SkeletonBuffer* skeletonBuffer = nullptr;
 	{
 		auto it = scene.m_skeletonBuffers.find(geometryName);
@@ -1157,7 +1136,7 @@ void rendering::DXScene::LoadGeometryBuffers(int sceneIndex, const std::string& 
 	LoadIndexBuffer(geo, ctx->m_indexBuffer, new JobDone(*ctx));
 	LoadInstanceBuff(instanceBuffer, ctx->m_instanceBuffer, new JobDone(*ctx));
 
-	LoadSkeletalMeshVertexBuffer(skeleton, ctx->m_skeletalMeshVertexBuffer, new JobDone(*ctx));
+	LoadSkeletalMeshVertexBuffer(vertexWeightsBuffer, ctx->m_skeletalMeshVertexBuffer, new JobDone(*ctx));
 	LoadSkeletonJointsBuffer(skeletonBuffer, ctx->m_skeletonBuffer, new JobDone(*ctx));
 }
 
