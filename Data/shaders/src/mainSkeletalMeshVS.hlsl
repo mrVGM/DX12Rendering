@@ -14,7 +14,7 @@ struct PSInput
     float2 uv               : UV;
 };
 
-PSInput VSMain(VertexInput3D vertexInput)
+PSInput VSMain(SkeletalMeshVertexInput3D vertexInput)
 {
     PSInput result;
 
@@ -29,7 +29,7 @@ PSInput VSMain(VertexInput3D vertexInput)
 
         worldPos,
         worldNormal);
-
+    
     result.position = mul(m_camBuff.m_matrix, float4(worldPos, 1));
 
     result.world_position = float4(worldPos, 1);

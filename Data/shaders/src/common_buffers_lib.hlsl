@@ -11,6 +11,19 @@ struct VertexInput3D
     float3 objectScale : OBJECT_SCALE;
 };
 
+struct SkeletalMeshVertexInput3D
+{
+    float3 position : POSITION;
+    float3 normal : NORMAL;
+    float2 uv : UV;
+    float3 objectPosition : OBJECT_POSITION;
+    float4 objectRotation : OBJECT_ROTATION;
+    float3 objectScale : OBJECT_SCALE;
+    
+    int4 m_jointIndex       : JOINT_INDEX;
+    float4 m_jointWeight    :JOINT_WEIGHT;
+};
+
 struct VertexInput2D
 {
     float2 position : POSITION;
