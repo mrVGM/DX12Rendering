@@ -39,7 +39,7 @@ namespace collada
 	
 	struct SkeletalMeshVertexWeights
 	{
-		int m_joints[4] = { -1, -1, -1, 1 };
+		int m_joints[4] = { -1, -1, -1, -1 };
 		float m_weights[4] = { -1, -1, -1, -1 };
 	};
 

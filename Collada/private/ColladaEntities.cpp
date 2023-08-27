@@ -289,6 +289,7 @@ void collada::Scene::ConstructSkeletonBuffers()
 				}
 			}
 
+			auto readWeights = vertexWeightsIt;
 			const float eps = 0.00001;
 			while (vertexWeightsIt != curBuffer.m_weights.end())
 			{
@@ -299,7 +300,7 @@ void collada::Scene::ConstructSkeletonBuffers()
 				auto searchWeightIt = curBuffer.m_weights.begin();
 
 				const SkeletalMeshVertexWeights* weights = nullptr;
-				while (searchWeightIt != vertexWeightsIt)
+				while (searchWeightIt != readWeights)
 				{
 					const Vertex& searchVertex = *searchVertexIt;
 					float d =
