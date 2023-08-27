@@ -39,8 +39,8 @@ namespace collada
 
 	struct SkeletalMeshVertexWeights
 	{
-		int m_joints[4];
-		float m_weights[4];
+		int m_joints[4] = { -1, -1, -1, -1 };
+		float m_weights[4] = { -1, -1, -1, -1 };
 	};
 
 	struct MaterialIndexRange
