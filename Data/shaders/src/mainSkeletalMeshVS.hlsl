@@ -6,6 +6,9 @@ cbuffer CamBuff : register(b0)
     CameraBuffer m_camBuff;
 };
 
+StructuredBuffer<float4x4> v_skeletonBuffer     : register(t0);
+StructuredBuffer<float4x4> v_skeletonPoseBuffer : register(t1);
+
 struct PSInput
 {
     float4 position         : SV_POSITION;
@@ -18,10 +21,28 @@ PSInput VSMain(SkeletalMeshVertexInput3D vertexInput)
 {
     PSInput result;
 
+    float4x4 bindPoseMatrix = v_skeletonBuffer[0];
+    float4 vertexPos = float4(0, 0, 0, 0);
+    
+    for (int i = 0; i < 4; ++i)
+    {
+        int jointIndex = vertexInput.m_jointIndex;
+        if (jointIndex < 0)
+        {
+            continue;
+        }
+
+        float4 res = mul(bindPoseMatrix, float4(vertexInput.position, 1));
+        res = mul(v_skeletonBuffer[i + 1], res);
+        res = mul(v_skeletonPoseBuffer[i], res);
+        vertexPos += vertexInput.m_jointWeight[i] * res;
+    }
+    
+    
     float3 worldPos;
     float3 worldNormal;
     GetWorldPositonAndNormal(
-        vertexInput.position,
+        vertexPos,
         vertexInput.normal,
         vertexInput.objectPosition,
         vertexInput.objectRotation,
