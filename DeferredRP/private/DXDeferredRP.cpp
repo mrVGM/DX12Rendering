@@ -343,7 +343,7 @@ void rendering::DXDeferredRP::RenderDeferred()
 
                 if (!isSkeletalMesh)
                 {
-                    ID3D12CommandList* cl = deferredMat->GenerateCommandList(
+                    cl = deferredMat->GenerateCommandList(
                         *vertBuf,
                         *indexBuf,
                         *instanceBuf,
@@ -351,14 +351,13 @@ void rendering::DXDeferredRP::RenderDeferred()
                         (*matsIt).indexCount,
                         instanceIndex);
 
-                    deferredLists.push_back(cl);
                 }
                 else
                 {
                     const DXScene::ObjectResources& objResources = curSceneResources.m_objectResources.find(objectName)->second;
                     const DXScene::GeometryResources& geoResources = curSceneResources.m_geometryResources.find(obj.m_geometry)->second;
 
-                    ID3D12CommandList* cl = deferredMat->GenerateCommandListForSkeletalMesh(
+                    cl = deferredMat->GenerateCommandListForSkeletalMesh(
                         *vertBuf,
                         *geoResources.m_skeletalMeshVertexBuffer,
                         *indexBuf,
@@ -369,6 +368,7 @@ void rendering::DXDeferredRP::RenderDeferred()
                         (*matsIt).indexCount,
                         instanceIndex);
                 }
+                deferredLists.push_back(cl);
             }
         }
     }
