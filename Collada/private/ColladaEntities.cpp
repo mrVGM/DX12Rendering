@@ -77,6 +77,21 @@ void collada::Geometry::Serialize(data::MemoryFileWriter& writer, int id)
 	}
 
 	{
+		data::BinChunk vertexPositionsChunk;
+		vertexPositionsChunk.m_size = m_vertexPositions.size() * sizeof(Vector3);
+		vertexPositionsChunk.m_data = new char[vertexPositionsChunk.m_size];
+
+		Vector3* curData = reinterpret_cast<Vector3*>(vertexPositionsChunk.m_data);
+		for (auto it = m_vertexPositions.begin(); it != m_vertexPositions.end(); ++it)
+		{
+			*curData = *it;
+			++curData;
+		}
+
+		vertexPositionsChunk.Write(writer);
+	}
+
+	{
 		data::BinChunk verticesChunk;
 		verticesChunk.m_size = m_vertices.size() * sizeof(Vertex);
 		verticesChunk.m_data = new char[verticesChunk.m_size];
@@ -161,6 +176,18 @@ void collada::Geometry::Deserialize(data::MemoryFileReader& reader, int& id)
 	}
 
 	{
+		data::BinChunk vertexPositionsChunk;
+		vertexPositionsChunk.Read(reader);
+
+		unsigned int numPositions = vertexPositionsChunk.m_size / sizeof(Vector3);
+		Vector3* curPosition = reinterpret_cast<Vector3*>(vertexPositionsChunk.m_data);
+		for (unsigned int i = 0; i < numPositions; ++i)
+		{
+			m_vertexPositions.push_back(curPosition[i]);
+		}
+	}
+
+	{
 		data::BinChunk verticesChunk;
 		verticesChunk.Read(reader);
 
@@ -228,10 +255,45 @@ void collada::Scene::ConstructInstanceBuffers()
 	}
 }
 
+namespace
+{
+	const std::list<collada::Skeleton::VertexWeight>* GetWeightsForVertex(
+		const collada::Geometry& geo,
+		const collada::Skeleton& skeleton,
+		const collada::Vertex& vertex)
+	{
+		using namespace collada;
+
+		float eps = 0.000001;
+
+		const std::list<collada::Skeleton::VertexWeight>* res = nullptr;
+
+		auto weightsIt = skeleton.m_weights.begin();
+		for (auto it = geo.m_vertexPositions.begin(); it != geo.m_vertexPositions.end(); ++it)
+		{
+			const Vector3& curPos = *it;
+			const std::list<collada::Skeleton::VertexWeight>& curWeight = *weightsIt++;
+
+			float d =
+				(curPos.m_values[0] - vertex.m_position[0]) * (curPos.m_values[0] - vertex.m_position[0]) +
+				(curPos.m_values[1] - vertex.m_position[1]) * (curPos.m_values[1] - vertex.m_position[1]) +
+				(curPos.m_values[2] - vertex.m_position[2]) * (curPos.m_values[2] - vertex.m_position[2]);
+
+			if (d < eps)
+			{
+				res = &curWeight;
+			}
+		}
+
+		return res;
+	}
+}
+
 void collada::Scene::ConstructSkeletonBuffers()
 {
 	m_skeletonBuffers.clear();
 	m_skeletonPoseBuffers.clear();
+	m_vertexWeightsBuffers.clear();
 
 	for (auto it = m_skeletons.begin();
 		it != m_skeletons.end(); ++it)
@@ -250,14 +312,6 @@ void collada::Scene::ConstructSkeletonBuffers()
 		{
 			const Geometry& geo = m_geometries[it->first];
 
-			m_vertexWeightsBuffers[it->first] = VertexWeightsBuffer();
-			VertexWeightsBuffer& curBuffer = m_vertexWeightsBuffers[it->first];
-
-			for (auto vertexIt = geo.m_vertices.begin(); vertexIt != geo.m_vertices.end(); ++vertexIt)
-			{
-				curBuffer.m_weights.emplace_back();
-			}
-
 			std::map<std::string, int> jointIDs;
 			{
 				int index = 0;
@@ -267,15 +321,21 @@ void collada::Scene::ConstructSkeletonBuffers()
 				}
 			}
 
-			auto vertexIt = geo.m_vertices.begin();
-			auto vertexWeightsIt = curBuffer.m_weights.begin();
-			for (auto weightSetIt = it->second.m_weights.begin(); weightSetIt != it->second.m_weights.end(); ++weightSetIt)
+			m_vertexWeightsBuffers[it->first] = VertexWeightsBuffer();
+			VertexWeightsBuffer& curBuffer = m_vertexWeightsBuffers[it->first];
+
+			for (auto vertexIt = geo.m_vertices.begin(); vertexIt != geo.m_vertices.end(); ++vertexIt)
 			{
-				SkeletalMeshVertexWeights& curSkeletalMeshVertex = *vertexWeightsIt++;
-				++vertexIt;
+				SkeletalMeshVertexWeights& curSkeletalMeshVertex = curBuffer.m_weights.emplace_back();
+				const std::list<collada::Skeleton::VertexWeight>* weights = GetWeightsForVertex(geo, it->second, *vertexIt);
+
+				if (!weights)
+				{
+					continue;
+				}
 
 				int index = 0;
-				for (auto weightIt = (*weightSetIt).begin(); weightIt != (*weightSetIt).end(); ++weightIt)
+				for (auto weightIt = weights->begin(); weightIt != weights->end(); ++weightIt)
 				{
 					if (index >= 4)
 					{
@@ -286,41 +346,6 @@ void collada::Scene::ConstructSkeletonBuffers()
 					curSkeletalMeshVertex.m_weights[index] = (*weightIt).m_weight;
 
 					++index;
-				}
-			}
-
-			auto readWeights = vertexWeightsIt;
-			const float eps = 0.00001;
-			while (vertexWeightsIt != curBuffer.m_weights.end())
-			{
-				SkeletalMeshVertexWeights& curWeights = *vertexWeightsIt++;
-				const Vertex& curVertex = *vertexIt++;
-
-				auto searchVertexIt = geo.m_vertices.begin();
-				auto searchWeightIt = curBuffer.m_weights.begin();
-
-				const SkeletalMeshVertexWeights* weights = nullptr;
-				while (searchWeightIt != readWeights)
-				{
-					const Vertex& searchVertex = *searchVertexIt;
-					float d =
-						(searchVertex.m_position[0] - curVertex.m_position[0]) * (searchVertex.m_position[0] - curVertex.m_position[0]) +
-						(searchVertex.m_position[1] - curVertex.m_position[1]) * (searchVertex.m_position[1] - curVertex.m_position[1]) +
-						(searchVertex.m_position[2] - curVertex.m_position[2]) * (searchVertex.m_position[2] - curVertex.m_position[2]);
-					
-					if (d < eps)
-					{
-						weights = &(*searchWeightIt);
-						break;
-					}
-
-					++searchVertexIt;
-					++searchWeightIt;
-				}
-
-				if (weights)
-				{
-					curWeights = *weights;
 				}
 			}
 		}

@@ -133,16 +133,6 @@ namespace
 		return &obj;
 	}
 
-	struct Vector3
-	{
-		float m_values[3];
-	};
-
-	struct Vector2
-	{
-		float m_values[2];
-	};
-
 	bool ReadVectors3D(const Node* verts, std::vector<Vector3>& vectors)
 	{
 		const Node* arr = FindChildTagByName("float_array", verts);
@@ -418,6 +408,11 @@ namespace
 				}
 				geometry.m_indices.push_back(vertIndex);
 			}
+		}
+
+		for (auto it = vertices.begin(); it != vertices.end(); ++it)
+		{
+			geometry.m_vertexPositions.push_back(*it);
 		}
 
 		return true;
@@ -828,6 +823,13 @@ bool collada::ReadGeometry(const std::string& id, const Node* geometry, bool inv
 			tmp = cur.m_normal[1];
 			cur.m_normal[1] = cur.m_normal[2];
 			cur.m_normal[2] = tmp;
+		}
+		
+		for (auto it = object.m_vertexPositions.begin(); it != object.m_vertexPositions.end(); ++it) {
+			Vector3& cur = *it;
+			float tmp = cur.m_values[1];
+			cur.m_values[1] = cur.m_values[2];
+			cur.m_values[2] = tmp;
 		}
 	}
 

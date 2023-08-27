@@ -28,6 +28,17 @@ namespace collada
 		Matrix Transpose() const;
 	};
 
+
+	struct Vector3
+	{
+		float m_values[3];
+	};
+
+	struct Vector2
+	{
+		float m_values[2];
+	};
+
 	struct Vertex
 	{
 		float m_position[3] = {};
@@ -52,6 +63,7 @@ namespace collada
 
 	struct Geometry
 	{
+		std::list<Vector3> m_vertexPositions;
 		std::list<Vertex> m_vertices;
 		std::list<int> m_indices;
 		std::list<MaterialIndexRange> m_materials;
