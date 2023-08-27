@@ -6,8 +6,6 @@
 #include "DeferredRendering.h"
 #include "ShaderRepo.h"
 
-#include "DXDeferredMaterialMetaTag.h"
-
 #include "DXBufferMeta.h"
 #include "DXHeap.h"
 
@@ -29,6 +27,9 @@
 
 #include "DXMaterialRepo.h"
 #include "DXMaterialRepoMeta.h"
+
+#include "DXDeferredMaterialMeta.h"
+#include "DXDeferredMaterial.h"
 
 #include "DXMutableBuffer.h"
 
@@ -277,7 +278,7 @@ void rendering::DXDeferredRP::RenderDeferred()
                     continue;
                 }
 
-                if (mat->GetMeta().HasTag(DXDeferredMaterialMetaTag::GetInstance()))
+                if (mat->GetMeta().IsChildOf(DXDeferredMaterialMeta::GetInstance()))
                 {
                     mat->ResetCommandLists();
                 }
@@ -296,6 +297,7 @@ void rendering::DXDeferredRP::RenderDeferred()
 
         for (auto it = s.m_objects.begin(); it != s.m_objects.end(); ++it)
         {
+            std::string objName = it->first;
             collada::Object& obj = it->second;
 
             collada::Geometry& geo = s.m_geometries[obj.m_geometry];
@@ -304,7 +306,7 @@ void rendering::DXDeferredRP::RenderDeferred()
 
             const std::string& objectName = it->first;
 
-            for (auto it = geo.m_materials.begin(); it != geo.m_materials.end(); ++it)
+            for (auto matsIt = geo.m_materials.begin(); matsIt != geo.m_materials.end(); ++matsIt)
             {
                 const std::string& matOverrideName = *matOverrideIt;
                 ++matOverrideIt;
@@ -321,20 +323,52 @@ void rendering::DXDeferredRP::RenderDeferred()
                     continue;
                 }
 
-                if (!mat->GetMeta().HasTag(DXDeferredMaterialMetaTag::GetInstance()))
+                if (!mat->GetMeta().IsChildOf(DXDeferredMaterialMeta::GetInstance()))
                 {
                     continue;
                 }
 
-                ID3D12CommandList* cl = mat->GenerateCommandList(
-                    *vertBuf,
-                    *indexBuf,
-                    *instanceBuf,
-                    (*it).indexOffset,
-                    (*it).indexCount,
-                    instanceIndex);
+                DXDeferredMaterial* deferredMat = static_cast<DXDeferredMaterial*>(mat);
 
-                deferredLists.push_back(cl);
+                bool isSkeletalMesh = false;
+                {
+                    const DXScene::ObjectResources& objResources = curSceneResources.m_objectResources.find(objectName)->second;
+
+                    if (objResources.m_skeletonPoseBuffer)
+                    {
+                        isSkeletalMesh = true;
+                    }
+                }
+                ID3D12CommandList* cl = nullptr;
+
+                if (!isSkeletalMesh)
+                {
+                    ID3D12CommandList* cl = deferredMat->GenerateCommandList(
+                        *vertBuf,
+                        *indexBuf,
+                        *instanceBuf,
+                        (*matsIt).indexOffset,
+                        (*matsIt).indexCount,
+                        instanceIndex);
+
+                    deferredLists.push_back(cl);
+                }
+                else
+                {
+                    const DXScene::ObjectResources& objResources = curSceneResources.m_objectResources.find(objectName)->second;
+                    const DXScene::GeometryResources& geoResources = curSceneResources.m_geometryResources.find(obj.m_geometry)->second;
+
+                    ID3D12CommandList* cl = deferredMat->GenerateCommandListForSkeletalMesh(
+                        *vertBuf,
+                        *geoResources.m_skeletalMeshVertexBuffer,
+                        *indexBuf,
+                        *instanceBuf,
+                        *geoResources.m_skeletonBuffer,
+                        *objResources.m_skeletonPoseBuffer->GetBuffer(),
+                        (*matsIt).indexOffset,
+                        (*matsIt).indexCount,
+                        instanceIndex);
+                }
             }
         }
     }
