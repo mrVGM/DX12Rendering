@@ -11,6 +11,17 @@ namespace
 		int m_indexOffset = -1;
 		int m_indexCount = -1;
 	};
+
+	collada::Matrix m_one =
+	{
+		{
+			1,0,0,0,
+			0,1,0,0,
+			0,0,1,0,
+			0,0,0,1
+		}
+	};
+	collada::Matrix m_zero = { {} };
 }
 
 void collada::Geometry::Serialize(data::MemoryFileWriter& writer, int id)
@@ -744,6 +755,16 @@ collada::Matrix collada::Matrix::Multiply(const collada::Matrix& m1, const colla
 	}
 
 	return res;
+}
+
+const collada::Matrix& collada::Matrix::Zero()
+{
+	return m_zero;
+}
+
+const collada::Matrix& collada::Matrix::One()
+{
+	return m_one;
 }
 
 namespace

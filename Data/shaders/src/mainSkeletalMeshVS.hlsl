@@ -26,16 +26,18 @@ PSInput VSMain(SkeletalMeshVertexInput3D vertexInput)
     
     for (int i = 0; i < 4; ++i)
     {
-        int jointIndex = vertexInput.m_jointIndex;
+        int jointIndex = vertexInput.m_jointIndex[i];
+        float jointWeight = vertexInput.m_jointWeight[i];
+        
         if (jointIndex < 0)
         {
             continue;
         }
 
         float4 res = mul(bindPoseMatrix, float4(vertexInput.position, 1));
-        res = mul(v_skeletonBuffer[i + 1], res);
-        res = mul(v_skeletonPoseBuffer[i], res);
-        vertexPos += vertexInput.m_jointWeight[i] * res;
+        res = mul(v_skeletonBuffer[jointIndex + 1], res);
+        res = mul(v_skeletonPoseBuffer[jointIndex], res);
+        vertexPos += jointWeight * res;
     }
     
     

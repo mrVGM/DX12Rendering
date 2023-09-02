@@ -82,7 +82,12 @@
   <library_controllers>
     <controller id="Armature_Cube-skin" name="Armature">
       <skin source="#Cube_002-mesh">
-        <bind_shape_matrix>1 0 0 0 0 1 0 0 0 0 1 1 0 0 0 1</bind_shape_matrix>
+        <bind_shape_matrix>
+			1 0 0 0
+			0 1 0 0
+			0 0 1 1
+			0 0 0 1
+		</bind_shape_matrix>
         <source id="Armature_Cube-skin-joints">
           <Name_array id="Armature_Cube-skin-joints-array" count="2">Bone Bone_001</Name_array>
           <technique_common>
@@ -92,7 +97,17 @@
           </technique_common>
         </source>
         <source id="Armature_Cube-skin-bind_poses">
-          <float_array id="Armature_Cube-skin-bind_poses-array" count="32">1 0 0 0 0 0 1 0 0 -1 0 0 0 0 0 1 1 0 0 0 0 0 1 -2 0 -1 0 0 0 0 0 1</float_array>
+          <float_array id="Armature_Cube-skin-bind_poses-array" count="32">
+			  1 0 0 0
+			  0 0 1 0
+			  0 -1 0 0
+			  0 0 0 1
+			  
+			  1 0 0 0
+			  0 0 1 -2
+			  0 -1 0 0
+			  0 0 0 1
+		  </float_array>
           <technique_common>
             <accessor source="#Armature_Cube-skin-bind_poses-array" count="2" stride="16">
               <param name="TRANSFORM" type="float4x4"/>

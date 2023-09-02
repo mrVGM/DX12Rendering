@@ -24,6 +24,9 @@ namespace collada
 		static int GetIndex(int row, int column);
 		static Matrix Multiply(const Matrix& m1, const Matrix& m2);
 
+		static const Matrix& One();
+		static const Matrix& Zero();
+
 		float GetCoef(int row, int column) const;
 		Matrix Transpose() const;
 	};

@@ -14,7 +14,7 @@ namespace
 		using namespace collada;
 
 
-		Matrix changeBasisMatrix;
+		Matrix changeBasisMatrix = Matrix::Zero();
 		changeBasisMatrix.m_coefs[Matrix::GetIndex(0, 0)] = 1;
 		changeBasisMatrix.m_coefs[Matrix::GetIndex(1, 2)] = 1;
 		changeBasisMatrix.m_coefs[Matrix::GetIndex(2, 1)] = 1;
