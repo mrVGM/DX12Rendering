@@ -23,6 +23,8 @@ namespace collada
 	public:
 		Matrix m_bindShapeMatrix;
 		std::vector<std::string> m_joints;
+		std::vector<Matrix> m_jointTransforms;
+		std::vector<int> m_jointsParents;
 		std::vector<Matrix> m_invertBindMatrices;
 		std::vector<std::map<std::string, float>> m_weights;
 		
@@ -30,7 +32,7 @@ namespace collada
 		SkeletonReader(const SkeletonReader& other) = delete;
 		SkeletonReader& operator=(const SkeletonReader& other) = delete;
 
-		bool ReadFromNode(const xml_reader::Node* node, const xml_reader::Node* containerNode, std::string& geometryName);
+		bool ReadFromNode(const xml_reader::Node* node, const xml_reader::Node* visualSceneNode, const xml_reader::Node* containerNode, std::string& geometryName);
 
 		void ToSkeleton(collada::Skeleton& skeleton);
 	};

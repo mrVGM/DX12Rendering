@@ -40,20 +40,7 @@ namespace
 		return nullptr;
 	}
 
-	bool GetLocalTransFormNode(const xml_reader::Node* node, Matrix& matrix)
-	{
-		const Node* matrixNode = GetMatrixTransformNode(node);
-
-		if (!matrixNode)
-		{
-			return false;
-		}
-
-		ReadMatricesFromNode(matrixNode, &matrix, 1);
-		return true;
-	}
-
-	bool GetTransFormNode(const xml_reader::Node* node, Matrix& matrix)
+	bool GetTransformNode(const xml_reader::Node* node, Matrix& matrix)
 	{
 		if (!node)
 		{
@@ -61,7 +48,7 @@ namespace
 		}
 
 		Matrix tmp;
-		bool res = GetLocalTransFormNode(node, tmp);
+		bool res = collada::GetLocalTransformNode(node, tmp);
 
 		if (!res)
 		{
@@ -70,7 +57,7 @@ namespace
 
 		matrix = tmp;
 		const Node* cur = node->m_parent;
-		while (cur && GetLocalTransFormNode(cur, tmp))
+		while (cur && collada::GetLocalTransformNode(cur, tmp))
 		{
 			matrix = Matrix::Multiply(matrix, tmp);
 			cur = cur->m_parent;
@@ -135,7 +122,7 @@ namespace
 		}
 
 		Matrix transform;
-		bool res = GetTransFormNode(node, transform);
+		bool res = GetTransformNode(node, transform);
 		if (!res)
 		{
 			return nullptr;
@@ -672,7 +659,7 @@ bool collada::ConvertToScene(const std::list<Node*>& nodes, collada::Scene& scen
 		if (!object) {
 			SkeletonReader skeletonReader(scene);
 			std::string geoName;
-			bool res = skeletonReader.ReadFromNode(*it, dataContainerTag, geoName);
+			bool res = skeletonReader.ReadFromNode(*it, visualScene, dataContainerTag, geoName);
 
 			if (res)
 			{
@@ -901,16 +888,10 @@ bool collada::ShouldInvertAxis(const Node* rootDataNode)
 
 Object* collada::ReadObject(const xml_reader::Node* node, const std::string& geoName, bool invertAxis, Scene& scene)
 {
-	const Node* matrixNode = FindChildNode(node, [](const Node* n) {
-		if (n->m_tagName != "matrix")
-		{
-			return false;
-		}
+	Matrix tmp;
+	bool res = GetTransformNode(node, tmp);
 
-		return true;
-	});
-
-	if (!matrixNode)
+	if (!res)
 	{
 		return nullptr;
 	}
@@ -919,14 +900,24 @@ Object* collada::ReadObject(const xml_reader::Node* node, const std::string& geo
 	scene.m_objects.insert(std::pair<std::string, Object>(objectName, Object()));
 	Object& obj = scene.m_objects[objectName];
 
-	Matrix m[1] = {};
-	collada::ReadMatricesFromNode(matrixNode, m, _countof(m));
-
-	memcpy(obj.m_transform, m, sizeof(Matrix));
+	memcpy(obj.m_transform, tmp.m_coefs, sizeof(obj.m_transform));
 
 	obj.m_geometry = geoName;
 
 	obj.CalcPositionRotationScale(invertAxis);
 
 	return &obj;
+}
+
+bool collada::GetLocalTransformNode(const xml_reader::Node* node, Matrix& matrix)
+{
+	const Node* matrixNode = GetMatrixTransformNode(node);
+
+	if (!matrixNode)
+	{
+		return false;
+	}
+
+	ReadMatricesFromNode(matrixNode, &matrix, 1);
+	return true;
 }

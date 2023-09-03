@@ -393,9 +393,59 @@ namespace
 			}
 		}
 	}
+
+	void ReadJointHierarchy(const xml_reader::Node* node, collada::SkeletonReader& skeletonReader)
+	{
+		using namespace xml_reader;
+		std::vector<const Node*> jointNodes;
+
+		skeletonReader.m_jointsParents.clear();
+		skeletonReader.m_jointTransforms.clear();
+
+		for (auto it = skeletonReader.m_joints.begin(); it != skeletonReader.m_joints.end(); ++it)
+		{
+			skeletonReader.m_jointsParents.push_back(-1);
+			const Node* jointNode = FindChildNode(node, [=](const Node* x) {
+				auto sidIt = x->m_tagProps.find("sid");
+				if (sidIt == x->m_tagProps.end())
+				{
+					return false;
+				}
+
+				if (sidIt->second != *it)
+				{
+					return false;
+				}
+
+				return true;
+			});
+
+			jointNodes.push_back(jointNode);
+			collada::Matrix& tmp = skeletonReader.m_jointTransforms.emplace_back();
+			if (jointNode)
+			{
+				collada::GetLocalTransformNode(jointNode, tmp);
+			}
+		}
+
+		for (int i = 0; i < jointNodes.size(); ++i)
+		{
+			const Node* cur = jointNodes[i];
+			const Node* parent = cur->m_parent;
+
+			for (int j = 0; j < jointNodes.size(); ++j)
+			{
+				if (parent == jointNodes[j])
+				{
+					skeletonReader.m_jointsParents[i] = j;
+					break;
+				}
+			}
+		}
+	}
 }
 
-bool collada::SkeletonReader::ReadFromNode(const xml_reader::Node* node, const xml_reader::Node* containerNode, std::string& geometryName)
+bool collada::SkeletonReader::ReadFromNode(const xml_reader::Node* node, const xml_reader::Node* visualSceneNode, const xml_reader::Node* containerNode, std::string& geometryName)
 {
 	using namespace xml_reader;
 
@@ -482,12 +532,19 @@ bool collada::SkeletonReader::ReadFromNode(const xml_reader::Node* node, const x
 	ReadMatricesFromNode(bindShapeMatrixTag, &m_bindShapeMatrix, 1);
 
 	ReadJointsFromSkinTag(skinTag, *this);
+	ReadJointHierarchy(visualSceneNode, *this);
 
 	if (invertAxis)
 	{
 		m_bindShapeMatrix = ChangeAxisOfMatrix(m_bindShapeMatrix);
 
 		for (auto it = m_invertBindMatrices.begin(); it != m_invertBindMatrices.end(); ++it)
+		{
+			Matrix& cur = *it;
+			cur = ChangeAxisOfMatrix(cur);
+		}
+
+		for (auto it = m_jointTransforms.begin(); it != m_jointTransforms.end(); ++it)
 		{
 			Matrix& cur = *it;
 			cur = ChangeAxisOfMatrix(cur);
@@ -506,6 +563,7 @@ collada::SkeletonReader::SkeletonReader(Scene& scene) :
 void collada::SkeletonReader::ToSkeleton(collada::Skeleton& skeleton)
 {
 	skeleton.m_joints = m_joints;
+	skeleton.m_jointsParents = m_jointsParents;
 	skeleton.m_bindShapeMatrix = m_bindShapeMatrix;
 
 	for (int i = 0; i < m_invertBindMatrices.size(); ++i)

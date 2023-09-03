@@ -84,6 +84,7 @@ namespace collada
 		};
 
 		std::vector<std::string> m_joints;
+		std::vector<int> m_jointsParents;
 		Matrix m_bindShapeMatrix;
 		std::map<std::string, Matrix> m_invertBindMatrices;
 		std::list<std::list<VertexWeight>> m_weights;
