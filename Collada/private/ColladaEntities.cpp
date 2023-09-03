@@ -372,12 +372,23 @@ void collada::Scene::ConstructSkeletonBuffers()
 			continue;
 		}
 
+		const Skeleton& skeleton = skeletonIt->second;
+
 		m_skeletonPoseBuffers[it->first] = SkeletonPoseBuffer();
 		SkeletonPoseBuffer& poseBuffer = m_skeletonPoseBuffers[it->first];
 
-		for (auto jointIt = skeletonIt->second.m_joints.begin(); jointIt != skeletonIt->second.m_joints.end(); ++jointIt)
+		for (int i = 0; i < skeleton.m_joints.size(); ++i)
 		{
-			poseBuffer.m_jointTransforms.push_back(Matrix());
+			Matrix curTransform = skeleton.m_jointTransforms[i];
+			int curParent = skeleton.m_jointsParents[i];
+
+			while (curParent >= 0)
+			{
+				curTransform = Matrix::Multiply(curTransform, skeleton.m_jointTransforms[curParent]);
+				curParent = skeleton.m_jointsParents[curParent];
+			}
+
+			poseBuffer.m_jointTransforms.push_back(curTransform);
 		}
 	}
 }
