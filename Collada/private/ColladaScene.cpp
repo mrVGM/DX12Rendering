@@ -5,8 +5,44 @@
 
 #include "XMLReader.h"
 
+#include <set>
+#include <queue>
+
 namespace
 {
+	void AssignParents(const std::list<xml_reader::Node*>& nodes)
+	{
+		using namespace xml_reader;
+
+		std::set<Node*> processed;
+
+		std::queue<Node*> toProcess;
+
+		for (auto it = nodes.begin(); it != nodes.end(); ++it)
+		{
+			toProcess.push(*it);
+		}
+
+		while (!toProcess.empty())
+		{
+			Node* cur = toProcess.front();
+			toProcess.pop();
+
+			if (processed.contains(cur))
+			{
+				continue;
+			}
+			
+			for (auto it = cur->m_children.begin(); it != cur->m_children.end(); ++it)
+			{
+				Node* curChild = *it;
+				curChild->m_parent = cur;
+				toProcess.push(curChild);
+			}
+			processed.insert(cur);
+		}
+	}
+
 	bool loadColladaScene(const std::string& filePath, collada::Scene& scene)
 	{
 
@@ -39,6 +75,7 @@ namespace
 		{
 			return false;
 		}
+		AssignParents(rootNodes);
 
 		res = ConvertToScene(rootNodes, scene);
 

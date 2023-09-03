@@ -18,6 +18,7 @@ namespace xml_reader
 
 		std::list<scripting::ISymbol*> m_data;
 
+		Node* m_parent = nullptr;
 		std::list<Node*> m_children;
 	};
 
