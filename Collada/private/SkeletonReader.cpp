@@ -564,6 +564,7 @@ void collada::SkeletonReader::ToSkeleton(collada::Skeleton& skeleton)
 {
 	skeleton.m_joints = m_joints;
 	skeleton.m_jointsParents = m_jointsParents;
+	skeleton.m_jointTransforms = m_jointTransforms;
 	skeleton.m_bindShapeMatrix = m_bindShapeMatrix;
 
 	for (int i = 0; i < m_invertBindMatrices.size(); ++i)

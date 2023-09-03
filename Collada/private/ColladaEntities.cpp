@@ -866,6 +866,38 @@ void collada::Skeleton::Serialize(data::MemoryFileWriter& writer, int id)
 	}
 
 	{
+		data::BinChunk jointParentsChunk;
+
+		jointParentsChunk.m_size = m_jointsParents.size() * sizeof(int);
+		jointParentsChunk.m_data = new char[jointParentsChunk.m_size];
+
+		int* parentsArray = reinterpret_cast<int*>(jointParentsChunk.m_data);
+
+		for (auto it = m_jointsParents.begin(); it != m_jointsParents.end(); ++it)
+		{
+			*parentsArray++ = *it;
+		}
+
+		jointParentsChunk.Write(writer);
+	}
+
+	{
+		data::BinChunk jointParentsChunk;
+
+		jointParentsChunk.m_size = m_jointsParents.size() * sizeof(Matrix);
+		jointParentsChunk.m_data = new char[jointParentsChunk.m_size];
+
+		Matrix* transformsArray = reinterpret_cast<Matrix*>(jointParentsChunk.m_data);
+
+		for (auto it = m_jointTransforms.begin(); it != m_jointTransforms.end(); ++it)
+		{
+			*transformsArray++ = *it;
+		}
+
+		jointParentsChunk.Write(writer);
+	}
+
+	{
 		data::BinChunk bindShapeMatrixChunk;
 		bindShapeMatrixChunk.m_size = sizeof(Matrix);
 		bindShapeMatrixChunk.m_data = new char[bindShapeMatrixChunk.m_size];
@@ -978,6 +1010,32 @@ void collada::Skeleton::Deserialize(data::MemoryFileReader& reader, int& id)
 		for (unsigned int i = 0; i < *numJoints; ++i)
 		{
 			m_joints.push_back(names[jointIds[i]]);
+		}
+	}
+
+	{
+		data::BinChunk jointParentsChunk;
+		jointParentsChunk.Read(reader);
+
+		int count = jointParentsChunk.m_size / sizeof(int);
+		int* data = reinterpret_cast<int*>(jointParentsChunk.m_data);
+
+		for (int i = 0; i < count; ++i)
+		{
+			m_jointsParents.push_back(data[i]);
+		}
+	}
+
+	{
+		data::BinChunk jointTransformsChunk;
+		jointTransformsChunk.Read(reader);
+
+		int count = jointTransformsChunk.m_size / sizeof(Matrix);
+
+		Matrix* data = reinterpret_cast<Matrix*>(jointTransformsChunk.m_data);
+		for (int i = 0; i < count; ++i)
+		{
+			m_jointTransforms.push_back(data[i]);
 		}
 	}
 
