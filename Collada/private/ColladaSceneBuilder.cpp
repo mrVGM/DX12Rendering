@@ -16,6 +16,69 @@ namespace
 	using namespace collada;
 	using namespace xml_reader;
 
+	Node* GetMatrixTransformNode(const Node* node)
+	{
+		for (auto childIt = node->m_children.begin(); childIt != node->m_children.end(); ++childIt)
+		{
+			Node* curChild = *childIt;
+
+			if (curChild->m_tagName != "matrix")
+			{
+				continue;
+			}
+
+			std::map<std::string, std::string>::const_iterator it = curChild->m_tagProps.find("sid");
+			if (it == curChild->m_tagProps.end()) {
+				continue;
+			}
+			if (it->second != "transform") {
+				continue;
+			}
+			return curChild;
+		}
+
+		return nullptr;
+	}
+
+	bool GetLocalTransFormNode(const xml_reader::Node* node, Matrix& matrix)
+	{
+		const Node* matrixNode = GetMatrixTransformNode(node);
+
+		if (!matrixNode)
+		{
+			return false;
+		}
+
+		ReadMatricesFromNode(matrixNode, &matrix, 1);
+		return true;
+	}
+
+	bool GetTransFormNode(const xml_reader::Node* node, Matrix& matrix)
+	{
+		if (!node)
+		{
+			return false;
+		}
+
+		Matrix tmp;
+		bool res = GetLocalTransFormNode(node, tmp);
+
+		if (!res)
+		{
+			return false;
+		}
+
+		matrix = tmp;
+		const Node* cur = node->m_parent;
+		while (cur && GetLocalTransFormNode(cur, tmp))
+		{
+			matrix = Matrix::Multiply(matrix, tmp);
+			cur = cur->m_parent;
+		}
+
+		return true;
+	}
+
 	const Node* FindChildTagByName(const std::string& name, const Node* rootNode)
 	{
 		std::list<const Node*> found;
@@ -71,34 +134,19 @@ namespace
 			return nullptr;
 		}
 
-		const Node* matrix = FindChildNode(node, [](const Node* x) {
-			if (x->m_tagName != "matrix") {
-				return false;
-			}
-			std::map<std::string, std::string>::const_iterator it = x->m_tagProps.find("sid");
-
-			if (it == x->m_tagProps.end()) {
-				return false;
-			}
-
-			if (it->second != "transform") {
-				return false;
-			}
-
-			return true;
-		});
-
-		if (!matrix) {
+		Matrix transform;
+		bool res = GetTransFormNode(node, transform);
+		if (!res)
+		{
 			return nullptr;
 		}
+
 		const std::string& objectName = node->m_tagProps.find("id")->second;
 
 		scene.m_objects.insert(std::pair<std::string, Object>(objectName, Object()));
 		Object& obj = scene.m_objects[objectName];
 
-		Matrix tmp;
-		ReadMatricesFromNode(matrix, &tmp, 1);
-		memcpy(obj.m_transform, tmp.m_coefs, sizeof(obj.m_transform));
+		memcpy(obj.m_transform, transform.m_coefs, sizeof(obj.m_transform));
 
 		std::string geometryURL;
 		{
