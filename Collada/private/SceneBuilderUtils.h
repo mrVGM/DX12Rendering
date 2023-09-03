@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <list>
 
 namespace xml_reader
 {
@@ -12,6 +13,12 @@ namespace collada
 	class Scene;
 	struct Matrix;
 	struct Object;
+
+	struct ColladaNodesContainer
+	{
+		std::list<xml_reader::Node*> m_nodes;
+		~ColladaNodesContainer();
+	};
 
 	bool ReadGeometry(const std::string& id, const xml_reader::Node* geometry, bool invertAxis, Scene& scene);
 	Object* ReadObject(const xml_reader::Node* node, const std::string& geoName, bool invertAxis, Scene& scene);

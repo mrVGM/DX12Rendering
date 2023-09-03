@@ -5,6 +5,8 @@
 
 #include "XMLReader.h"
 
+#include "SceneBuilderUtils.h"
+
 #include <set>
 #include <queue>
 
@@ -115,4 +117,13 @@ collada::Scene& collada::ColladaScene::GetScene()
 collada::ColladaScene::State collada::ColladaScene::GetState()
 {
 	return m_state;
+}
+
+collada::ColladaNodesContainer::~ColladaNodesContainer()
+{
+	for (std::list<xml_reader::Node*>::iterator it = m_nodes.begin();
+		it != m_nodes.end(); ++it) {
+		delete* it;
+	}
+	m_nodes.clear();
 }

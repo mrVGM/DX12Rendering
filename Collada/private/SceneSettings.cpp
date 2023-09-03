@@ -65,6 +65,31 @@ void collada::SceneSettings::LoadSceneSettings()
 	}
 
 	{
+		const xml_reader::Node* animationsList = xml_reader::FindChildNode(settingsNode, [](const xml_reader::Node* node) {
+			return node->m_tagName == "animations_list";
+		});
+
+		for (auto it = animationsList->m_children.begin(); it != animationsList->m_children.end(); ++it)
+		{
+			xml_reader::Node* cur = *it;
+
+			const xml_reader::Node* dae = xml_reader::FindChildNode(cur, [](const xml_reader::Node* node) {
+				return node->m_tagName == "dae";
+			});
+
+			const xml_reader::Node* bin = xml_reader::FindChildNode(cur, [](const xml_reader::Node* node) {
+				return node->m_tagName == "bin";
+			});
+
+			const std::string& daePath = dae->m_data.front()->m_symbolData.m_string;
+			const std::string& binPath = bin->m_data.front()->m_symbolData.m_string;
+			AnimationInfo ai{ daePath, binPath };
+
+			m_settings.m_animations[cur->m_tagName] = ai;
+		}
+	}
+
+	{
 		const xml_reader::Node* scenesToConvert = xml_reader::FindChildNode(settingsNode, [](const xml_reader::Node* node) {
 			return node->m_tagName == "scenes_to_convert";
 		});
@@ -75,6 +100,21 @@ void collada::SceneSettings::LoadSceneSettings()
 			{
 				scripting::ISymbol* cur = *it;
 				m_settings.m_scenesToConvert.push_back(cur->m_symbolData.m_string);
+			}
+		}
+	}
+
+	{
+		const xml_reader::Node* animationsToConvert = xml_reader::FindChildNode(settingsNode, [](const xml_reader::Node* node) {
+			return node->m_tagName == "animations_to_convert";
+		});
+
+		if (animationsToConvert)
+		{
+			for (auto it = animationsToConvert->m_data.begin(); it != animationsToConvert->m_data.end(); ++it)
+			{
+				scripting::ISymbol* cur = *it;
+				m_settings.m_animationsToConvert.push_back(cur->m_symbolData.m_string);
 			}
 		}
 	}

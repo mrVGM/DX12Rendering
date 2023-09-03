@@ -8,6 +8,7 @@
 #include "ColladaScene.h"
 
 #include "XMLWriter.h"
+#include "XMLReader.h"
 
 #include <sstream>
 #include <iostream>
@@ -56,24 +57,31 @@ void scene_converter::Boot()
 		collada::SceneSettings::SceneInfo& cur = sceneSettings.m_scenes[*it];
 
 		std::cout << "Converting " << cur.m_dae << " ..." << std::endl;
-		collada::ColladaScene cs;
+		collada::ColladaScene* cs = new collada::ColladaScene();
 
-		cs.Load(data::GetLibrary().GetRootDir() + cur.m_dae);
+		cs->Load(data::GetLibrary().GetRootDir() + cur.m_dae);
 
 		data::MemoryFile mf;
 		std::string binFilePath = data::GetLibrary().GetRootDir() + cur.m_binFile;
 		std::string materialsFilePath = data::GetLibrary().GetRootDir() + cur.m_materialsFile;
 
 		data::MemoryFileWriter writer(mf);
-		cs.GetScene().Serialize(writer);
+		cs->GetScene().Serialize(writer);
 
 		mf.SaveToFile(binFilePath);
 
-		std::string materialsXML = SerializeMaterials(cs.GetScene().m_materials);
+		std::string materialsXML = SerializeMaterials(cs->GetScene().m_materials);
 		std::ofstream materialsFile(materialsFilePath);
 		materialsFile << materialsXML;
 
 		std::cout << cur.m_dae << " converted and saved to " << cur.m_binFile << "!" << std::endl;
+	}
+
+	for (auto it = sceneSettings.m_animationsToConvert.begin(); it != sceneSettings.m_animationsToConvert.end(); ++it)
+	{
+		collada::SceneSettings::AnimationInfo& cur = sceneSettings.m_animations[*it];
+
+		std::cout << "Converting " << cur.m_dae << " ..." << std::endl;
 	}
 }
 
