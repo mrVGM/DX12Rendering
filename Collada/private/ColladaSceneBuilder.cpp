@@ -71,8 +71,7 @@ namespace
 			return nullptr;
 		}
 
-		std::list<const Node*> matrixContainer;
-		FindChildNodes(node, [](const Node* x) {
+		const Node* matrix = FindChildNode(node, [](const Node* x) {
 			if (x->m_tagName != "matrix") {
 				return false;
 			}
@@ -87,23 +86,19 @@ namespace
 			}
 
 			return true;
-		}, matrixContainer);
+		});
 
-		if (matrixContainer.size() == 0) {
+		if (!matrix) {
 			return nullptr;
 		}
-		const Node* matrix = *matrixContainer.begin();
 		const std::string& objectName = node->m_tagProps.find("id")->second;
 
 		scene.m_objects.insert(std::pair<std::string, Object>(objectName, Object()));
 		Object& obj = scene.m_objects[objectName];
 
-
-		int index = 0;
-		for (std::list<scripting::ISymbol*>::const_iterator it = matrix->m_data.begin();
-			it != matrix->m_data.end(); ++it) {
-			obj.m_transform[index++] = (*it)->m_symbolData.m_number;
-		}
+		Matrix tmp;
+		ReadMatricesFromNode(matrix, &tmp, 1);
+		memcpy(obj.m_transform, tmp.m_coefs, sizeof(obj.m_transform));
 
 		std::string geometryURL;
 		{
