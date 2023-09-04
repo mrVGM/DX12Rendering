@@ -16,6 +16,10 @@ add_library (Collada
 	"private/SkeletonReader.h"
 	"private/SkeletonReader.cpp"
 	"private/SceneBuilderUtils.h"
+	"public/ColladaAnimation.h"
+	"private/ColladaAnimation.cpp"
+	"public/ColladaAnimationMeta.h"
+	"private/ColladaAnimationMeta.cpp"
 )
 
 target_include_directories(Collada INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

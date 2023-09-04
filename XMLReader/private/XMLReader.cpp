@@ -161,3 +161,36 @@ const xml_reader::Node* xml_reader::FindChildNode(const Node* rootNode, std::fun
 	}
 	return nullptr;
 }
+
+void xml_reader::AssignParents(const std::list<xml_reader::Node*>& nodes)
+{
+	using namespace xml_reader;
+
+	std::set<Node*> processed;
+
+	std::queue<Node*> toProcess;
+
+	for (auto it = nodes.begin(); it != nodes.end(); ++it)
+	{
+		toProcess.push(*it);
+	}
+
+	while (!toProcess.empty())
+	{
+		Node* cur = toProcess.front();
+		toProcess.pop();
+
+		if (processed.contains(cur))
+		{
+			continue;
+		}
+
+		for (auto it = cur->m_children.begin(); it != cur->m_children.end(); ++it)
+		{
+			Node* curChild = *it;
+			curChild->m_parent = cur;
+			toProcess.push(curChild);
+		}
+		processed.insert(cur);
+	}
+}

@@ -6,6 +6,7 @@
 
 #include "DataLib.h"
 #include "ColladaScene.h"
+#include "ColladaAnimation.h"
 
 #include "XMLWriter.h"
 #include "XMLReader.h"
@@ -82,6 +83,11 @@ void scene_converter::Boot()
 		collada::SceneSettings::AnimationInfo& cur = sceneSettings.m_animations[*it];
 
 		std::cout << "Converting " << cur.m_dae << " ..." << std::endl;
+
+		collada::ColladaAnimation* ca = new collada::ColladaAnimation();
+		ca->Load(data::GetLibrary().GetRootDir() + cur.m_dae);
+
+		bool t = true;
 	}
 }
 
