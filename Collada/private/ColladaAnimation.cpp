@@ -5,6 +5,8 @@
 
 #include "SceneBuilderUtils.h"
 
+#include "ColladaEntities.h"
+
 #include <set>
 #include <queue>
 
@@ -124,6 +126,141 @@ namespace
 			return true;
 		}, outJointNodes);
 	}
+
+	const xml_reader::Node* GetAnimationNode(const std::list<xml_reader::Node*>& nodes)
+	{
+		using namespace xml_reader;
+
+		const Node* animationsLibrary = nullptr;
+		for (auto it = nodes.begin(); it != nodes.end(); ++it)
+		{
+			Node* cur = *it;
+			animationsLibrary = FindChildNode(cur, [](const Node* node) {
+				if (node->m_tagName == "library_animations")
+				{
+					return true;
+				}
+
+				return false;
+			});
+
+			if (animationsLibrary)
+			{
+				break;
+			}
+		}
+
+		if (!animationsLibrary)
+		{
+			return nullptr;
+		}
+
+		for (auto it = animationsLibrary->m_children.begin(); it != animationsLibrary->m_children.end(); ++it)
+		{
+			const Node* cur = *it;
+
+			if (cur->m_tagName == "animation")
+			{
+				return cur;
+			}
+		}
+	}
+
+	struct KeyFrame
+	{
+		float m_time;
+		collada::Matrix m_transform;
+
+	};
+
+	void ReadAnimationChannel(const xml_reader::Node* animationChannel, std::string& boneName, std::list<KeyFrame>& KeyFrame)
+	{
+		using namespace xml_reader;
+
+		const Node* channel = FindChildNode(animationChannel, [](const Node* node) {
+			if (node->m_tagName == "channel")
+			{
+				return true;
+			}
+
+			return false;
+		});
+
+		std::string target = channel->m_tagProps.find("target")->second;
+		size_t separator = target.find('/');
+
+		boneName = target.substr(0, separator);
+
+		const Node* sampler = FindChildNode(animationChannel, [](const Node* node) {
+			if (node->m_tagName == "sampler")
+			{
+				return true;
+			}
+
+			return false;
+		});
+
+		const Node* inputInput = FindChildNode(sampler, [](const Node* node) {
+			if (node->m_tagName != "input")
+			{
+				return false;
+			}
+
+			auto it = node->m_tagProps.find("semantic");
+			if (it == node->m_tagProps.end())
+			{
+				return false;
+			}
+
+			if (it->second == "INPUT")
+			{
+				return true;
+			}
+
+			return false;
+		});
+
+		const Node* inputOutput = FindChildNode(sampler, [](const Node* node) {
+			if (node->m_tagName != "input")
+			{
+				return false;
+			}
+
+			auto it = node->m_tagProps.find("semantic");
+			if (it == node->m_tagProps.end())
+			{
+				return false;
+			}
+
+			if (it->second == "OUTPUT")
+			{
+				return true;
+			}
+
+			return false;
+		});
+
+		const Node* inputInterpolation = FindChildNode(sampler, [](const Node* node) {
+			if (node->m_tagName != "input")
+			{
+				return false;
+			}
+
+			auto it = node->m_tagProps.find("semantic");
+			if (it == node->m_tagProps.end())
+			{
+				return false;
+			}
+
+			if (it->second == "INTERPOLATION")
+			{
+				return true;
+			}
+
+			return false;
+		});
+
+	}
 }
 
 collada::ColladaAnimation::ColladaAnimation() :
@@ -167,6 +304,15 @@ bool collada::ColladaAnimation::Load(const std::string& filePath)
 
 	std::list<const xml_reader::Node*> jointNodes;
 	ReadJoints(rootNodes, jointNodes);
+
+	const xml_reader::Node* animation = GetAnimationNode(rootNodes);
+
+	for (auto it = animation->m_children.begin(); it != animation->m_children.end(); ++it)
+	{
+		std::string bone;
+		std::list<KeyFrame> keyFrames;
+		ReadAnimationChannel(*it, bone, keyFrames);
+	}
 
 	return res;
 }
