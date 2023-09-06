@@ -1,4 +1,4 @@
-#include "ColladaAnimation.h"
+﻿#include "ColladaAnimation.h"
 
 #include "ColladaAnimationMeta.h"
 #include "XMLReader.h"
@@ -9,6 +9,7 @@
 
 #include <set>
 #include <queue>
+#include <sstream>
 
 namespace
 {
@@ -173,7 +174,169 @@ namespace
 
 	};
 
-	void ReadAnimationChannel(const xml_reader::Node* animationChannel, std::string& boneName, std::list<KeyFrame>& KeyFrame)
+	void ReadAnimationInput(const xml_reader::Node* source, std::list<float>& outInputList)
+	{
+		using namespace xml_reader;
+
+		const Node* accessor = FindChildNode(source, [](const Node* node) {
+			if (node->m_tagName == "accessor")
+			{
+				return true;
+			}
+			return false;
+		});
+		std::string floatArrayURL = accessor->m_tagProps.find("source")->second;
+		floatArrayURL = floatArrayURL.substr(1);
+
+		const Node* floatArray = FindChildNode(source, [=](const Node* node) {
+			if (node->m_tagName != "float_array")
+			{
+				return false;
+			}
+			auto it = node->m_tagProps.find("id");
+			if (it == node->m_tagProps.end())
+			{
+				return false;
+			}
+
+			if (it->second != floatArrayURL)
+			{
+				return false;
+			}
+
+			return true;
+		});
+
+		std::stringstream ss;
+		ss << accessor->m_tagProps.find("count")->second;
+
+		int numCount;
+		ss >> numCount;
+
+		int index = 0;
+		for (auto it = floatArray->m_data.begin(); it != floatArray->m_data.end(); ++it)
+		{
+			outInputList.push_back(static_cast<float>((*it)->m_symbolData.m_number));
+			++index;
+			if (index >= numCount)
+			{
+				break;
+			}
+		}
+	}
+
+	void ReadInterpolationInput(const xml_reader::Node* source, std::list<std::string>& outInterpolationList)
+	{
+		using namespace xml_reader;
+
+		const Node* accessor = FindChildNode(source, [](const Node* node) {
+			if (node->m_tagName == "accessor")
+			{
+				return true;
+			}
+			return false;
+		});
+
+		std::string nameArrayURL = accessor->m_tagProps.find("source")->second;
+		nameArrayURL = nameArrayURL.substr(1);
+
+		const Node* floatArray = FindChildNode(source, [=](const Node* node) {
+			if (node->m_tagName != "Name_array")
+			{
+				return false;
+			}
+			auto it = node->m_tagProps.find("id");
+			if (it == node->m_tagProps.end())
+			{
+				return false;
+			}
+
+			if (it->second != nameArrayURL)
+			{
+				return false;
+			}
+
+			return true;
+		});
+
+		std::stringstream ss;
+		ss << accessor->m_tagProps.find("count")->second;
+
+		int numCount;
+		ss >> numCount;
+
+		int index = 0;
+		for (auto it = floatArray->m_data.begin(); it != floatArray->m_data.end(); ++it)
+		{
+			outInterpolationList.push_back((*it)->m_symbolData.m_string);
+			++index;
+			if (index >= numCount)
+			{
+				break;
+			}
+		}
+	}
+
+	void ReadTransformInput(const xml_reader::Node* source, std::list<collada::Matrix>& outTransformList)
+	{
+		using namespace xml_reader;
+
+		const Node* accessor = FindChildNode(source, [](const Node* node) {
+			if (node->m_tagName == "accessor")
+			{
+				return true;
+			}
+			return false;
+		});
+
+		std::string floatArrayURL = accessor->m_tagProps.find("source")->second;
+		floatArrayURL = floatArrayURL.substr(1);
+
+		const Node* floatArray = FindChildNode(source, [=](const Node* node) {
+			if (node->m_tagName != "float_array")
+			{
+				return false;
+			}
+			auto it = node->m_tagProps.find("id");
+			if (it == node->m_tagProps.end())
+			{
+				return false;
+			}
+
+			if (it->second != floatArrayURL)
+			{
+				return false;
+			}
+
+			return true;
+		});
+
+		std::stringstream ss;
+		ss << accessor->m_tagProps.find("count")->second;
+
+		int matCount;
+		ss >> matCount;
+
+		ss.clear();
+		ss << accessor->m_tagProps.find("stride")->second;
+
+		int stride;
+		ss >> stride;
+
+		auto it = floatArray->m_data.begin();
+		for (int i = 0; i < matCount; ++i)
+		{
+			collada::Matrix& mat = outTransformList.emplace_back();
+			
+			for (int j = 0; j < stride; ++j)
+			{
+				mat.m_coefs[j] = static_cast<float>((*it++)->m_symbolData.m_number);
+			}
+		}
+	}
+
+
+	void ReadAnimationChannel(const xml_reader::Node* animationChannel, std::string& boneName, std::list<KeyFrame>& keyFrames)
 	{
 		using namespace xml_reader;
 
@@ -260,6 +423,92 @@ namespace
 			return false;
 		});
 
+
+		std::string inputSourceURL = inputInput->m_tagProps.find("source")->second;
+		std::string outputSourceURL = inputOutput->m_tagProps.find("source")->second;
+		std::string interpolationSourceURL = inputInterpolation->m_tagProps.find("source")->second;
+
+		inputSourceURL = inputSourceURL.substr(1);
+		outputSourceURL = outputSourceURL.substr(1);
+		interpolationSourceURL = interpolationSourceURL.substr(1);
+
+		const Node* inputSource = FindChildNode(animationChannel, [=](const Node* node) {
+			if (node->m_tagName != "source")
+			{
+				return false;
+			}
+
+			auto it = node->m_tagProps.find("id");
+			if (it == node->m_tagProps.end())
+			{
+				return false;
+			}
+
+			if (it->second == inputSourceURL)
+			{
+				return true;
+			}
+
+			return false;
+		});
+
+		const Node* outputSource = FindChildNode(animationChannel, [=](const Node* node) {
+			if (node->m_tagName != "source")
+			{
+				return false;
+			}
+
+			auto it = node->m_tagProps.find("id");
+			if (it == node->m_tagProps.end())
+			{
+				return false;
+			}
+
+			if (it->second == outputSourceURL)
+			{
+				return true;
+			}
+
+			return false;
+		});
+
+		const Node* interpolationSource = FindChildNode(animationChannel, [=](const Node* node) {
+			if (node->m_tagName != "source")
+			{
+				return false;
+			}
+
+			auto it = node->m_tagProps.find("id");
+			if (it == node->m_tagProps.end())
+			{
+				return false;
+			}
+
+			if (it->second == interpolationSourceURL)
+			{
+				return true;
+			}
+
+			return false;
+		});
+
+		std::list<float> timeArray;
+		std::list<std::string> interpolationArray;
+		std::list<collada::Matrix> transformArray;
+
+		ReadAnimationInput(inputSource, timeArray);
+		ReadInterpolationInput(interpolationSource, interpolationArray);
+		ReadTransformInput(outputSource, transformArray);
+
+		{
+			auto timeIt = timeArray.begin();
+			auto interpolationIt = interpolationArray.begin();
+			auto transformIt = transformArray.begin();
+
+			KeyFrame& k = keyFrames.emplace_back();
+			k.m_time = *timeIt++;
+			k.m_transform = *transformIt++;
+		}
 	}
 }
 
