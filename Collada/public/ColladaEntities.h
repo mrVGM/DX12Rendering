@@ -167,12 +167,18 @@ namespace collada
 		float m_time;
 		collada::Matrix m_transform;
 		std::string m_interpolation;
+
+		void Serialize(data::MemoryFileWriter& writer);
+		void Deserialize(data::MemoryFileReader& reader);
 	};
 
 	struct AnimChannel
 	{
 		std::string m_boneName;
 		std::vector<KeyFrame> m_keyFrames;
+
+		void Serialize(data::MemoryFileWriter& writer);
+		void Deserialize(data::MemoryFileReader& reader);
 	};
 
 	struct Animation

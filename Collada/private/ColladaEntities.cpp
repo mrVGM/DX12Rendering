@@ -1110,3 +1110,81 @@ void collada::Skeleton::Deserialize(data::MemoryFileReader& reader, int& id)
 		}
 	}
 }
+
+void collada::KeyFrame::Serialize(data::MemoryFileWriter& writer)
+{
+	data::BinChunk chunk;
+	chunk.m_size = 0;
+
+	int stringSize = m_interpolation.size() + 1;
+	chunk.m_size += stringSize * sizeof(char);
+	chunk.m_size += sizeof(float);
+	chunk.m_size += sizeof(Matrix);
+
+	chunk.m_data = new char[chunk.m_size];
+	char* stringData = chunk.m_data;
+	memcpy(stringData, m_interpolation.c_str(), stringSize);
+
+	float* timeData = reinterpret_cast<float*>(stringData + stringSize);
+	*timeData = m_time;
+
+	Matrix* transformData = reinterpret_cast<Matrix*>(timeData + 1);
+	*transformData = m_transform;
+
+	chunk.Write(writer);
+}
+
+void collada::KeyFrame::Deserialize(data::MemoryFileReader& reader)
+{
+	data::BinChunk chunk;
+	chunk.Read(reader);
+
+	m_interpolation = chunk.m_data;
+
+	float* timeData = reinterpret_cast<float*>(chunk.m_data + m_interpolation.size() + 1);
+	m_time = *timeData;
+
+	Matrix* transformData = reinterpret_cast<Matrix*>(timeData + 1);
+	m_transform = *transformData;
+}
+
+void collada::AnimChannel::Serialize(data::MemoryFileWriter& writer)
+{
+	{
+		data::BinChunk sizeChunk;
+		sizeChunk.m_size = 0;
+
+		int stringSize = m_boneName.size() + 1;
+		sizeChunk.m_size += stringSize * sizeof(char);
+		sizeChunk.m_size += sizeof(unsigned int);
+
+		sizeChunk.m_data = new char[sizeChunk.m_size];
+		char* stringData = sizeChunk.m_data;
+		memcpy(stringData, m_boneName.c_str(), stringSize);
+
+		unsigned int* numKeyframesData = reinterpret_cast<unsigned int*>(stringData + stringSize);
+		*numKeyframesData = m_keyFrames.size();
+
+		sizeChunk.Write(writer);
+	}
+
+	for (auto it = m_keyFrames.begin(); it != m_keyFrames.end(); ++it)
+	{
+		(*it).Serialize(writer);
+	}
+}
+
+void collada::AnimChannel::Deserialize(data::MemoryFileReader& reader)
+{
+	data::BinChunk sizeChunk;
+	sizeChunk.Read(reader);
+
+	m_boneName = sizeChunk.m_data;
+	unsigned int* numKeyframes = reinterpret_cast<unsigned int*>(sizeChunk.m_data + m_boneName.size() + 1);
+	m_keyFrames = std::vector<KeyFrame>(*numKeyframes);
+
+	for (int i = 0; i < *numKeyframes; ++i)
+	{
+		m_keyFrames[i].Deserialize(reader);
+	}
+}
