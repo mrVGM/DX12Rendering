@@ -161,4 +161,25 @@ namespace collada
 		void Serialize(data::MemoryFileWriter& writer);
 		void Deserialize(data::MemoryFileReader& reader);
 	};
+
+	struct KeyFrame
+	{
+		float m_time;
+		collada::Matrix m_transform;
+		std::string m_interpolation;
+	};
+
+	struct AnimChannel
+	{
+		std::string m_boneName;
+		std::vector<KeyFrame> m_keyFrames;
+	};
+
+	struct Animation
+	{
+		std::vector<std::string> m_bones;
+		std::vector<int> m_boneParents;
+
+		std::map<std::string, AnimChannel> m_channels;
+	};
 }

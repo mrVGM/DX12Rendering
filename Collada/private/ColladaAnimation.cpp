@@ -167,13 +167,6 @@ namespace
 		}
 	}
 
-	struct KeyFrame
-	{
-		float m_time;
-		collada::Matrix m_transform;
-
-	};
-
 	void ReadAnimationInput(const xml_reader::Node* source, std::list<float>& outInputList)
 	{
 		using namespace xml_reader;
@@ -336,7 +329,7 @@ namespace
 	}
 
 
-	void ReadAnimationChannel(const xml_reader::Node* animationChannel, std::string& boneName, std::list<KeyFrame>& keyFrames)
+	void ReadAnimationChannel(const xml_reader::Node* animationChannel, std::string& boneName, std::list<collada::KeyFrame>& keyFrames)
 	{
 		using namespace xml_reader;
 
@@ -505,9 +498,13 @@ namespace
 			auto interpolationIt = interpolationArray.begin();
 			auto transformIt = transformArray.begin();
 
-			KeyFrame& k = keyFrames.emplace_back();
-			k.m_time = *timeIt++;
-			k.m_transform = *transformIt++;
+			for (int i = 0; i < timeArray.size(); ++i)
+			{
+				collada::KeyFrame& k = keyFrames.emplace_back();
+				k.m_time = *timeIt++;
+				k.m_transform = *transformIt++;
+				k.m_interpolation = *interpolationIt++;
+			}
 		}
 	}
 }
@@ -554,6 +551,23 @@ bool collada::ColladaAnimation::Load(const std::string& filePath)
 	std::list<const xml_reader::Node*> jointNodes;
 	ReadJoints(rootNodes, jointNodes);
 
+	for (auto it = jointNodes.begin(); it != jointNodes.end(); ++it)
+	{
+		const xml_reader::Node* cur = *it;
+		m_animation.m_bones.push_back(cur->m_tagProps.find("name")->second);
+		m_animation.m_boneParents.push_back(-1);
+
+		int index = 0;
+		for (auto parentIt = jointNodes.begin(); parentIt != jointNodes.end(); ++parentIt)
+		{
+			if (cur->m_parent == *parentIt)
+			{
+				m_animation.m_boneParents.back() = index;
+				break;
+			}
+		}
+	}
+
 	const xml_reader::Node* animation = GetAnimationNode(rootNodes);
 
 	for (auto it = animation->m_children.begin(); it != animation->m_children.end(); ++it)
@@ -561,6 +575,28 @@ bool collada::ColladaAnimation::Load(const std::string& filePath)
 		std::string bone;
 		std::list<KeyFrame> keyFrames;
 		ReadAnimationChannel(*it, bone, keyFrames);
+
+		const xml_reader::Node* curJoint = nullptr;
+		for (auto jointIt = jointNodes.begin(); jointIt != jointNodes.end(); ++jointIt)
+		{
+			if ((*jointIt)->m_tagProps.find("id")->second == bone)
+			{
+				curJoint = *jointIt;
+				break;
+			}
+		}
+
+		const std::string& jointName = curJoint->m_tagProps.find("name")->second;
+		m_animation.m_channels[jointName] = AnimChannel();
+		AnimChannel& animChannel = m_animation.m_channels[jointName];
+
+		animChannel.m_boneName = jointName;
+		animChannel.m_keyFrames = std::vector<KeyFrame>(keyFrames.size());
+		auto kfIt = keyFrames.begin();
+		for (int i = 0; i < keyFrames.size(); ++i)
+		{
+			animChannel.m_keyFrames[i] = *kfIt++;
+		}
 	}
 
 	return res;

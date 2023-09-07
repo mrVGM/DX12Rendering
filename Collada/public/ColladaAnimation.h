@@ -10,6 +10,8 @@ namespace collada
 {
 	class ColladaAnimation : public BaseObject
 	{
+	private:
+		Animation m_animation;
 	public:
 		ColladaAnimation();
 		virtual ~ColladaAnimation();
