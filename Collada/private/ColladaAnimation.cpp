@@ -557,7 +557,7 @@ bool collada::ColladaAnimation::Load(const std::string& filePath)
 	for (auto it = jointNodes.begin(); it != jointNodes.end(); ++it)
 	{
 		const xml_reader::Node* cur = *it;
-		m_animation.m_bones.push_back(cur->m_tagProps.find("name")->second);
+		m_animation.m_bones.push_back(cur->m_tagProps.find("sid")->second);
 		m_animation.m_boneParents.push_back(-1);
 
 		int index = 0;
