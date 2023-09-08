@@ -9,23 +9,6 @@
 
 namespace
 {
-	collada::Matrix ChangeAxisOfMatrix(const collada::Matrix& matrix)
-	{
-		using namespace collada;
-
-
-		Matrix changeBasisMatrix = Matrix::Zero();
-		changeBasisMatrix.m_coefs[Matrix::GetIndex(0, 0)] = 1;
-		changeBasisMatrix.m_coefs[Matrix::GetIndex(1, 2)] = 1;
-		changeBasisMatrix.m_coefs[Matrix::GetIndex(2, 1)] = 1;
-		changeBasisMatrix.m_coefs[Matrix::GetIndex(3, 3)] = 1;
-
-		Matrix res = Matrix::Multiply(Matrix::Multiply(changeBasisMatrix, matrix), changeBasisMatrix);
-		res = res.Transpose();
-
-		return res;
-	}
-
 	void ReadJointNamesFromSkinTag(const xml_reader::Node* skinTag, collada::SkeletonReader& skeleton)
 	{
 		using namespace xml_reader;
@@ -597,4 +580,21 @@ void collada::ReadMatricesFromNode(const xml_reader::Node* node, collada::Matrix
 			matrices[matrixIndex].m_coefs[i] = (*it++)->m_symbolData.m_number;
 		}
 	}
+}
+
+collada::Matrix collada::ChangeAxisOfMatrix(const collada::Matrix& matrix)
+{
+	using namespace collada;
+
+
+	Matrix changeBasisMatrix = Matrix::Zero();
+	changeBasisMatrix.m_coefs[Matrix::GetIndex(0, 0)] = 1;
+	changeBasisMatrix.m_coefs[Matrix::GetIndex(1, 2)] = 1;
+	changeBasisMatrix.m_coefs[Matrix::GetIndex(2, 1)] = 1;
+	changeBasisMatrix.m_coefs[Matrix::GetIndex(3, 3)] = 1;
+
+	Matrix res = Matrix::Multiply(Matrix::Multiply(changeBasisMatrix, matrix), changeBasisMatrix);
+	res = res.Transpose();
+
+	return res;
 }

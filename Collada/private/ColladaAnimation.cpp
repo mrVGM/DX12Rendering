@@ -548,6 +548,9 @@ bool collada::ColladaAnimation::Load(const std::string& filePath)
 	}
 	AssignParents(rootNodes);
 
+	const xml_reader::Node* colladaNode = FindColladaNode(rootNodes);
+	bool invertAxis = collada::ShouldInvertAxis(colladaNode);
+
 	std::list<const xml_reader::Node*> jointNodes;
 	ReadJoints(rootNodes, jointNodes);
 
@@ -575,6 +578,15 @@ bool collada::ColladaAnimation::Load(const std::string& filePath)
 		std::string bone;
 		std::list<KeyFrame> keyFrames;
 		ReadAnimationChannel(*it, bone, keyFrames);
+
+		if (invertAxis)
+		{
+			for (auto it = keyFrames.begin(); it != keyFrames.end(); ++it)
+			{
+				KeyFrame& cur = *it;
+				cur.m_transform = collada::ChangeAxisOfMatrix(cur.m_transform);
+			}
+		}
 
 		const xml_reader::Node* curJoint = nullptr;
 		for (auto jointIt = jointNodes.begin(); jointIt != jointNodes.end(); ++jointIt)
