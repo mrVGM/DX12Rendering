@@ -53,10 +53,13 @@ namespace rendering
 		std::vector<collada::ColladaScene*> m_colladaScenes;
 		std::vector<SceneResources> m_sceneResources;
 
+		collada::Animation m_animation;
+
 		DXScene();
 		virtual ~DXScene();
 
-		void LoadColladaScene(const std::string& filePath, jobs::Job* done);
+		void LoadColladaScene(const std::string& sceneId, jobs::Job* done);
+		void LoadAnimation(const std::string& animId);
 
 		void GetSceneBB(DirectX::XMVECTOR& minPoint, DirectX::XMVECTOR& maxPoint);
 

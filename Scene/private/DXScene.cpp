@@ -1054,6 +1054,18 @@ void rendering::DXScene::LoadColladaScene(const std::string& sceneId, jobs::Job*
 	core::utils::RunSync(new CreateMaterialsReader(ctx));
 }
 
+void rendering::DXScene::LoadAnimation(const std::string& animId)
+{
+	collada::SceneSettings::Settings& sceneSettings = m_sceneSettings->GetSettings();
+	collada::SceneSettings::AnimationInfo& animInfo = sceneSettings.m_animations[animId];
+
+	data::MemoryFile mf;
+	mf.RestoreFromFile(data::GetLibrary().GetRootDir() + animInfo.m_binFile);
+
+	data::MemoryFileReader reader(mf);
+	m_animation.Deserialize(reader);
+}
+
 void rendering::DXScene::LoadGeometryBuffers(int sceneIndex, const std::string& geometryName, SceneResources& sceneResources, jobs::Job* done)
 {
 	collada::ColladaScene* colladaScene = m_colladaScenes[sceneIndex];

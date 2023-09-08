@@ -35,6 +35,10 @@ add_library (Renderer
 	"private/RendererSettingsMeta.cpp"
 	"private/RendererSettings.h"
 	"private/RendererSettings.cpp"
+	"private/DXAnimUpdater.cpp"
+	"private/DXAnimUpdater.h"
+	"private/DXAnimUpdaterMeta.cpp"
+	"private/DXAnimUpdaterMeta.h"
 )
 
 target_include_directories(Renderer INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
