@@ -17,5 +17,7 @@ namespace collada
 		virtual ~ColladaAnimation();
 
 		bool Load(const std::string& filePath);
+
+		Animation& GetAnimation();
 	};
 }

@@ -599,9 +599,14 @@ bool collada::ColladaAnimation::Load(const std::string& filePath)
 		}
 	}
 
-	return res;
+	return true;
 }
 
 collada::ColladaAnimation::~ColladaAnimation()
 {
+}
+
+collada::Animation& collada::ColladaAnimation::GetAnimation()
+{
+	return m_animation;
 }

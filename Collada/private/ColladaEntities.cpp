@@ -1188,3 +1188,162 @@ void collada::AnimChannel::Deserialize(data::MemoryFileReader& reader)
 		m_keyFrames[i].Deserialize(reader);
 	}
 }
+
+void collada::Animation::Serialize(data::MemoryFileWriter& writer)
+{
+	std::map<std::string, int> nameIds;
+
+	for (auto it = m_bones.begin(); it != m_bones.end(); ++it)
+	{
+		nameIds[*it] = 0;
+	}
+
+	{
+		data::BinChunk namesChunk;
+
+		unsigned int size = sizeof(unsigned int);
+
+		std::vector<std::string> names;
+		int index = 0;
+		for (auto it = nameIds.begin(); it != nameIds.end(); ++it)
+		{
+			names.push_back(it->first);
+			it->second = index++;
+
+			size += it->first.size() + 1;
+		}
+
+		namesChunk.m_size = size;
+		namesChunk.m_data = new char[size];
+
+		memset(namesChunk.m_data, 0, size);
+
+		void* curPtr = namesChunk.m_data;
+		{
+			unsigned int* countNames = static_cast<unsigned int*>(curPtr);
+			*countNames = names.size();
+			++countNames;
+			curPtr = countNames;
+		}
+
+		{
+			char* namePtr = static_cast<char*>(curPtr);
+			for (auto it = names.begin(); it != names.end(); ++it)
+			{
+				const std::string& curName = *it;
+				memcpy(namePtr, curName.c_str(), curName.size());
+				namePtr += curName.size() + 1;
+			}
+		}
+
+		namesChunk.Write(writer);
+	}
+
+	{
+		data::BinChunk bonesChunk;
+		bonesChunk.m_size = m_bones.size() * sizeof(int);
+		bonesChunk.m_data = new char[bonesChunk.m_size];
+
+		int* boneIDs = reinterpret_cast<int*>(bonesChunk.m_data);
+		for (auto it = m_bones.begin(); it != m_bones.end(); ++it)
+		{
+			*boneIDs++ = nameIds[*it];
+		}
+
+		bonesChunk.Write(writer);
+	}
+
+	{
+		data::BinChunk bonesParentsChunk;
+		bonesParentsChunk.m_size = m_bones.size() * sizeof(int);
+		bonesParentsChunk.m_data = new char[bonesParentsChunk.m_size];
+
+		int* boneParents = reinterpret_cast<int*>(bonesParentsChunk.m_data);
+		for (auto it = m_boneParents.begin(); it != m_boneParents.end(); ++it)
+		{
+			*boneParents++ = *it;
+		}
+
+		bonesParentsChunk.Write(writer);
+	}
+
+	{
+		data::BinChunk numChannelsChunk;
+		numChannelsChunk.m_size = sizeof(unsigned int);
+		numChannelsChunk.m_data = new char[numChannelsChunk.m_size];
+
+		unsigned int* numChannelsData = reinterpret_cast<unsigned int*>(numChannelsChunk.m_data);
+		*numChannelsData = m_channels.size();
+
+		numChannelsChunk.Write(writer);
+	}
+
+	for (auto it = m_channels.begin(); it != m_channels.end(); ++it)
+	{
+		it->second.Serialize(writer);
+	}
+}
+
+void collada::Animation::Deserialize(data::MemoryFileReader& reader)
+{
+	std::vector<std::string> names;
+
+	{
+		data::BinChunk namesChunk;
+		namesChunk.Read(reader);
+
+		unsigned int* namesCount = reinterpret_cast<unsigned int*>(namesChunk.m_data);
+
+		char* namesPtr = reinterpret_cast<char*>(namesCount + 1);
+
+		for (unsigned int i = 0; i < *namesCount; ++i)
+		{
+			std::string& tmp = names.emplace_back();
+			tmp = namesPtr;
+
+			namesPtr += tmp.size() + 1;
+		}
+	}
+
+	{
+		data::BinChunk bonesChunk;
+		bonesChunk.Read(reader);
+		
+		int size = bonesChunk.m_size / sizeof(int);
+
+		int* boneIDs = reinterpret_cast<int*>(bonesChunk.m_data);
+		for (int i = 0; i < size; ++i)
+		{
+			m_bones.push_back(names[boneIDs[i]]);
+		}
+	}
+
+	{
+		data::BinChunk bonesParentsChunk;
+		bonesParentsChunk.Read(reader);
+
+		int size = bonesParentsChunk.m_size / sizeof(int);
+
+		int* boneIDs = reinterpret_cast<int*>(bonesParentsChunk.m_data);
+		for (int i = 0; i < size; ++i)
+		{
+			m_boneParents.push_back(boneIDs[i]);
+		}
+	}
+
+	unsigned int numChannels = -1;
+	{
+		data::BinChunk numChannelsChunk;
+		numChannelsChunk.Read(reader);
+		unsigned int* numChannelsData = reinterpret_cast<unsigned int*>(numChannelsChunk.m_data);
+		numChannels = *numChannelsData;
+	}
+
+	for (unsigned int i = 0; i < numChannels; ++i)
+	{
+		AnimChannel tmp;
+		tmp.Deserialize(reader);
+
+		m_channels[tmp.m_boneName] = tmp;
+	}
+}

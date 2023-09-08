@@ -187,5 +187,8 @@ namespace collada
 		std::vector<int> m_boneParents;
 
 		std::map<std::string, AnimChannel> m_channels;
+
+		void Serialize(data::MemoryFileWriter& writer);
+		void Deserialize(data::MemoryFileReader& reader);
 	};
 }

@@ -87,7 +87,14 @@ void scene_converter::Boot()
 		collada::ColladaAnimation* ca = new collada::ColladaAnimation();
 		ca->Load(data::GetLibrary().GetRootDir() + cur.m_dae);
 
-		bool t = true;
+		std::string binFilePath = data::GetLibrary().GetRootDir() + cur.m_binFile;
+
+		data::MemoryFile mf;
+		{
+			data::MemoryFileWriter writer(mf);
+			ca->GetAnimation().Serialize(writer);
+			mf.SaveToFile(binFilePath);
+		}
 	}
 }
 
