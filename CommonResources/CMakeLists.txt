@@ -29,6 +29,10 @@ add_library (CommonResources
 	"private/DXCameraDepthTexMeta.cpp"
 	"public/TextureLoadedNotificationMeta.h"
 	"private/TextureLoadedNotificationMeta.cpp"
+	"public/AsyncTickUpdaterMeta.h"
+	"private/AsyncTickUpdaterMeta.cpp"
+	"public/AsyncTickUpdater.h"
+	"private/AsyncTickUpdater.cpp"
 )
 
 target_include_directories(CommonResources INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

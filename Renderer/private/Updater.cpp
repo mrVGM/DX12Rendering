@@ -9,6 +9,9 @@
 #include "TickUpdaterMeta.h"
 #include "TickUpdater.h"
 
+#include "AsyncTickUpdaterMeta.h"
+#include "AsyncTickUpdater.h"
+
 #include "DXMutableBufferMeta.h"
 
 #include "CoreUtils.h"
@@ -46,11 +49,12 @@ void rendering::Updater::StartUpdate()
 {
 	double dt = TimeStamp();
 	m_state = UpdaterState::Render;
-	m_updatesToWaitFor = 2;
+	m_updatesToWaitFor = 3;
 
 	DXRenderer* renderer = utils::GetRenderer();
 	renderer->RenderFrame(new NotifyUpdater(*this));
 
+	RunAsyncTickUpdaters(dt);
 	RunTickUpdaters(dt);
 }
 
@@ -88,6 +92,61 @@ void rendering::Updater::Proceed()
 	}
 }
 
+
+void rendering::Updater::RunAsyncTickUpdaters(double dt)
+{
+	struct Context
+	{
+		int m_updatersToWaitFor = -1;
+		jobs::Job* m_done = nullptr;
+	};
+
+	Context* ctx = new Context();
+	ctx->m_done = new NotifyUpdater(*this);
+
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+
+	std::list<BaseObject*> asyncTickUpdaters;
+	container.GetAllObjectsOfClass(AsyncTickUpdaterMeta::GetInstance(), asyncTickUpdaters);
+
+	if (asyncTickUpdaters.empty())
+	{
+		utils::RunSync(ctx->m_done);
+		delete ctx;
+		return;
+	}
+
+	ctx->m_updatersToWaitFor = asyncTickUpdaters.size();
+
+	class UpdaterDone : public jobs::Job
+	{
+	private:
+		Context& m_ctx;
+	public:
+		UpdaterDone(Context& ctx) :
+			m_ctx(ctx)
+		{
+		}
+
+		void Do() override
+		{
+			--m_ctx.m_updatersToWaitFor;
+			if (m_ctx.m_updatersToWaitFor > 0)
+			{
+				return;
+			}
+
+			core::utils::RunSync(m_ctx.m_done);
+			delete &m_ctx;
+		}
+	};
+
+	for (auto it = asyncTickUpdaters.begin(); it != asyncTickUpdaters.end(); ++it)
+	{
+		AsyncTickUpdater* cur = static_cast<AsyncTickUpdater*>(*it);
+		cur->Update(dt, new UpdaterDone(*ctx));
+	}
+}
 
 void rendering::Updater::RunTickUpdaters(double dt)
 {

@@ -39,6 +39,7 @@ namespace rendering
 		void StartUpdate();
 
 		void RunTickUpdaters(double dt);
+		void RunAsyncTickUpdaters(double dt);
 		void SyncMutableBuffers();
 
 		double TimeStamp();
