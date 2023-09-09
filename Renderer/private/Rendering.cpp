@@ -48,7 +48,7 @@
 
 #include "DXAnimUpdater.h"
 
-#include "Animation.h"
+#include "Animator.h"
 
 #include <iostream>
 
@@ -162,6 +162,11 @@ namespace
 					const collada::ColladaMaterial& mat = it->second;
 					material_utils::LoadMaterial(mat);
 				}
+
+				for (auto it = justLoaded.m_skeletonPoseBuffers.begin(); it != justLoaded.m_skeletonPoseBuffers.end(); ++it)
+				{
+					new animation::Animator(it->first);
+				}
 			}
 		};
 
@@ -231,8 +236,6 @@ void rendering::Boot()
 	new collada::SceneSettings();
 
 	InitBaseObjects();
-
-	//animation::Boot();
 
 	LoadScene();
 	LoadRenderPipepine();
