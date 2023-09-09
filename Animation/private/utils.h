@@ -1,8 +1,10 @@
 #pragma once
 
-#include "DXMutableBuffer.h"
+#include "DXScene.h"
+#include "SceneSettings.h"
 
-namespace rendering::unlit
+namespace animation
 {
-	DXMutableBuffer* GetCameraBuffer();
+	rendering::DXScene* GetScene();
+	collada::SceneSettings* GetSceneSettings();
 }

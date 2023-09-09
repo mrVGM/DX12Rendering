@@ -48,6 +48,8 @@
 
 #include "DXAnimUpdater.h"
 
+#include "Animation.h"
+
 #include <iostream>
 
 namespace
@@ -229,6 +231,8 @@ void rendering::Boot()
 	new collada::SceneSettings();
 
 	InitBaseObjects();
+
+	//animation::Boot();
 
 	LoadScene();
 	LoadRenderPipepine();

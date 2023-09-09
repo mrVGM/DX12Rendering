@@ -3,6 +3,12 @@
 add_library (Animation
 	"private/utils.cpp"
 	"private/utils.h"
+	"public/AnimRepo.cpp"
+	"private/AnimRepoMeta.cpp" 
+	"public/AnimRepo.h"
+	"private/AnimRepoMeta.h"
+	"public/Animation.h"
+	"private/Animation.cpp"
 )
 
 target_include_directories(Animation INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
