@@ -45,7 +45,7 @@ animation::Animator::Animator(const std::string& objectName) :
 
 	m_updater = new animation::AnimatorUpdater(buffer);
 
-	m_updater->PlayAnimation("anim", 0.1);
+	m_updater->PlayAnimation("dance", 0.1);
 }
 
 animation::Animator::~Animator()
