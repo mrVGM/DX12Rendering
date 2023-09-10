@@ -20,7 +20,8 @@ namespace animation
 	{
 	private:
 		rendering::DXMutableBuffer* m_buffer = nullptr;
-		int m_frame = 0;
+		double m_time = 0;
+		double m_speed = 1;
 		const collada::Animation* m_currentAnimation = nullptr;
 		std::string m_animationName;
 
@@ -31,6 +32,6 @@ namespace animation
 
 		void Update(double dt, jobs::Job* done) override;
 
-		void PlayAnimation(const std::string& animName);
+		void PlayAnimation(const std::string& animName, double speed);
 	};
 }

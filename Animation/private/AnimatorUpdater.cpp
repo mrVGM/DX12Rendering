@@ -22,6 +22,48 @@ namespace
 			m_animRepo = animation::GetAnimRepo();
 		}
 	}
+
+	double GetLastKeyFrameTime(const collada::Animation& animation)
+	{
+		double maxTime = -1;
+		for (auto it = animation.m_channels.begin(); it != animation.m_channels.end(); ++it)
+		{
+			const collada::AnimChannel& cur = it->second;
+			maxTime = max(cur.m_keyFrames.back().m_time, maxTime);
+		}
+
+		return maxTime;
+	}
+
+	const collada::KeyFrame& GetKeyFrame(const collada::AnimChannel& channel, double time)
+	{
+		int left = 0;
+		int right = channel.m_keyFrames.size() - 1;
+
+		while (right - left > 1)
+		{
+			int mid = (left + right) / 2;
+
+			if (time < channel.m_keyFrames[mid].m_time)
+			{
+				right = mid;
+			}
+			else 
+			{
+				left = mid;
+			}
+		}
+
+		double leftOffset = time - channel.m_keyFrames[left].m_time;
+		double rightOffset = channel.m_keyFrames[right].m_time - time;
+
+		if (leftOffset < rightOffset)
+		{
+			return channel.m_keyFrames[left];
+		}
+
+		return channel.m_keyFrames[right];
+	}
 }
 
 animation::AnimatorUpdater::AnimatorUpdater(rendering::DXMutableBuffer* buffer) :
@@ -47,8 +89,18 @@ void animation::AnimatorUpdater::Update(double dt, jobs::Job* done)
 		return;
 	}
 
-	int index = m_frame++;
-	m_frame %= m_currentAnimation->m_channels.begin()->second.m_keyFrames.size();
+	m_time += m_speed * dt;
+	double lastKF = GetLastKeyFrameTime(*m_currentAnimation);
+
+	while (m_time < 0)
+	{
+		m_time += lastKF;
+	}
+
+	while (m_time > lastKF)
+	{
+		m_time -= lastKF;
+	}
 
 	DXBuffer* uploadBuff = m_buffer->GetUploadBuffer();
 	void* data = uploadBuff->Map();
@@ -61,12 +113,15 @@ void animation::AnimatorUpdater::Update(double dt, jobs::Job* done)
 		const collada::AnimChannel& curChannel = anim.m_channels.find(anim.m_bones[i])->second;
 		int curParent = anim.m_boneParents[i];
 
-		collada::Matrix curTransform = curChannel.m_keyFrames[index].m_transform;
+		const collada::KeyFrame& kf = GetKeyFrame(curChannel, m_time);
+		collada::Matrix curTransform = kf.m_transform;
 
 		while (curParent >= 0)
 		{
 			const collada::AnimChannel& parentChannel = anim.m_channels.find(anim.m_bones[curParent])->second;
-			const collada::Matrix& parentTransform = parentChannel.m_keyFrames[index].m_transform;
+
+			const collada::KeyFrame& parentKF = GetKeyFrame(parentChannel, m_time);
+			const collada::Matrix& parentTransform = parentKF.m_transform;
 
 			curTransform = collada::Matrix::Multiply(curTransform, parentTransform);
 			curParent = anim.m_boneParents[curParent];
@@ -80,13 +135,14 @@ void animation::AnimatorUpdater::Update(double dt, jobs::Job* done)
 	rendering::core::utils::RunSync(done);
 }
 
-void animation::AnimatorUpdater::PlayAnimation(const std::string& animName)
+void animation::AnimatorUpdater::PlayAnimation(const std::string& animName, double speed)
 {
 	m_animationName = animName;
+	m_speed = speed;
 }
 
 void animation::AnimatorUpdater::StartAnimation(const collada::Animation* animation)
 {
-	m_frame = 0;
+	m_time = 0;
 	m_currentAnimation = animation;
 }
