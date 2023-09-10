@@ -5,12 +5,29 @@
       <author>Blender User</author>
       <authoring_tool>Blender 2.93.1 commit date:2021-06-22, commit time:05:57, hash:1b8d33b18c2f</authoring_tool>
     </contributor>
-    <created>2023-08-27T18:16:39</created>
-    <modified>2023-08-27T18:16:39</modified>
+    <created>2023-09-10T19:13:07</created>
+    <modified>2023-09-10T19:13:07</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
   <library_effects>
+    <effect id="Material-effect">
+      <profile_COMMON>
+        <technique sid="common">
+          <lambert>
+            <emission>
+              <color sid="emission">0 0 0 1</color>
+            </emission>
+            <diffuse>
+              <color sid="diffuse">0.8 0.8 0.8 1</color>
+            </diffuse>
+            <index_of_refraction>
+              <float sid="ior">1.45</float>
+            </index_of_refraction>
+          </lambert>
+        </technique>
+      </profile_COMMON>
+    </effect>
     <effect id="Material_001-effect">
       <profile_COMMON>
         <technique sid="common">
@@ -31,11 +48,56 @@
   </library_effects>
   <library_images/>
   <library_materials>
+    <material id="Material-material" name="Material">
+      <instance_effect url="#Material-effect"/>
+    </material>
     <material id="Material_001-material" name="Material.001">
       <instance_effect url="#Material_001-effect"/>
     </material>
   </library_materials>
   <library_geometries>
+    <geometry id="Plane-mesh" name="Plane">
+      <mesh>
+        <source id="Plane-mesh-positions">
+          <float_array id="Plane-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+          <technique_common>
+            <accessor source="#Plane-mesh-positions-array" count="4" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="Plane-mesh-normals">
+          <float_array id="Plane-mesh-normals-array" count="3">0 0 1</float_array>
+          <technique_common>
+            <accessor source="#Plane-mesh-normals-array" count="1" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="Plane-mesh-map-0">
+          <float_array id="Plane-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+          <technique_common>
+            <accessor source="#Plane-mesh-map-0-array" count="6" stride="2">
+              <param name="S" type="float"/>
+              <param name="T" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <vertices id="Plane-mesh-vertices">
+          <input semantic="POSITION" source="#Plane-mesh-positions"/>
+        </vertices>
+        <triangles material="Material-material" count="2">
+          <input semantic="VERTEX" source="#Plane-mesh-vertices" offset="0"/>
+          <input semantic="NORMAL" source="#Plane-mesh-normals" offset="1"/>
+          <input semantic="TEXCOORD" source="#Plane-mesh-map-0" offset="2" set="0"/>
+          <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+        </triangles>
+      </mesh>
+    </geometry>
     <geometry id="Cube_002-mesh" name="Cube.002">
       <mesh>
         <source id="Cube_002-mesh-positions">
@@ -82,12 +144,7 @@
   <library_controllers>
     <controller id="Armature_Cube-skin" name="Armature">
       <skin source="#Cube_002-mesh">
-        <bind_shape_matrix>
-			1 0 0 0
-			0 1 0 0
-			0 0 1 1
-			0 0 0 1
-		</bind_shape_matrix>
+        <bind_shape_matrix>1 0 0 0 0 1 0 0 0 0 1 1 0 0 0 1</bind_shape_matrix>
         <source id="Armature_Cube-skin-joints">
           <Name_array id="Armature_Cube-skin-joints-array" count="2">Bone Bone_001</Name_array>
           <technique_common>
@@ -97,17 +154,7 @@
           </technique_common>
         </source>
         <source id="Armature_Cube-skin-bind_poses">
-          <float_array id="Armature_Cube-skin-bind_poses-array" count="32">
-			  1 0 0 0
-			  0 0 1 0
-			  0 -1 0 0
-			  0 0 0 1
-			  
-			  1 0 0 0
-			  0 0 1 -2
-			  0 -1 0 0
-			  0 0 0 1
-		  </float_array>
+          <float_array id="Armature_Cube-skin-bind_poses-array" count="32">1 0 0 0 0 0 1 0 0 -1 0 0 0 0 0 1 1 0 0 0 0 0 1 -2 0 -1 0 0 0 0 0 1</float_array>
           <technique_common>
             <accessor source="#Armature_Cube-skin-bind_poses-array" count="2" stride="16">
               <param name="TRANSFORM" type="float4x4"/>
@@ -115,7 +162,7 @@
           </technique_common>
         </source>
         <source id="Armature_Cube-skin-weights">
-          <float_array id="Armature_Cube-skin-weights-array" count="24">0.9097581 0.09024184 0.4996421 0.5003579 0.9173468 0.0826531 0.5003579 0.4996421 0.9173468 0.0826531 0.5003579 0.4996421 0.9097581 0.09024184 0.4996421 0.5003579 0.0826531 0.9173468 0.09024184 0.9097581 0.09024184 0.9097581 0.0826531 0.9173468</float_array>
+          <float_array id="Armature_Cube-skin-weights-array" count="24">0.9097582 0.09024184 0.4996421 0.5003579 0.917347 0.0826531 0.5003579 0.4996421 0.917347 0.0826531 0.5003579 0.4996421 0.9097582 0.09024184 0.4996421 0.5003579 0.0826531 0.917347 0.09024184 0.9097582 0.09024184 0.9097582 0.0826531 0.917347</float_array>
           <technique_common>
             <accessor source="#Armature_Cube-skin-weights-array" count="24" stride="1">
               <param name="WEIGHT" type="float"/>
@@ -137,6 +184,18 @@
   </library_controllers>
   <library_visual_scenes>
     <visual_scene id="Scene" name="Scene">
+      <node id="Plane" name="Plane" type="NODE">
+        <matrix sid="transform">12.93688 0 0 0 0 12.93688 0 0 0 0 12.93688 -1.031166 0 0 0 1</matrix>
+        <instance_geometry url="#Plane-mesh" name="Plane">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="Material-material" target="#Material-material">
+                <bind_vertex_input semantic="UVMap" input_semantic="TEXCOORD" input_set="0"/>
+              </instance_material>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
+      </node>
       <node id="Armature" name="Armature" type="NODE">
         <matrix sid="transform">1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</matrix>
         <node id="Armature_Bone" name="Bone" sid="Bone" type="JOINT">
