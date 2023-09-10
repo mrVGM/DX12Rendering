@@ -49,7 +49,7 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
     output.m_diffuseLit = float4(0,0,0,0);
     output.m_specularLit = float4(0,0,0,0);
 
-    if (dot(normalTex, normalTex) < 1)
+    if (normalTex.w < 0.1)
     {
         return output;
     }
@@ -104,25 +104,6 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float2 uv : UV) : SV_Target
 
             specularColor += specularContribution;
             specularColor = clamp(specularColor, 0, 1);
-        }
-
-        if (false)
-        {
-            float3 eyeDir = normalize(m_camBuff.m_position - positionTex.xyz);
-            eyeDir = normalize(eyeDir);
-            float rimDot = 1 - dot(eyeDir, normalTex.xyz);
-
-            float rimAmount = 0.7;
-            float rimThreshold = 0.1;
-
-            float nDotL = dot(-dir, normalTex);
-            float rimIntensity = rimDot * pow(nDotL, rimThreshold);
-
-            rimIntensity = smoothstep(rimAmount - 0.01, rimAmount + 0.01, rimIntensity);
-
-            float4 rimColor = float4(0.4, 0.4, 0.4, 1);
-
-            output.m_ambientLit += lightIntensity * rimIntensity * rimColor;
         }
     }
 

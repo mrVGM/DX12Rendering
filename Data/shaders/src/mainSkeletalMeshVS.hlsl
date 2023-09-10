@@ -23,6 +23,7 @@ PSInput VSMain(SkeletalMeshVertexInput3D vertexInput)
 
     float4x4 bindPoseMatrix = v_skeletonBuffer[0];
     float4 vertexPos = float4(0, 0, 0, 0);
+    float4 normalPos = float4(0, 0, 0, 0);
     
     for (int i = 0; i < 4; ++i)
     {
@@ -34,18 +35,27 @@ PSInput VSMain(SkeletalMeshVertexInput3D vertexInput)
             continue;
         }
 
-        float4 res = mul(bindPoseMatrix, float4(vertexInput.position, 1));
-        res = mul(v_skeletonBuffer[jointIndex + 1], res);
-        res = mul(v_skeletonPoseBuffer[jointIndex], res);
-        vertexPos += jointWeight * res;
+        {
+            float4 res = mul(bindPoseMatrix, float4(vertexInput.position, 1));
+            res = mul(v_skeletonBuffer[jointIndex + 1], res);
+            res = mul(v_skeletonPoseBuffer[jointIndex], res);
+            vertexPos += jointWeight * res;
+        }
+        
+        {
+            float4 res = mul(bindPoseMatrix, float4(vertexInput.position + vertexInput.normal, 1));
+            res = mul(v_skeletonBuffer[jointIndex + 1], res);
+            res = mul(v_skeletonPoseBuffer[jointIndex], res);
+            normalPos += jointWeight * res;
+        }
     }
     
     
     float3 worldPos;
     float3 worldNormal;
     GetWorldPositonAndNormal(
-        vertexPos,
-        vertexInput.normal,
+        vertexPos.xyz,
+        normalPos.xyz - vertexPos.xyz,
         vertexInput.objectPosition,
         vertexInput.objectRotation,
         vertexInput.objectScale,

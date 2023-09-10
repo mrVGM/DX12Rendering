@@ -26,7 +26,7 @@ PS_OUTPUT PSMain(float4 position : SV_POSITION, float4 worldPosition : WORLD_POS
     PS_OUTPUT output;
     output.m_diffuse = m_color;
     output.m_specular = float4(m_specularColor, m_specularCoef);
-    output.m_normal = normal;
+    output.m_normal = float4(normalize(normal.xyz), normal.w);
     output.m_position = worldPosition;
     
     float4 depth = mul(m_camBuff.m_matrix, worldPosition);
