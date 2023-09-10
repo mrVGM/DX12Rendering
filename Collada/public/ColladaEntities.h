@@ -66,7 +66,8 @@ namespace collada
 
 	struct Geometry
 	{
-		std::list<Vector3> m_vertexPositions;
+		std::vector<Vector3> m_vertexPositions;
+		std::list<int> m_vertexPositionId;
 		std::list<Vertex> m_vertices;
 		std::list<int> m_indices;
 		std::list<MaterialIndexRange> m_materials;

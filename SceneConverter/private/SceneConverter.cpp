@@ -95,6 +95,7 @@ void scene_converter::Boot()
 			ca->GetAnimation().Serialize(writer);
 			mf.SaveToFile(binFilePath);
 		}
+		std::cout << cur.m_dae << " converted and saved to " << cur.m_binFile << "!" << std::endl;
 	}
 }
 

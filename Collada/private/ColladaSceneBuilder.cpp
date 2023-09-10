@@ -403,13 +403,19 @@ namespace
 		int stride = inputs.size();
 
 		Vertex triangle[3];
+		int vertexPositionId[3];
+
 		int vertRead = 0;
 
 		for (int i = 0; i < indices.size(); i += stride) {
 			Vertex& cur = triangle[vertRead];
+			int& curId = vertexPositionId[vertRead];
+
 			int vertIndex = indices[i + vertexOffset];
 			int normalIndex = indices[i + normalOffset];
 			int uvIndex = indices[i + uvOffset];
+
+			curId = vertIndex;
 
 			cur.m_position[0] = vertices[vertIndex].m_values[0];
 			cur.m_position[1] = vertices[vertIndex].m_values[1];
@@ -435,6 +441,7 @@ namespace
 				if (vertIndex < 0) {
 					vertIndex = geometry.m_vertices.size();
 					geometry.m_vertices.push_back(triangle[j]);
+					geometry.m_vertexPositionId.push_back(vertexPositionId[j]);
 				}
 				geometry.m_indices.push_back(vertIndex);
 			}
