@@ -117,20 +117,31 @@ void animation::AnimatorUpdater::Update(double dt, jobs::Job* done)
 	{
 		auto chanIt = anim.m_channels.find(skel->m_joints[i]);
 		const collada::AnimChannel& curChannel = anim.m_channels.find(skel->m_joints[i])->second;
-		int curParent = skel->m_jointsParents[i];
+
+		int boneIndex = -1;
+		for (int j = 0; j < anim.m_bones.size(); ++j)
+		{
+			if (anim.m_bones[j] == skel->m_joints[i])
+			{
+				boneIndex = j;
+				break;
+			}
+		}
+
+		int curParent = anim.m_boneParents[boneIndex];
 
 		const collada::KeyFrame& kf = GetKeyFrame(curChannel, m_time);
 		collada::Matrix curTransform = kf.m_transform;
 
 		while (curParent >= 0)
 		{
-			const collada::AnimChannel& parentChannel = anim.m_channels.find(skel->m_joints[curParent])->second;
+			const collada::AnimChannel& parentChannel = anim.m_channels.find(anim.m_bones[curParent])->second;
 
 			const collada::KeyFrame& parentKF = GetKeyFrame(parentChannel, m_time);
 			const collada::Matrix& parentTransform = parentKF.m_transform;
 
 			curTransform = collada::Matrix::Multiply(curTransform, parentTransform);
-			curParent = skel->m_jointsParents[curParent];
+			curParent = anim.m_boneParents[curParent];
 		}
 
 		*matrixData++ = curTransform;
