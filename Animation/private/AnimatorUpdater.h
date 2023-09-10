@@ -16,9 +16,12 @@ namespace rendering
 
 namespace animation
 {
+	class Animator;
 	class AnimatorUpdater : public rendering::AsyncTickUpdater
 	{
 	private:
+		Animator& m_animator;
+
 		rendering::DXMutableBuffer* m_buffer = nullptr;
 		double m_time = 0;
 		double m_speed = 1;
@@ -27,7 +30,7 @@ namespace animation
 
 		void StartAnimation(const collada::Animation* animation);
 	public:
-		AnimatorUpdater(rendering::DXMutableBuffer* buffer);
+		AnimatorUpdater(rendering::DXMutableBuffer* buffer, Animator& animator);
 		virtual ~AnimatorUpdater();
 
 		void Update(double dt, jobs::Job* done) override;

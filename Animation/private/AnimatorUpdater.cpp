@@ -7,6 +7,8 @@
 #include "DXBuffer.h"
 #include "DXMutableBuffer.h"
 
+#include "Animator.h"
+
 #include "utils.h"
 
 #include "CoreUtils.h"
@@ -66,8 +68,9 @@ namespace
 	}
 }
 
-animation::AnimatorUpdater::AnimatorUpdater(rendering::DXMutableBuffer* buffer) :
+animation::AnimatorUpdater::AnimatorUpdater(rendering::DXMutableBuffer* buffer, animation::Animator& animator) :
 	AsyncTickUpdater(AnimatorUpdaterMeta::GetInstance()),
+	m_animator(animator),
 	m_buffer(buffer)
 {
 	CacheObjects();
@@ -108,23 +111,30 @@ void animation::AnimatorUpdater::Update(double dt, jobs::Job* done)
 
 	const collada::Animation& anim = *m_currentAnimation;
 
-	for (int i = 0; i < anim.m_bones.size(); ++i)
+	const collada::Skeleton* skel = m_animator.GetSkeleton();
+
+	for (int i = 0; i < skel->m_joints.size(); ++i)
 	{
-		const collada::AnimChannel& curChannel = anim.m_channels.find(anim.m_bones[i])->second;
-		int curParent = anim.m_boneParents[i];
+		auto chanIt = anim.m_channels.find(skel->m_joints[i]);
+		if (chanIt == anim.m_channels.end())
+		{
+			bool t = true;
+		}
+		const collada::AnimChannel& curChannel = anim.m_channels.find(skel->m_joints[i])->second;
+		int curParent = skel->m_jointsParents[i];
 
 		const collada::KeyFrame& kf = GetKeyFrame(curChannel, m_time);
 		collada::Matrix curTransform = kf.m_transform;
 
 		while (curParent >= 0)
 		{
-			const collada::AnimChannel& parentChannel = anim.m_channels.find(anim.m_bones[curParent])->second;
+			const collada::AnimChannel& parentChannel = anim.m_channels.find(skel->m_joints[curParent])->second;
 
 			const collada::KeyFrame& parentKF = GetKeyFrame(parentChannel, m_time);
 			const collada::Matrix& parentTransform = parentKF.m_transform;
 
 			curTransform = collada::Matrix::Multiply(curTransform, parentTransform);
-			curParent = anim.m_boneParents[curParent];
+			curParent = skel->m_jointsParents[curParent];
 		}
 
 		*matrixData++ = curTransform;

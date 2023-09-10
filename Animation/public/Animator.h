@@ -4,6 +4,11 @@
 
 #include <string>
 
+namespace collada
+{
+	struct Skeleton;
+}
+
 namespace animation
 {
 	class AnimatorUpdater;
@@ -17,5 +22,7 @@ namespace animation
 	public:
 		Animator(const std::string& objectName);
 		virtual ~Animator();
+
+		const collada::Skeleton* GetSkeleton();
 	};
 }

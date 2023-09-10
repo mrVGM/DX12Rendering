@@ -598,7 +598,7 @@ bool collada::ColladaAnimation::Load(const std::string& filePath)
 			}
 		}
 
-		const std::string& jointName = curJoint->m_tagProps.find("name")->second;
+		const std::string& jointName = curJoint->m_tagProps.find("sid")->second;
 		m_animation.m_channels[jointName] = AnimChannel();
 		AnimChannel& animChannel = m_animation.m_channels[jointName];
 

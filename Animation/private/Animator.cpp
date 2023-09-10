@@ -43,11 +43,40 @@ animation::Animator::Animator(const std::string& objectName) :
 		break;
 	}
 
-	m_updater = new animation::AnimatorUpdater(buffer);
+	m_updater = new animation::AnimatorUpdater(buffer, *this);
 
 	m_updater->PlayAnimation("dance", 0.1);
 }
 
 animation::Animator::~Animator()
 {
+}
+
+
+const collada::Skeleton* animation::Animator::GetSkeleton()
+{
+	for (int i = 0; i < m_scene->m_colladaScenes.size(); ++i)
+	{
+		collada::ColladaScene* cur = m_scene->m_colladaScenes[i];
+		collada::Scene& curScene = cur->GetScene();
+
+		auto objIt = curScene.m_objects.find(m_objectName);
+		if (objIt == curScene.m_objects.end())
+		{
+			continue;
+		}
+
+		const collada::Object& obj = objIt->second;
+
+		auto skelIt = curScene.m_skeletons.find(obj.m_geometry);
+
+		if (skelIt == curScene.m_skeletons.end())
+		{
+			continue;
+		}
+
+		return &skelIt->second;
+	}
+
+	return nullptr;
 }
