@@ -20,8 +20,10 @@ struct SkeletalMeshVertexInput3D
     float4 objectRotation : OBJECT_ROTATION;
     float3 objectScale : OBJECT_SCALE;
     
-    int4 m_jointIndex       : JOINT_INDEX;
-    float4 m_jointWeight    :JOINT_WEIGHT;
+    int4 m_jointIndex1       :  JOINT_1_INDEX;
+    int4 m_jointIndex2       :  JOINT_2_INDEX;
+    float4 m_jointWeight1    :  JOINT_1_WEIGHT;
+    float4 m_jointWeight2    :  JOINT_2_WEIGHT;
 };
 
 struct VertexInput2D

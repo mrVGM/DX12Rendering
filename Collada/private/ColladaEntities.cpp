@@ -368,7 +368,7 @@ void collada::Scene::ConstructSkeletonBuffers()
 				int index = 0;
 				for (auto weightIt = weights->begin(); weightIt != weights->end(); ++weightIt)
 				{
-					if (index >= 4)
+					if (index >= 8)
 					{
 						break;
 					}
