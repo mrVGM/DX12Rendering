@@ -16,6 +16,7 @@ namespace rendering
 	class DXTexture;
 	class DXDescriptorHeap;
 	class DXMaterial;
+	class DXShadowMapMaterial;
 
 	class CascadedSM : public shadow_mapping::ShadowMap
 	{
@@ -34,7 +35,7 @@ namespace rendering
 		std::vector<DXTexture*> m_smTex;
 		std::vector<DXTexture*> m_shadowMaskTex;
 
-		std::list<DXMaterial*> m_shadowMapMaterials;
+		std::list<DXShadowMapMaterial*> m_shadowMapMaterials;
 
 		std::list<DXTexture*> m_depthTextures;
 		DXDescriptorHeap* m_dsDescriptorHeap = nullptr;
@@ -73,7 +74,7 @@ namespace rendering
 		DXDescriptorHeap* GetSMDescriptorHeap();
 		DXMutableBuffer* GetSettingsBuffer();
 
-		const std::list<DXMaterial*>& GetShadowMapMaterials();
+		const std::list<DXShadowMapMaterial*>& GetShadowMapMaterials();
 
 		void SetListsDirty();
 	};

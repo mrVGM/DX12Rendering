@@ -721,6 +721,7 @@ void rendering::CascadedSM::LoadSMMaterials(jobs::Job* done)
 	{
 		ctx->m_materials[i] = new DXShadowMapMaterial(
 			*shadowMapShaderSet.m_vertexShader,
+			*shadowMapShaderSet.m_vertexSkeletalShader,
 			*shadowMapShaderSet.m_pixelShader,
 			i);
 
@@ -1230,11 +1231,6 @@ void rendering::CascadedSM::RenderScene()
 
 				DXMaterial* mat = repo->GetMaterial(matOverrideName);
 
-				const DXScene::GeometryResources& geometryResources = curSceneResources.m_geometryResources.find(obj.m_geometry)->second;
-				DXBuffer* vertBuf = geometryResources.m_vertexBuffer;
-				DXBuffer* indexBuf = geometryResources.m_indexBuffer;
-				DXBuffer* instanceBuf = geometryResources.m_instanceBuffer->GetBuffer();
-
 				if (!mat)
 				{
 					continue;
@@ -1245,19 +1241,53 @@ void rendering::CascadedSM::RenderScene()
 					continue;
 				}
 
+				const DXScene::GeometryResources& geometryResources = curSceneResources.m_geometryResources.find(obj.m_geometry)->second;
+				DXBuffer* vertBuf = geometryResources.m_vertexBuffer;
+				DXBuffer* indexBuf = geometryResources.m_indexBuffer;
+				DXBuffer* instanceBuf = geometryResources.m_instanceBuffer->GetBuffer();
+
+				DXMutableBuffer* poseBuffer = nullptr;
+
+				const DXScene::ObjectResources* objectResources = nullptr;
+				{
+					{
+						auto it = curSceneResources.m_objectResources.find(objectName);
+						if (it != curSceneResources.m_objectResources.end())
+						{
+							poseBuffer = it->second.m_skeletonPoseBuffer;
+						}
+					}
+				}
+
 				for (auto smMatIt = GetShadowMapMaterials().begin();
 					smMatIt != GetShadowMapMaterials().end();
 					++smMatIt)
 				{
 
-					ID3D12CommandList* cl = (*smMatIt)->GenerateCommandList(
-						*vertBuf,
-						*indexBuf,
-						*instanceBuf,
-						(*it).indexOffset,
-						(*it).indexCount,
-						instanceIndex);
-
+					ID3D12CommandList* cl = nullptr;
+					if (!poseBuffer)
+					{
+						cl = (*smMatIt)->GenerateCommandList(
+							*vertBuf,
+							*indexBuf,
+							*instanceBuf,
+							(*it).indexOffset,
+							(*it).indexCount,
+							instanceIndex);
+					}
+					else
+					{
+						cl = (*smMatIt)->GenerateCommandListForSkeletalMesh(
+							*vertBuf,
+							*geometryResources.m_skeletalMeshVertexBuffer,
+							*indexBuf,
+							*instanceBuf,
+							*geometryResources.m_skeletonBuffer,
+							*poseBuffer->GetBuffer(),
+							(*it).indexOffset,
+							(*it).indexCount,
+							instanceIndex);
+					}
 					deferredLists.push_back(cl);
 				}
 			}
@@ -1299,7 +1329,7 @@ rendering::DXMutableBuffer* rendering::CascadedSM::GetSettingsBuffer()
 	return m_smSettingsBuffer;
 }
 
-const std::list<rendering::DXMaterial*>& rendering::CascadedSM::GetShadowMapMaterials()
+const std::list<rendering::DXShadowMapMaterial*>& rendering::CascadedSM::GetShadowMapMaterials()
 {
 	return m_shadowMapMaterials;
 }

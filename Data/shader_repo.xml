@@ -5,6 +5,7 @@
 		<vs_mainVS>"shaders/bin/vs_mainVS.fxc"</vs_mainVS>
 		<vs_mainSkeletalMeshVS>"shaders/bin/vs_mainSkeletalMeshVS.fxc"</vs_mainSkeletalMeshVS>
 		<vs_shadowMapVS>"shaders/bin/vs_shadowMapVS.fxc"</vs_shadowMapVS>
+		<vs_shadowMapSkeletalVS>"shaders/bin/vs_shadowMapSkeletalVS.fxc"</vs_shadowMapSkeletalVS>
 		<vs_displayCharVS>"shaders/bin/vs_displayCharVS.fxc"</vs_displayCharVS>
 		<vs_postProcessing>"shaders/bin/vs_postProcessVS.fxc"</vs_postProcessing>
 	</vertex_shaders>
@@ -50,6 +51,7 @@
 		</deferred_rp_post_lighting>
 		<csm_shadow_map>
 			<vertex>vs_shadowMapVS</vertex>
+			<vertex_skeletal>vs_shadowMapSkeletalVS</vertex_skeletal>
 			<pixel>ps_shadowMap</pixel>
 		</csm_shadow_map>
 		<display_shadow_map>
