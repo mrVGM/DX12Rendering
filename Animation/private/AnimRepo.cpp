@@ -90,3 +90,15 @@ void animation::AnimRepo::LoadAnimations()
 		rendering::core::utils::RunAsync(new LoadAnim(*ctx));
 	}
 }
+
+const collada::Animation* animation::AnimRepo::GetAnimation(const std::string& animationName)
+{
+	auto it = m_animations.find(animationName);
+
+	if (it == m_animations.end())
+	{
+		return nullptr;
+	}
+
+	return &(it->second);
+}

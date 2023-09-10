@@ -2,6 +2,7 @@
 
 #include "DXSceneMeta.h"
 #include "SceneSettingsMeta.h"
+#include "AnimRepoMeta.h"
 
 #include "BaseObjectContainer.h"
 
@@ -35,3 +36,17 @@ collada::SceneSettings* animation::GetSceneSettings()
 	return sceneSettings;
 }
 
+animation::AnimRepo* animation::GetAnimRepo()
+{
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+
+	BaseObject* obj = container.GetObjectOfClass(animation::AnimRepoMeta::GetInstance());
+
+	if (!obj)
+	{
+		throw "Can't find Anim Repo!";
+	}
+
+	animation::AnimRepo* animRepo = static_cast<animation::AnimRepo*>(obj);
+	return animRepo;
+}

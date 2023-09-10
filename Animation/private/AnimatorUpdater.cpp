@@ -7,12 +7,28 @@
 #include "DXBuffer.h"
 #include "DXMutableBuffer.h"
 
+#include "utils.h"
+
 #include "CoreUtils.h"
+
+namespace
+{
+	animation::AnimRepo* m_animRepo = nullptr;
+
+	void CacheObjects()
+	{
+		if (!m_animRepo)
+		{
+			m_animRepo = animation::GetAnimRepo();
+		}
+	}
+}
 
 animation::AnimatorUpdater::AnimatorUpdater(rendering::DXMutableBuffer* buffer) :
 	AsyncTickUpdater(AnimatorUpdaterMeta::GetInstance()),
 	m_buffer(buffer)
 {
+	CacheObjects();
 }
 
 animation::AnimatorUpdater::~AnimatorUpdater()
@@ -22,6 +38,8 @@ animation::AnimatorUpdater::~AnimatorUpdater()
 void animation::AnimatorUpdater::Update(double dt, jobs::Job* done)
 {
 	using namespace rendering;
+
+	m_currentAnimation = m_animRepo->GetAnimation(m_animationName);
 
 	if (!m_currentAnimation)
 	{
@@ -60,6 +78,11 @@ void animation::AnimatorUpdater::Update(double dt, jobs::Job* done)
 
 	m_buffer->SetDirty();
 	rendering::core::utils::RunSync(done);
+}
+
+void animation::AnimatorUpdater::PlayAnimation(const std::string& animName)
+{
+	m_animationName = animName;
 }
 
 void animation::AnimatorUpdater::StartAnimation(const collada::Animation* animation)

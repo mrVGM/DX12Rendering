@@ -19,5 +19,7 @@ namespace animation
 		virtual ~AnimRepo();
 
 		void LoadAnimations();
+
+		const collada::Animation* GetAnimation(const std::string& animationName);
 	};
 }

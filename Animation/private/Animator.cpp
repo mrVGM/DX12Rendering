@@ -26,6 +26,26 @@ animation::Animator::Animator(const std::string& objectName) :
 {
 	CacheObjects();
 	animation::Boot();
+
+	rendering::DXMutableBuffer* buffer = nullptr;
+	for (int i = 0; i < m_scene->m_colladaScenes.size(); ++i)
+	{
+		collada::ColladaScene* cur = m_scene->m_colladaScenes[i];
+		rendering::DXScene::SceneResources& curSceneResources = m_scene->m_sceneResources[i];
+
+		auto objResIt = curSceneResources.m_objectResources.find(m_objectName);
+		if (objResIt == curSceneResources.m_objectResources.end())
+		{
+			continue;
+		}
+
+		buffer = objResIt->second.m_skeletonPoseBuffer;
+		break;
+	}
+
+	m_updater = new animation::AnimatorUpdater(buffer);
+
+	m_updater->PlayAnimation("anim");
 }
 
 animation::Animator::~Animator()

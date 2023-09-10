@@ -46,8 +46,6 @@
 
 #include "ImageLoading.h"
 
-#include "DXAnimUpdater.h"
-
 #include "Animator.h"
 
 #include <iostream>
@@ -187,8 +185,6 @@ namespace
 				const rendering::RendererSettings::Settings& settings = m_rendererSettings->GetSettings();
 				std::string scenePath = settings.m_sceneToLoad;
 				scene->LoadColladaScene(scenePath, new SceneLoaded());
-
-				new DXAnimUpdater();
 			}
 		};
 
