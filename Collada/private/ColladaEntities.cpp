@@ -1275,7 +1275,7 @@ void collada::Animation::Serialize(data::MemoryFileWriter& writer)
 
 	{
 		data::BinChunk bonesParentsChunk;
-		bonesParentsChunk.m_size = m_bones.size() * sizeof(int);
+		bonesParentsChunk.m_size = m_boneParents.size() * sizeof(int);
 		bonesParentsChunk.m_data = new char[bonesParentsChunk.m_size];
 
 		int* boneParents = reinterpret_cast<int*>(bonesParentsChunk.m_data);

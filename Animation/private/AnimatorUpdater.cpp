@@ -116,10 +116,6 @@ void animation::AnimatorUpdater::Update(double dt, jobs::Job* done)
 	for (int i = 0; i < skel->m_joints.size(); ++i)
 	{
 		auto chanIt = anim.m_channels.find(skel->m_joints[i]);
-		if (chanIt == anim.m_channels.end())
-		{
-			bool t = true;
-		}
 		const collada::AnimChannel& curChannel = anim.m_channels.find(skel->m_joints[i])->second;
 		int curParent = skel->m_jointsParents[i];
 

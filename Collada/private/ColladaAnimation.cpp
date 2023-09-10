@@ -568,6 +568,7 @@ bool collada::ColladaAnimation::Load(const std::string& filePath)
 				m_animation.m_boneParents.back() = index;
 				break;
 			}
+			++index;
 		}
 	}
 
