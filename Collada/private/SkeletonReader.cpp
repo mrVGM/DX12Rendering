@@ -424,6 +424,12 @@ namespace
 					break;
 				}
 			}
+
+			if (skeletonReader.m_jointsParents[i] < 0)
+			{
+				collada::Matrix& tmp = skeletonReader.m_jointTransforms[i];
+				collada::GetTransformNode(cur, tmp);
+			}
 		}
 	}
 }

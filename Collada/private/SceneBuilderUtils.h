@@ -25,5 +25,6 @@ namespace collada
 	bool ShouldInvertAxis(const xml_reader::Node* rootDataNode);
 	void ReadMatricesFromNode(const xml_reader::Node* node, Matrix* matrices, int numMatrices);
 	bool GetLocalTransformNode(const xml_reader::Node* node, Matrix& matrix);
+	bool GetTransformNode(const xml_reader::Node* node, Matrix& matrix);
 	collada::Matrix ChangeAxisOfMatrix(const collada::Matrix& matrix);
 }

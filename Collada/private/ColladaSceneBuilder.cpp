@@ -40,32 +40,6 @@ namespace
 		return nullptr;
 	}
 
-	bool GetTransformNode(const xml_reader::Node* node, Matrix& matrix)
-	{
-		if (!node)
-		{
-			return false;
-		}
-
-		Matrix tmp;
-		bool res = collada::GetLocalTransformNode(node, tmp);
-
-		if (!res)
-		{
-			return false;
-		}
-
-		matrix = tmp;
-		const Node* cur = node->m_parent;
-		while (cur && collada::GetLocalTransformNode(cur, tmp))
-		{
-			matrix = Matrix::Multiply(matrix, tmp);
-			cur = cur->m_parent;
-		}
-
-		return true;
-	}
-
 	const Node* FindChildTagByName(const std::string& name, const Node* rootNode)
 	{
 		std::list<const Node*> found;
@@ -926,5 +900,31 @@ bool collada::GetLocalTransformNode(const xml_reader::Node* node, Matrix& matrix
 	}
 
 	ReadMatricesFromNode(matrixNode, &matrix, 1);
+	return true;
+}
+
+bool collada::GetTransformNode(const xml_reader::Node* node, Matrix& matrix)
+{
+	if (!node)
+	{
+		return false;
+	}
+
+	Matrix tmp;
+	bool res = collada::GetLocalTransformNode(node, tmp);
+
+	if (!res)
+	{
+		return false;
+	}
+
+	matrix = tmp;
+	const Node* cur = node->m_parent;
+	while (cur && collada::GetLocalTransformNode(cur, tmp))
+	{
+		matrix = Matrix::Multiply(matrix, tmp);
+		cur = cur->m_parent;
+	}
+
 	return true;
 }

@@ -554,10 +554,14 @@ bool collada::ColladaAnimation::Load(const std::string& filePath)
 	std::list<const xml_reader::Node*> jointNodes;
 	ReadJoints(rootNodes, jointNodes);
 
+	std::string rootBoneId;
+	const xml_reader::Node* rootBoneNode = nullptr;
+
 	for (auto it = jointNodes.begin(); it != jointNodes.end(); ++it)
 	{
 		const xml_reader::Node* cur = *it;
-		m_animation.m_bones.push_back(cur->m_tagProps.find("sid")->second);
+		std::string curBoneName = cur->m_tagProps.find("sid")->second;
+		m_animation.m_bones.push_back(curBoneName);
 		m_animation.m_boneParents.push_back(-1);
 
 		int index = 0;
@@ -570,6 +574,23 @@ bool collada::ColladaAnimation::Load(const std::string& filePath)
 			}
 			++index;
 		}
+
+		if (m_animation.m_boneParents.back() < 0)
+		{
+			rootBoneNode = cur;
+			rootBoneId = cur->m_tagProps.find("id")->second;
+		}
+	}
+
+	collada::Matrix rootBoneTransform = collada::Matrix::One();
+	if (rootBoneNode)
+	{
+		collada::Matrix tmp;
+		xml_reader::Node* parent = rootBoneNode->m_parent;
+		if (parent && collada::GetTransformNode(parent, tmp))
+		{
+			rootBoneTransform = tmp;
+		}
 	}
 
 	const xml_reader::Node* animation = GetAnimationNode(rootNodes);
@@ -579,6 +600,15 @@ bool collada::ColladaAnimation::Load(const std::string& filePath)
 		std::string bone;
 		std::list<KeyFrame> keyFrames;
 		ReadAnimationChannel(*it, bone, keyFrames);
+
+		if (bone == rootBoneId)
+		{
+			for (auto it = keyFrames.begin(); it != keyFrames.end(); ++it)
+			{
+				KeyFrame& cur = *it;
+				cur.m_transform = collada::Matrix::Multiply(cur.m_transform, rootBoneTransform);
+			}
+		}
 
 		if (invertAxis)
 		{
