@@ -11,6 +11,49 @@
 
 namespace collada
 {
+	struct Vector3
+	{
+		float m_values[3] = {};
+
+		static Vector3 Cross(const Vector3& v1, const Vector3& v2);
+		static float Dot(const Vector3& v1, const Vector3& v2);
+
+		Vector3 Normalize() const;
+
+		Vector3 operator*(float t) const;
+		Vector3 operator+(const Vector3& other) const;
+	};
+
+	struct Vector4
+	{
+		float m_values[4] = {};
+
+		Vector4 ConjugateQuat() const;
+		static Vector4 MultiplyQuat(const Vector4& q1, const Vector4& q2);
+
+		Vector3 RotateVector(const Vector3& v) const;
+
+		Vector3 GetComponents(const int indices[3]) const;
+	};
+
+	struct Vector2
+	{
+		float m_values[2] = {};
+	};
+
+	struct Matrix;
+
+	struct Transform
+	{
+		Vector3 m_offset;
+		Vector4 m_rotation;
+		Vector3 m_scale;
+
+		Vector3 TransformPoint(const Vector3& p) const;
+
+		Matrix ToMatrix() const;
+	};
+
 	struct Matrix
 	{
 		float m_coefs[16] = 
@@ -29,17 +72,9 @@ namespace collada
 
 		float GetCoef(int row, int column) const;
 		Matrix Transpose() const;
-	};
+		Vector4 TransformPoint(const Vector4& vector) const;
 
-
-	struct Vector3
-	{
-		float m_values[3];
-	};
-
-	struct Vector2
-	{
-		float m_values[2];
+		Transform ToTransform() const;
 	};
 
 	struct Vertex

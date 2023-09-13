@@ -3,6 +3,8 @@
 #include "DataLib.h"
 #include "MemoryFile.h"
 
+#include <sstream>
+
 namespace
 {
 	struct MaterialRangeSerializable
@@ -796,6 +798,279 @@ const collada::Matrix& collada::Matrix::Zero()
 const collada::Matrix& collada::Matrix::One()
 {
 	return m_one;
+}
+
+collada::Vector4 collada::Matrix::TransformPoint(const Vector4& vector) const
+{
+	Vector4 res;
+	for (int i = 0; i < 4; ++i)
+	{
+		float& curCoef = res.m_values[i];
+
+		for (int j = 0; j < 4; ++j)
+		{
+			curCoef += vector.m_values[j] * GetCoef(j, i);
+		}
+	}
+
+	return res;
+}
+
+collada::Vector4 collada::Vector4::ConjugateQuat() const
+{
+	Vector4 res = *this;
+	res.m_values[1] = -res.m_values[1];
+	res.m_values[2] = -res.m_values[2];
+	res.m_values[3] = -res.m_values[3];
+
+	return res;
+}
+
+collada::Vector4 collada::Vector4::MultiplyQuat(const collada::Vector4& q1, const collada::Vector4& q2)
+{
+	Vector4 res;
+	res.m_values[0] =
+		  q1.m_values[0] * q2.m_values[0]
+		- q1.m_values[1] * q2.m_values[1]
+		- q1.m_values[2] * q2.m_values[2]
+		- q1.m_values[3] * q2.m_values[3];
+
+	res.m_values[1] =
+		  q1.m_values[0] * q2.m_values[1]
+		+ q1.m_values[1] * q2.m_values[0]
+		+ q1.m_values[2] * q2.m_values[3]
+		- q1.m_values[3] * q2.m_values[2];
+
+	res.m_values[2] =
+		  q1.m_values[0] * q2.m_values[2]
+		- q1.m_values[1] * q2.m_values[3]
+		+ q1.m_values[2] * q2.m_values[0]
+		+ q1.m_values[3] * q2.m_values[1];
+
+	res.m_values[3] =
+		  q1.m_values[0] * q2.m_values[3]
+		+ q1.m_values[1] * q2.m_values[2]
+		- q1.m_values[2] * q2.m_values[1]
+		+ q1.m_values[3] * q2.m_values[0];
+
+	return res;
+}
+
+collada::Vector3 collada::Vector4::RotateVector(const Vector3& v) const
+{
+	Vector4 tmp = { 0, v.m_values[0], v.m_values[1], v.m_values[2] };
+	tmp = MultiplyQuat(ConjugateQuat(), MultiplyQuat(tmp, *this));
+
+	int yzw[3] = {1,2,3};
+	return tmp.GetComponents(yzw);
+}
+
+collada::Vector3 collada::Vector4::GetComponents(const int indices[3]) const
+{
+	Vector3 res = { m_values[indices[0]], m_values[indices[1]], m_values[indices[2]] };
+	return res;
+}
+
+collada::Vector3 collada::Vector3::Cross(const Vector3& v1, const Vector3& v2)
+{
+	Vector3 res;
+	res.m_values[0] = + v1.m_values[1] * v2.m_values[2] - v1.m_values[2] * v2.m_values[1];
+	res.m_values[1] = - v1.m_values[0] * v2.m_values[2] + v1.m_values[2] * v2.m_values[0];
+	res.m_values[2] = + v1.m_values[0] * v2.m_values[1] - v1.m_values[1] * v2.m_values[0];
+
+	return res;
+}
+
+float collada::Vector3::Dot(const Vector3& v1, const Vector3& v2)
+{
+	float res = v1.m_values[0] * v2.m_values[0] + v1.m_values[1] * v2.m_values[1] + v1.m_values[2] * v2.m_values[2];
+
+	return res;
+}
+
+collada::Vector3 collada::Vector3::Normalize() const
+{
+	float d = Dot(*this, *this);
+	if (d < 0.0000001)
+	{
+		return Vector3{};
+	}
+
+	d = sqrt(d);
+	Vector3 res = *this;
+	res.m_values[0] /= d;
+	res.m_values[1] /= d;
+	res.m_values[2] /= d;
+
+	return res;
+}
+
+collada::Vector3 collada::Vector3::operator*(float t) const
+{
+	Vector3 res = *this;
+	res.m_values[0] = t * res.m_values[0];
+	res.m_values[1] = t * res.m_values[1];
+	res.m_values[2] = t * res.m_values[2];
+
+	return res;
+}
+
+collada::Vector3 collada::Vector3::operator+(const Vector3& other) const
+{
+	Vector3 res = {};
+	res.m_values[0] = m_values[0] + other.m_values[0];
+	res.m_values[1] = m_values[1] + other.m_values[1];
+	res.m_values[2] = m_values[2] + other.m_values[2];
+
+	return res;
+}
+
+collada::Transform collada::Matrix::ToTransform() const
+{
+	Transform res;
+
+	Vector4 origin = { {0, 0, 0, 1} };
+
+	int xyz[3] = { 0,1,2 };
+	origin = TransformPoint(origin);
+	res.m_offset = origin.GetComponents(xyz);
+
+	Vector4 x = { {1, 0, 0, 1} };
+	Vector4 y = { {0, 1, 0, 1} };
+	Vector4 z = { {0, 0, 1, 1} };
+
+	x = TransformPoint(x);
+	y = TransformPoint(y);
+	z = TransformPoint(z);
+
+	Vector3 X = x.GetComponents(xyz) + origin.GetComponents(xyz) * (-1);
+	Vector3 Y = y.GetComponents(xyz) + origin.GetComponents(xyz) * (-1);
+	Vector3 Z = z.GetComponents(xyz) + origin.GetComponents(xyz) * (-1);
+
+	float dX = Vector3::Dot(X, X);
+	float dY = Vector3::Dot(Y, Y);
+	float dZ = Vector3::Dot(Z, Z);
+
+	dX = sqrt(dX);
+	dY = sqrt(dY);
+	dZ = sqrt(dZ);
+
+	res.m_scale = { dX, dY, dZ };
+
+	X = X.Normalize();
+	Y = Y.Normalize();
+	Z = Z.Normalize();
+
+	Vector4 rot = { 1, 0, 0, 0 };
+
+	if (Z.m_values[2] < 1)
+	{
+		float alt = acos(Z.m_values[2]) / 2;
+		rot = { cos(alt), 0, -sin(alt), 0 };
+
+		Vector2 azmDir = { Z.m_values[0], Z.m_values[1] };
+		float d = azmDir.m_values[0] * azmDir.m_values[0] + azmDir.m_values[1] * azmDir.m_values[1];
+		d = sqrt(d);
+
+		azmDir.m_values[0] /= d;
+		azmDir.m_values[1] /= d;
+
+		float azmCos = azmDir.m_values[0];
+		azmCos = azmCos < -1 ? -1 : azmCos;
+		azmCos = azmCos > 1 ? 1 : azmCos;
+
+		float azm = acos(azmCos);
+		if (azmDir.m_values[1] < 0)
+		{
+			azm *= -1;
+		}
+		azm /= 2;
+
+		Vector4 r2 = { cos(azm), 0, 0, -sin(azm) };
+		rot = Vector4::MultiplyQuat(rot, r2);
+	}
+
+	Vector3 X0 = rot.RotateVector(Vector3({1, 0, 0}));
+
+	float cosAngle = Vector3::Dot(X, X0);
+	cosAngle = cosAngle < -1 ? -1 : cosAngle;
+	cosAngle = cosAngle > 1 ? 1 : cosAngle;
+
+	float angle = acos(cosAngle);
+
+	{
+		Vector3 tmp = Vector3::Cross(X0, X);
+		if (Vector3::Dot(tmp, Z) < 0)
+		{
+			angle *= -1;
+		}
+	}
+
+	angle /= 2;
+	
+	{
+		Vector4 tmp = { cos(angle), -sin(angle) * Z.m_values[0], -sin(angle) * Z.m_values[1], -sin(angle) * Z.m_values[2] };
+		rot = Vector4::MultiplyQuat(rot, tmp);
+	}
+
+	res.m_rotation = rot;
+
+	{
+		Vector3 Y0 = rot.RotateVector(Vector3 { 0, 1, 0 });
+		if (Vector3::Dot(Y0, Y) < 0)
+		{
+			res.m_scale.m_values[1] *= -1;
+		}
+	}
+
+	return res;
+}
+
+collada::Vector3 collada::Transform::TransformPoint(const Vector3& p) const
+{
+	Vector3 res =
+	{
+		p.m_values[0] * m_scale.m_values[0],
+		p.m_values[1] * m_scale.m_values[1],
+		p.m_values[2] * m_scale.m_values[2]
+	};
+
+	res = m_rotation.RotateVector(res);
+	res = res + m_offset;
+
+	return res;
+}
+
+collada::Matrix collada::Transform::ToMatrix() const
+{
+	Matrix res = Matrix::One();
+
+	Vector3 X = m_rotation.RotateVector(Vector3{ 1, 0, 0 });
+	Vector3 Y = m_rotation.RotateVector(Vector3{ 0, 1, 0 });
+	Vector3 Z = m_rotation.RotateVector(Vector3{ 0, 0, 1 });
+
+	X = X * m_scale.m_values[0];
+	Y = Y * m_scale.m_values[1];
+	Z = Z * m_scale.m_values[2];
+
+	res.m_coefs[res.GetIndex(0, 0)] = X.m_values[0];
+	res.m_coefs[res.GetIndex(1, 0)] = X.m_values[1];
+	res.m_coefs[res.GetIndex(2, 0)] = X.m_values[2];
+
+	res.m_coefs[res.GetIndex(0, 1)] = Y.m_values[0];
+	res.m_coefs[res.GetIndex(1, 1)] = Y.m_values[1];
+	res.m_coefs[res.GetIndex(2, 1)] = Y.m_values[2];
+
+	res.m_coefs[res.GetIndex(0, 2)] = Z.m_values[0];
+	res.m_coefs[res.GetIndex(1, 2)] = Z.m_values[1];
+	res.m_coefs[res.GetIndex(2, 2)] = Z.m_values[2];
+
+	res.m_coefs[res.GetIndex(0, 3)] = m_offset.m_values[0];
+	res.m_coefs[res.GetIndex(1, 3)] = m_offset.m_values[1];
+	res.m_coefs[res.GetIndex(2, 3)] = m_offset.m_values[2];
+
+	res = res.Transpose();
+	return res;
 }
 
 namespace
