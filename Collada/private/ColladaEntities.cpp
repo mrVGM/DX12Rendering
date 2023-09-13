@@ -3,7 +3,7 @@
 #include "DataLib.h"
 #include "MemoryFile.h"
 
-#include <sstream>
+#include <corecrt_math_defines.h>
 
 namespace
 {
@@ -1070,6 +1070,43 @@ collada::Matrix collada::Transform::ToMatrix() const
 	res.m_coefs[res.GetIndex(2, 3)] = m_offset.m_values[2];
 
 	res = res.Transpose();
+	return res;
+}
+
+collada::Transform collada::Transform::Lerp(const Transform& t1, const Transform& t2, float coef)
+{
+	Transform res;
+	res.m_offset = t1.m_offset * (1 - coef) + t2.m_offset * coef;
+	res.m_scale = t1.m_scale * (1 - coef) + t2.m_scale * coef;
+
+
+	int yzw[3] = { 1, 2, 3 };
+	Vector4 rot = Vector4::MultiplyQuat(t1.m_rotation.ConjugateQuat(), t2.m_rotation);
+
+	float cosAngle = rot.m_values[0];
+	cosAngle = cosAngle < -1 ? -1 : cosAngle;
+	cosAngle = cosAngle >  1 ?  1 : cosAngle;
+
+	float angle = acos(cosAngle);
+	Vector3 pole = rot.GetComponents(yzw);
+	pole = pole.Normalize();
+
+	if (sin(angle) > 0)
+	{
+		pole = pole * (-1);
+	}
+
+	if (angle > M_PI / 2)
+	{
+		angle = M_PI - angle;
+	}
+
+	angle *= coef;
+
+	rot = Vector4{cos(angle), -sin(angle) * pole.m_values[0], -sin(angle) * pole.m_values[1], -sin(angle) * pole.m_values[2]};
+
+	res.m_rotation = Vector4::MultiplyQuat(t1.m_rotation, rot);
+
 	return res;
 }
 

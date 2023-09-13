@@ -52,6 +52,8 @@ namespace collada
 		Vector3 TransformPoint(const Vector3& p) const;
 
 		Matrix ToMatrix() const;
+
+		static Transform Lerp(const Transform& t1, const Transform& t2, float coef);
 	};
 
 	struct Matrix
