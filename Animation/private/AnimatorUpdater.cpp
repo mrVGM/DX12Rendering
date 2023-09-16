@@ -37,7 +37,7 @@ namespace
 		return maxTime;
 	}
 
-	const collada::KeyFrame& GetKeyFrame(const collada::AnimChannel& channel, double time)
+	collada::Matrix SampleAnim(const collada::AnimChannel& channel, double time)
 	{
 		int left = 0;
 		int right = channel.m_keyFrames.size() - 1;
@@ -59,12 +59,13 @@ namespace
 		double leftOffset = time - channel.m_keyFrames[left].m_time;
 		double rightOffset = channel.m_keyFrames[right].m_time - time;
 
-		if (leftOffset < rightOffset)
-		{
-			return channel.m_keyFrames[left];
-		}
+		collada::Transform leftTr = channel.m_keyFrames[left].m_transform.ToTransform();
+		collada::Transform rightTr = channel.m_keyFrames[right].m_transform.ToTransform();
 
-		return channel.m_keyFrames[right];
+		float coef = leftOffset / (rightOffset + leftOffset);
+
+		collada::Transform res = collada::Transform::Lerp(leftTr, rightTr, coef);
+		return res.ToMatrix();
 	}
 }
 
@@ -130,15 +131,13 @@ void animation::AnimatorUpdater::Update(double dt, jobs::Job* done)
 
 		int curParent = anim.m_boneParents[boneIndex];
 
-		const collada::KeyFrame& kf = GetKeyFrame(curChannel, m_time);
-		collada::Matrix curTransform = kf.m_transform;
+		collada::Matrix curTransform = SampleAnim(curChannel, m_time);
 
 		while (curParent >= 0)
 		{
 			const collada::AnimChannel& parentChannel = anim.m_channels.find(anim.m_bones[curParent])->second;
 
-			const collada::KeyFrame& parentKF = GetKeyFrame(parentChannel, m_time);
-			const collada::Matrix& parentTransform = parentKF.m_transform;
+			collada::Matrix parentTransform = SampleAnim(parentChannel, m_time);
 
 			curTransform = collada::Matrix::Multiply(curTransform, parentTransform);
 			curParent = anim.m_boneParents[curParent];
