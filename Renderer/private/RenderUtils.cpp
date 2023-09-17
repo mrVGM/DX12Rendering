@@ -55,7 +55,7 @@ namespace
 		}
 
 		BaseObjectContainer& container = BaseObjectContainer::GetInstance();
-		BaseObject* obj = container.GetObjectOfClass(rendering::MainJobSystemMeta::GetInstance());
+		BaseObject* obj = container.GetObjectOfClass(jobs::MainJobSystemMeta::GetInstance());
 		m_mainJobSystem = static_cast<jobs::JobSystem*>(obj);
 		return m_mainJobSystem;
 	}

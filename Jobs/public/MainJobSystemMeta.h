@@ -2,7 +2,7 @@
 
 #include "BaseObjectMeta.h"
 
-namespace rendering
+namespace jobs
 {
 	class MainJobSystemMeta : public BaseObjectMeta
 	{
