@@ -30,7 +30,7 @@ jobs::JobSystem* frontend::GetMainJobSystem()
 {
 	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
 
-	BaseObject* obj = container.GetObjectOfClass(rendering::MainJobSystemMeta::GetInstance());
+	BaseObject* obj = container.GetObjectOfClass(jobs::MainJobSystemMeta::GetInstance());
 
 	if (!obj)
 	{

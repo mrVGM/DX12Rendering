@@ -16,7 +16,7 @@ add_library (Frontend
 target_include_directories(Frontend INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Frontend PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
 
-target_link_libraries(Frontend PUBLIC Jobs CommonResources)
+target_link_libraries(Frontend PUBLIC Jobs)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Frontend PROPERTY CXX_STANDARD 20)
