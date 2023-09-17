@@ -93,62 +93,91 @@ void animation::AnimatorUpdater::Update(double dt, jobs::Job* done)
 		return;
 	}
 
-	m_time += m_speed * dt;
-	double lastKF = GetLastKeyFrameTime(*m_currentAnimation);
-
-	while (m_time < 0)
+	struct Context
 	{
-		m_time += lastKF;
-	}
+		AnimatorUpdater* m_self = nullptr;
+		double m_dt = -1;
 
-	while (m_time > lastKF)
+		jobs::Job* m_done = nullptr;
+	};
+
+	Context ctx{ this, dt, done };
+
+	class PoseUpdate : public jobs::Job
 	{
-		m_time -= lastKF;
-	}
+	private:
+		Context m_ctx;
 
-	DXBuffer* uploadBuff = m_buffer->GetUploadBuffer();
-	void* data = uploadBuff->Map();
-	collada::Matrix* matrixData = reinterpret_cast<collada::Matrix*>(data);
-
-	const collada::Animation& anim = *m_currentAnimation;
-
-	const collada::Skeleton* skel = m_animator.GetSkeleton();
-
-	for (int i = 0; i < skel->m_joints.size(); ++i)
-	{
-		auto chanIt = anim.m_channels.find(skel->m_joints[i]);
-		const collada::AnimChannel& curChannel = anim.m_channels.find(skel->m_joints[i])->second;
-
-		int boneIndex = -1;
-		for (int j = 0; j < anim.m_bones.size(); ++j)
+	public:
+		PoseUpdate(const Context& ctx) :
+			m_ctx(ctx)
 		{
-			if (anim.m_bones[j] == skel->m_joints[i])
+		}
+
+		void Do() override
+		{
+			AnimatorUpdater* self = m_ctx.m_self;
+
+			self->m_time += self->m_speed * m_ctx.m_dt;
+			double lastKF = GetLastKeyFrameTime(*self->m_currentAnimation);
+
+			while (self->m_time < 0)
 			{
-				boneIndex = j;
-				break;
+				self->m_time += lastKF;
 			}
+
+			while (self->m_time > lastKF)
+			{
+				self->m_time -= lastKF;
+			}
+
+			DXBuffer* uploadBuff = self->m_buffer->GetUploadBuffer();
+			void* data = uploadBuff->Map();
+			collada::Matrix* matrixData = reinterpret_cast<collada::Matrix*>(data);
+
+			const collada::Animation& anim = *self->m_currentAnimation;
+
+			const collada::Skeleton* skel = self->m_animator.GetSkeleton();
+
+			for (int i = 0; i < skel->m_joints.size(); ++i)
+			{
+				auto chanIt = anim.m_channels.find(skel->m_joints[i]);
+				const collada::AnimChannel& curChannel = anim.m_channels.find(skel->m_joints[i])->second;
+
+				int boneIndex = -1;
+				for (int j = 0; j < anim.m_bones.size(); ++j)
+				{
+					if (anim.m_bones[j] == skel->m_joints[i])
+					{
+						boneIndex = j;
+						break;
+					}
+				}
+
+				int curParent = anim.m_boneParents[boneIndex];
+
+				collada::Matrix curTransform = SampleAnim(curChannel, self->m_time);
+
+				while (curParent >= 0)
+				{
+					const collada::AnimChannel& parentChannel = anim.m_channels.find(anim.m_bones[curParent])->second;
+
+					collada::Matrix parentTransform = SampleAnim(parentChannel, self->m_time);
+
+					curTransform = collada::Matrix::Multiply(curTransform, parentTransform);
+					curParent = anim.m_boneParents[curParent];
+				}
+
+				*matrixData++ = curTransform;
+			}
+			uploadBuff->Unmap();
+
+			self->m_buffer->SetDirty();
+			rendering::core::utils::RunSync(m_ctx.m_done);
 		}
+	};
 
-		int curParent = anim.m_boneParents[boneIndex];
-
-		collada::Matrix curTransform = SampleAnim(curChannel, m_time);
-
-		while (curParent >= 0)
-		{
-			const collada::AnimChannel& parentChannel = anim.m_channels.find(anim.m_bones[curParent])->second;
-
-			collada::Matrix parentTransform = SampleAnim(parentChannel, m_time);
-
-			curTransform = collada::Matrix::Multiply(curTransform, parentTransform);
-			curParent = anim.m_boneParents[curParent];
-		}
-
-		*matrixData++ = curTransform;
-	}
-	uploadBuff->Unmap();
-
-	m_buffer->SetDirty();
-	rendering::core::utils::RunSync(done);
+	core::utils::RunAsync(new PoseUpdate(ctx));
 }
 
 void animation::AnimatorUpdater::PlayAnimation(const std::string& animName, double speed)
