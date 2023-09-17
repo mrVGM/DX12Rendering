@@ -7,6 +7,7 @@ add_executable (Main
 target_link_libraries(Main PRIVATE
 	App
 	AppSettings
+	Frontend
 )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
