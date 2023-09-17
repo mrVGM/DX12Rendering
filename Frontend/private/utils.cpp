@@ -2,13 +2,14 @@
 
 #include "BaseObjectContainer.h"
 
+#include "Jobs.h"
+
 #include "FrontendJobSystemMeta.h"
 #include "MainJobSystemMeta.h"
 
 namespace
 {
 	jobs::JobSystem* m_frontendJobSystem = nullptr;
-	jobs::JobSystem* m_mainJobSystem = nullptr;
 }
 
 jobs::JobSystem* frontend::GetFrontendJobSystem()
@@ -43,11 +44,6 @@ jobs::JobSystem* frontend::GetMainJobSystem()
 
 void frontend::CacheJobSystems()
 {
-	if (!m_mainJobSystem)
-	{
-		m_mainJobSystem = GetMainJobSystem();
-	}
-
 	if (!m_frontendJobSystem)
 	{
 		m_frontendJobSystem = GetFrontendJobSystem();
@@ -61,5 +57,5 @@ void frontend::RunJob(jobs::Job* job)
 
 void frontend::RunSync(jobs::Job* job)
 {
-	m_mainJobSystem->ScheduleJob(job);
+	jobs::GetMainJobSystem()->ScheduleJob(job);
 }

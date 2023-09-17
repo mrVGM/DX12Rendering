@@ -15,6 +15,8 @@
 
 #include "BaseFramework.h"
 
+#include "Jobs.h"
+
 #include <map>
 
 namespace
@@ -34,6 +36,8 @@ namespace
 
 void app::BootApp()
 {
+	jobs::Boot();
+
 	RegisterLibs();
 
 	BaseObjectContainer& container = BaseObjectContainer::GetInstance();

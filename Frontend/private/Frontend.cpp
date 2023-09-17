@@ -2,6 +2,7 @@
 
 #include "JobSystem.h"
 #include "Job.h"
+#include "Jobs.h"
 #include "FrontendJobSystemMeta.h"
 
 #include "FrontendManager.h"
@@ -21,6 +22,7 @@ void frontend::Boot()
 		}
 	};
 
+	RunSync(new Init());
 
 	return;
 }
