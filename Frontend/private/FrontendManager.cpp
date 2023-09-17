@@ -6,6 +6,8 @@
 
 #include "utils.h"
 
+#include "DataLib.h"
+
 #include <Windows.h>
 #include <string>
 
@@ -17,25 +19,31 @@ frontend::FrontendManager::FrontendManager() :
 
 frontend::FrontendManager::~FrontendManager()
 {
+	if (m_pipe)
+	{
+		CloseHandle(m_pipe);
+	}
 }
 
 void frontend::FrontendManager::OpenConnection()
 {
-	HANDLE hPipe;
-	
 	// Try to open a named pipe; wait for it, if necessary. 
-	hPipe = CreateFile(
+	m_pipe = CreateFile(
 		TEXT("\\\\.\\pipe\\mynamedpipe"),   // pipe name 
 		GENERIC_READ,
 		0,              // no sharing 
 		NULL,           // default security attributes
-		OPEN_EXISTING,  // opens existing pipe 
+		OPEN_EXISTING,	// opens existing pipe 
 		0,              // default attributes 
 		NULL);          // no template file 
 
-	// Break if the pipe handle is valid. 
 
-	if (hPipe == INVALID_HANDLE_VALUE)
+	std::string frontendPath = data::GetLibrary().GetRootDir() + "..\\JS\\Frontend\\";
+	std::string startCommand = frontendPath + "run.bat";
+	system(startCommand.c_str());
+
+	// Break if the pipe handle is valid. 
+	if (m_pipe == INVALID_HANDLE_VALUE)
 		return;
 
 	struct Context
@@ -44,7 +52,7 @@ void frontend::FrontendManager::OpenConnection()
 		HANDLE m_hPipe = nullptr;
 	};
 
-	Context ctx{ this, hPipe };
+	Context ctx{ this, m_pipe };
 
 	class Receive : public jobs::Job
 	{
