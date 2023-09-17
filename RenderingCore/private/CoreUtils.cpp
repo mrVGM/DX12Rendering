@@ -131,7 +131,7 @@ namespace rendering::core::utils
 		BaseObjectContainer& container = BaseObjectContainer::GetInstance();
 
 		{
-			BaseObject* obj = container.GetObjectOfClass(MainJobSystemMeta::GetInstance());
+			BaseObject* obj = container.GetObjectOfClass(jobs::MainJobSystemMeta::GetInstance());
 			if (!obj)
 			{
 				throw "Can't find Main Job System!";

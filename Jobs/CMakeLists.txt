@@ -9,6 +9,8 @@ add_library (Jobs
 	"private/Thread.h"
 	"private/Thread.cpp"
 	"private/Job.cpp"
+	"private/MainJobSystemMeta.cpp"
+	"public/MainJobSystemMeta.h"
 )
 
 target_include_directories(Jobs INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
