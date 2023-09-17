@@ -1098,7 +1098,7 @@ collada::Transform collada::Transform::Lerp(const Transform& t1, const Transform
 
 	if (angle > M_PI / 2)
 	{
-		angle = M_PI - angle;
+		angle -= M_PI;
 	}
 
 	angle *= coef;
