@@ -3,6 +3,8 @@
 #include "JobSystem.h"
 #include "MainJobSystemMeta.h"
 
+#include "BaseObjectContainer.h"
+
 namespace
 {
 	jobs::JobSystem* m_mainJobSystem = nullptr;
@@ -15,7 +17,7 @@ void jobs::Boot()
 		return;
 	}
 
-	m_mainJobSystem = new jobs::JobSystem(MainJobSystemMeta::GetInstance(), 1);
+	m_mainJobSystem = new JobSystem(MainJobSystemMeta::GetInstance(), 1);
 }
 
 jobs::JobSystem* jobs::GetMainJobSystem()

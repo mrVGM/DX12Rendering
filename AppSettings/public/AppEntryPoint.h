@@ -13,5 +13,6 @@ namespace settings
 		virtual ~AppEntryPoint();
 
 		virtual void Boot() = 0;
+		virtual void Shutdown() = 0;
 	};
 }

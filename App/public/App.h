@@ -1,7 +1,9 @@
 #pragma once
 
+#include "AppEntryPoint.h"
+
 namespace app
 {
-	void BootApp();
+	settings::AppEntryPoint* BootApp();
 	void ShutdownApp();
 }

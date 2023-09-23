@@ -34,7 +34,7 @@ namespace
 }
 
 
-void app::BootApp()
+settings::AppEntryPoint* app::BootApp()
 {
 	jobs::Boot();
 
@@ -59,13 +59,15 @@ void app::BootApp()
 		if (entryPoint->GetMeta().HasTag(*entryPointTag))
 		{
 			entryPoint->Boot();
-			return;
+			return entryPoint;
 		}
 	}
 
+	return nullptr;
 }
 
 void app::ShutdownApp()
 {
+	BaseObjectContainer::GetInstance().StopExclusiveThreadAccess();
 	BaseFrameworkShutdown();
 }

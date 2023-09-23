@@ -31,3 +31,8 @@ bool BaseObjectMeta::HasTag(const BaseObjectMetaTag& metaTag) const
 {
 	return m_metaTags.contains(&metaTag);
 }
+
+const BaseObjectMeta* BaseObjectMeta::GetParent() const
+{
+	return m_parentClass;
+}

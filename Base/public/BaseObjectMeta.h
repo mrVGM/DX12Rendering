@@ -18,4 +18,6 @@ public:
 
 	bool IsChildOf(const BaseObjectMeta& other) const;
 	bool HasTag(const BaseObjectMetaTag& metaTag) const;
+
+	const BaseObjectMeta* GetParent() const;
 };

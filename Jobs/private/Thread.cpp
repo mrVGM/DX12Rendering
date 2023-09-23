@@ -26,6 +26,11 @@ namespace
 
 			while (true)
 			{
+				if (thread.ShouldStop())
+				{
+					return;
+				}
+
 				jobs::Job* job = thread.GetJob();
 				if (!job)
 				{
@@ -81,6 +86,7 @@ void jobs::Thread::Boot()
 
 void jobs::Thread::Stop()
 {
+	GetSemaphore().release();
 	m_stopped = true;
 }
 

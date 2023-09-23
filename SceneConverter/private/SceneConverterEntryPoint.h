@@ -11,5 +11,6 @@ namespace scene_converter
 		virtual ~SceneConverterEntryPoint();
 
 		void Boot() override;
+		void Shutdown() override;
 	};
 }
