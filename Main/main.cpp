@@ -40,7 +40,7 @@ int main(int args, const char** argv)
 	}
 
 	new settings::AppSettings();
-	app::BootApp();
+	settings::AppEntryPoint* entryPoint = app::BootApp();
 
 	frontend::Boot();
 

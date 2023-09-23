@@ -11,5 +11,6 @@ namespace rendering
 		virtual ~RendererEntryPoint();
 
 		void Boot() override;
+		void Shutdown() override;
 	};
 }

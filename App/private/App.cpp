@@ -32,7 +32,7 @@ namespace
 }
 
 
-void app::BootApp()
+settings::AppEntryPoint* app::BootApp()
 {
 	RegisterLibs();
 
@@ -55,10 +55,11 @@ void app::BootApp()
 		if (entryPoint->GetMeta().HasTag(*entryPointTag))
 		{
 			entryPoint->Boot();
-			return;
+			return entryPoint;
 		}
 	}
 
+	return nullptr;
 }
 
 void app::ShutdownApp()

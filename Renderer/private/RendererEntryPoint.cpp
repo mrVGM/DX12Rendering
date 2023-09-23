@@ -17,3 +17,7 @@ void rendering::RendererEntryPoint::Boot()
 {
 	rendering::Boot();
 }
+
+void rendering::RendererEntryPoint::Shutdown()
+{
+}

@@ -17,3 +17,7 @@ void scene_converter::SceneConverterEntryPoint::Boot()
 {
 	scene_converter::Boot();
 }
+
+void scene_converter::SceneConverterEntryPoint::Shutdown()
+{
+}
