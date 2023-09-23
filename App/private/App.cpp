@@ -64,5 +64,6 @@ settings::AppEntryPoint* app::BootApp()
 
 void app::ShutdownApp()
 {
+	BaseObjectContainer::GetInstance().StopExclusiveThreadAccess();
 	BaseFrameworkShutdown();
 }

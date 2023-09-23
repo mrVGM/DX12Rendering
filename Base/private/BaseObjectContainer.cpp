@@ -144,3 +144,29 @@ void BaseObjectContainer::CheckAccess()
 		throw "Illegal Thread Access!";
 	}
 }
+
+void BaseObjectContainer::GetAllObjectsFiltered(const BaseObjectFilter& filter, std::list<BaseObject*>& objects)
+{
+	CheckAccess();
+
+	BaseObjectMetaContainer& metaContainer = BaseObjectMetaContainer::GetInstance();
+
+	std::set<const BaseObjectMeta*> filteredMetas;
+
+	const std::list<const BaseObjectMeta*>& metas = metaContainer.GetAllMetas();
+	for (auto it = metas.begin(); it != metas.end(); ++it)
+	{
+		const BaseObjectMeta* cur = *it;
+		if (!filter.Condition(*cur))
+		{
+			continue;
+		}
+
+		std::set<BaseObject*> tmp = GetAllObjectsOfExactClass(*cur);
+
+		for (auto objIt = tmp.begin(); objIt != tmp.end(); ++objIt)
+		{
+			objects.push_back(*objIt);
+		}
+	}
+}

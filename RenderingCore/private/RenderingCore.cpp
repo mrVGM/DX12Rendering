@@ -22,7 +22,6 @@
 
 void rendering::core::Boot()
 {
-	new jobs::JobSystem(jobs::MainJobSystemMeta::GetInstance(), 1);
 	new jobs::JobSystem(LoadJobSystemMeta::GetInstance(), 5);
 	new jobs::JobSystem(ResidentHeapJobSystemMeta::GetInstance(), 1);
 

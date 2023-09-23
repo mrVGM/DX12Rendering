@@ -8,6 +8,12 @@
 class BaseObjectMeta;
 class BaseObject;
 
+class BaseObjectFilter
+{
+public:
+	virtual bool Condition(const BaseObjectMeta& meta) const = 0;
+};
+
 class BaseObjectContainer
 {
 	friend void BaseFrameworkShutdown();
@@ -36,4 +42,6 @@ public:
 
 	void StartExclusiveThreadAccess();
 	void StopExclusiveThreadAccess();
+
+	void GetAllObjectsFiltered(const BaseObjectFilter& filter, std::list<BaseObject*>& objects);
 };
