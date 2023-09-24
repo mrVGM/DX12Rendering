@@ -86,8 +86,8 @@ void jobs::Thread::Boot()
 
 void jobs::Thread::Stop()
 {
-	GetSemaphore().release();
 	m_stopped = true;
+	GetSemaphore().release();
 }
 
 bool jobs::Thread::ShouldStop()
