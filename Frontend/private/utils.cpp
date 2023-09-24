@@ -7,6 +7,8 @@
 #include "FrontendJobSystemMeta.h"
 #include "MainJobSystemMeta.h"
 
+#include "FrontendManagerMeta.h"
+
 namespace
 {
 	jobs::JobSystem* m_frontendJobSystem = nullptr;
@@ -40,6 +42,21 @@ jobs::JobSystem* frontend::GetMainJobSystem()
 
 	jobs::JobSystem* jobSystem = static_cast<jobs::JobSystem*>(obj);
 	return jobSystem;
+}
+
+frontend::FrontendManager* frontend::GetFrontendManger()
+{
+	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+
+	BaseObject* obj = container.GetObjectOfClass(frontend::FrontendManagerMeta::GetInstance());
+
+	if (!obj)
+	{
+		throw "Can't find Frontend Manager!";
+	}
+
+	frontend::FrontendManager* frontendManager = static_cast<frontend::FrontendManager*>(obj);
+	return frontendManager;
 }
 
 void frontend::CacheJobSystems()
