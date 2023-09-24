@@ -45,6 +45,7 @@ int main(int args, const char** argv)
 	frontend::Boot();
 
 	std::cin.get();
+	frontend::Shutdown();
 	entryPoint->Shutdown();
 
 	std::cin.get();

@@ -10,11 +10,13 @@ namespace frontend
 	{
 	private:
 		HANDLE m_pipe = nullptr;
+		bool m_toShutdown = false;
 
 	public:
 		FrontendManager();
 		virtual ~FrontendManager();
 
 		void OpenConnection();
+		void Shutdown();
 	};
 }

@@ -89,13 +89,34 @@ void frontend::FrontendManager::OpenConnection()
 				data[cbRead] = 0;
 
 				if (cbRead > 0) {
-					std::string setting(data);
+					std::string command(data);
+					if (command == ":quit")
+					{
+						break;
+					}
+
+					const char* message = ":ping";
+					if (m_ctx.m_manager->m_toShutdown)
+					{
+						message = ":quit";
+					}
+
+					DWORD written;
+					WriteFile(
+						m_ctx.m_hPipe,
+						message,
+						strlen(message),
+						&written,
+						nullptr);
 				}
 			}
-
-			CloseHandle(m_ctx.m_hPipe);
 		}
 	};
 
 	RunJob(new Receive(ctx));
+}
+
+void frontend::FrontendManager::Shutdown()
+{
+	m_toShutdown = true;
 }

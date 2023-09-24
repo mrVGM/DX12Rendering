@@ -8,7 +8,7 @@ namespace frontend
 {
 	jobs::JobSystem* GetFrontendJobSystem();
 	jobs::JobSystem* GetMainJobSystem();
-	FrontendManager* GetFrontendManger();
+	FrontendManager* GetFrontendManager();
 	void CacheJobSystems();
 
 	void RunJob(jobs::Job* job);

@@ -26,3 +26,20 @@ void frontend::Boot()
 
 	return;
 }
+
+void frontend::Shutdown()
+{
+	class Shutdown : public jobs::Job
+	{
+	public:
+		void Do() override
+		{
+			FrontendManager* frontendManager = GetFrontendManager();
+			frontendManager->Shutdown();
+		}
+	};
+
+	RunSync(new Shutdown());
+
+	return;
+}

@@ -7,11 +7,26 @@ let L = console.log;
 
 var client = net.connect(PIPE_PATH, function() {
     L('Client: on connection');
+
+    function ping()
+    {
+        client.write(":ping");
+        setTimeout(() => {
+            ping();
+        }, 1000);
+    }
+
+    ping();
 })
 
-client.on('data', function(data) {
-    L('Client: on data:', data.toString());
-    client.end('Thanks!');
+client.on('data', function (data) {
+    let dataStr = data.toString();
+    L('Client: on data:', dataStr);
+
+    if (dataStr == ":quit") {
+        L("Quitting!")
+        client.write(":quit");
+    }
 });
 
 client.on('end', function() {

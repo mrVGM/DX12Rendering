@@ -44,7 +44,7 @@ jobs::JobSystem* frontend::GetMainJobSystem()
 	return jobSystem;
 }
 
-frontend::FrontendManager* frontend::GetFrontendManger()
+frontend::FrontendManager* frontend::GetFrontendManager()
 {
 	BaseObjectContainer& container = BaseObjectContainer::GetInstance();
 
