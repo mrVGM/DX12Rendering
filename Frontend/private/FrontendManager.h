@@ -11,6 +11,7 @@ namespace frontend
 	private:
 		HANDLE m_pipe = nullptr;
 		bool m_toShutdown = false;
+		int m_frontendProccess = -1;
 
 	public:
 		FrontendManager();

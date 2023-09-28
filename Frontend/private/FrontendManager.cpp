@@ -8,6 +8,8 @@
 
 #include "DataLib.h"
 
+#include <sstream>
+
 #include <Windows.h>
 #include <string>
 
@@ -22,6 +24,13 @@ frontend::FrontendManager::~FrontendManager()
 	if (m_pipe)
 	{
 		CloseHandle(m_pipe);
+	}
+
+	if (m_frontendProccess > 0)
+	{
+		std::stringstream ss;
+		ss << "taskkill /PID " << m_frontendProccess << " /F";
+		system(ss.str().c_str());
 	}
 }
 
@@ -45,8 +54,35 @@ void frontend::FrontendManager::OpenConnection()
 	}
 
 	std::string frontendPath = data::GetLibrary().GetRootDir() + "..\\JS\\Frontend\\";
-	std::string startCommand = frontendPath + "run.bat";
-	system(startCommand.c_str());
+	std::string electron = "node_modules\\electron\\dist\\electron.exe";
+	std::string cmd = "\"" + frontendPath + electron + "\"" + " " + frontendPath;
+	std::wstring wCmd(cmd.begin(), cmd.end());
+
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+
+	ZeroMemory(&si, sizeof(si));
+	si.cb = sizeof(si);
+	ZeroMemory(&pi, sizeof(pi));
+
+	// Start the child process. 
+	if (!CreateProcess(NULL,   // No module name (use command line)
+		const_cast<wchar_t*>(wCmd.c_str()),        // Command line
+		NULL,           // Process handle not inheritable
+		NULL,           // Thread handle not inheritable
+		FALSE,          // Set handle inheritance to FALSE
+		0,              // No creation flags
+		NULL,           // Use parent's environment block
+		NULL,           // Use parent's starting directory 
+		&si,            // Pointer to STARTUPINFO structure
+		&pi)           // Pointer to PROCESS_INFORMATION structure
+		)
+	{
+		printf("CreateProcess failed (%d).\n", GetLastError());
+		return;
+	}
+
+	m_frontendProccess = pi.dwProcessId;
 
 	struct Context
 	{
