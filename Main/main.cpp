@@ -10,6 +10,7 @@
 #include "App.h"
 
 #include "Frontend.h"
+#include "Reflection.h"
 
 int main(int args, const char** argv)
 {
@@ -42,6 +43,7 @@ int main(int args, const char** argv)
 	new settings::AppSettings();
 	settings::AppEntryPoint* entryPoint = app::BootApp();
 
+	reflection::Boot();
 	frontend::Boot();
 
 	std::cin.get();

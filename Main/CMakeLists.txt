@@ -8,6 +8,7 @@ target_link_libraries(Main PRIVATE
 	App
 	AppSettings
 	Frontend
+	Reflection
 )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
