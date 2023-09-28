@@ -7,7 +7,7 @@ add_library (Reflection
 	"private/Reflection.cpp"
 	"public/Type.h"
 	"private/Type.cpp"
-	"private/TypeManager.h"
+	"public/TypeManager.h"
 	"private/TypeManager.cpp"
 )
 

@@ -1,5 +1,9 @@
 #include "CommandReader.h"
 
+#include "TypeManager.h"
+
+#include <sstream>
+
 std::string frontend::CommandReader::ProcessMessage(const std::string& message)
 {
 	if (message == ":ping")
@@ -10,6 +14,22 @@ std::string frontend::CommandReader::ProcessMessage(const std::string& message)
 	if (message == ":quit")
 	{
 		return ":quit";
+	}
+
+	if (message == ":types")
+	{
+		reflection::TypeManager& typeManager = reflection::TypeManager::GetInstance();
+
+		std::list<const reflection::DataType*> types;
+		typeManager.GetTypes(reflection::DataType::Int, types);
+
+		std::stringstream ss;
+		for (auto it = types.begin(); it != types.end(); ++it)
+		{
+			ss << (*it)->GetName() << ' ' << (*it)->GetID() << std::endl;
+		}
+
+		return ss.str();
 	}
 
 	return std::string();

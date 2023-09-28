@@ -17,6 +17,10 @@ var client = net.connect(PIPE_PATH, function() {
     }
 
     ping();
+
+    setTimeout(() => {
+        client.write(":types");
+    }, 10000);
 })
 
 client.on('data', function (data) {
