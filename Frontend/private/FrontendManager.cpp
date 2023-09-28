@@ -8,10 +8,17 @@
 
 #include "DataLib.h"
 
+#include "CommandReader.h"
+
 #include <sstream>
 
 #include <Windows.h>
 #include <string>
+
+namespace
+{
+	frontend::CommandReader m_commandReader;
+}
 
 frontend::FrontendManager::FrontendManager() :
 	BaseObject(frontend::FrontendManagerMeta::GetInstance())
@@ -125,23 +132,24 @@ void frontend::FrontendManager::OpenConnection()
 				data[cbRead] = 0;
 
 				if (cbRead > 0) {
-					std::string command(data);
-					if (command == ":quit")
+					if (m_ctx.m_manager->m_toShutdown)
 					{
 						break;
 					}
+					
+					std::string message(data);
+					std::string resp = m_commandReader.ProcessMessage(message);
 
-					const char* message = ":ping";
-					if (m_ctx.m_manager->m_toShutdown)
+					if (resp.empty())
 					{
-						message = ":quit";
+						continue;
 					}
 
 					DWORD written;
 					WriteFile(
 						m_ctx.m_hPipe,
-						message,
-						strlen(message),
+						resp.c_str(),
+						resp.size(),
 						&written,
 						nullptr);
 				}

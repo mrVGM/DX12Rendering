@@ -11,6 +11,8 @@ add_library (Frontend
 	"private/FrontendManager.cpp"
 	"private/FrontendManagerMeta.cpp"
 	"private/FrontendManagerMeta.h"
+	"private/CommandReader.h"
+	"private/CommandReader.cpp"
 )
 
 target_include_directories(Frontend INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
