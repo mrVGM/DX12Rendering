@@ -63,3 +63,35 @@ reflection::ClassType::ClassType(const BaseObjectMeta& meta) :
 	m_meta(meta)
 {
 }
+
+reflection::Property::Property(
+	const std::string& id,
+	const DataType& dataType,
+	const Accessibility& accessiblity,
+	const std::function<void* (BaseObject*)> accessor) :
+	m_id(id),
+	m_type(dataType),
+	m_accessibility(accessiblity),
+	m_accessor(accessor)
+{
+}
+
+const std::string& reflection::Property::GetID() const
+{
+	return m_id;
+}
+
+void* reflection::Property::GetMemoryAddess(BaseObject* object)
+{
+	return m_accessor(object);
+}
+
+void reflection::Property::SetName(const std::string& name)
+{
+	m_name = name;
+}
+
+const std::string& reflection::Property::GetName() const
+{
+	return m_name;
+}

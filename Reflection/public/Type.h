@@ -3,6 +3,9 @@
 #include "Reflection.h"
 
 #include "BaseObjectMeta.h"
+#include "BaseObject.h"
+
+#include <functional>
 
 namespace reflection
 {
@@ -40,6 +43,38 @@ namespace reflection
 		const Type& GetType() const;
 	};
 
+	struct Property : public ObjectWithID
+	{
+	public:
+		enum Accessibility
+		{
+			Public,
+			Protected,
+			Private
+		};
+
+	private:
+		std::string m_id;
+		std::string m_name;
+		Accessibility m_accessibility;
+		const DataType& m_type;
+		std::function<void* (BaseObject*)> m_accessor;
+
+	public:
+		Property(
+			const std::string& id,
+			const DataType& dataType,
+			const Accessibility& accessibility,
+			const std::function<void* (BaseObject*)>);
+
+		const std::string& GetID() const override;
+
+		void* GetMemoryAddess(BaseObject* object);
+
+		void SetName(const std::string& name);
+		const std::string& GetName() const;
+	};
+
 	struct IntType : public DataType
 	{
 		IntType();
@@ -60,6 +95,8 @@ namespace reflection
 		const BaseObjectMeta& m_meta;
 
 		StructType(const BaseObjectMeta& meta);
+
+		std::list<Property> m_properties;
 	};
 
 	struct ClassType : public DataType
