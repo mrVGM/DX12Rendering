@@ -31,6 +31,8 @@ add_library (CommonResources
 	"private/AsyncTickUpdaterMeta.cpp"
 	"public/AsyncTickUpdater.h"
 	"private/AsyncTickUpdater.cpp"
+	"public/ScriptingStructMeta.h"
+	"private/ScriptingStructMeta.cpp"
 )
 
 target_include_directories(CommonResources INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

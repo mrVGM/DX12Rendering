@@ -5,10 +5,12 @@
 #include "BaseObjectMeta.h"
 #include "BaseObject.h"
 
-#include <functional>
+#include <list>
 
 namespace reflection
 {
+	struct Property;
+
 	enum ValueType
 	{
 		Bool,
@@ -65,9 +67,13 @@ namespace reflection
 
 	struct StructType : public DataDef
 	{
+	private:
 		const BaseObjectMeta& m_meta;
+		std::list<Property> m_properties;
 
+	public:
 		StructType(const BaseObjectMeta& meta);
+		Property& AddProperty();
 	};
 
 	struct ClassType : public DataDef

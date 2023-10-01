@@ -1,5 +1,6 @@
 #include "Type.h"
 
+#include "Property.h"
 #include "TypeManager.h"
 
 reflection::DataDef::DataDef(const std::string& id) :
@@ -71,4 +72,11 @@ reflection::ClassType::ClassType(const BaseObjectMeta& meta) :
 	m_meta(meta)
 {
 	SetValueType(ValueType::Class);
+}
+
+reflection::Property& reflection::StructType::AddProperty()
+{
+	Property& prop = m_properties.emplace_back();
+	prop.Init();
+	return prop;
 }

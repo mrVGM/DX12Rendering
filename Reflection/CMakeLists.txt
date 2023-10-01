@@ -9,7 +9,9 @@ add_library (Reflection
 	"private/Type.cpp"
 	"public/TypeManager.h"
 	"private/TypeManager.cpp"
-)
+	"public/Property.h"
+	"private/Property.cpp"
+  )
 
 target_include_directories(Reflection INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Reflection PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
