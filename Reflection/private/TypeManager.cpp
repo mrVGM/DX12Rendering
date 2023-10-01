@@ -32,6 +32,21 @@ namespace
 	TypeManagerHolder m_typeManagerHolder;
 }
 
+reflection::TypeManager::~TypeManager()
+{
+	for (auto it = m_generatedTypeMetas.begin(); it != m_generatedTypeMetas.end(); ++it)
+	{
+		const BaseObjectMeta* cur = *it;
+		delete cur;
+	}
+
+	for (auto it = m_generatedTypes.begin(); it != m_generatedTypes.end(); ++it)
+	{
+		const DataDef* cur = *it;
+		delete cur;
+	}
+}
+
 void reflection::TypeManager::RegisterType(const DataDef& type)
 {
 	m_types[type.GetID()] = &type;
@@ -63,4 +78,10 @@ void reflection::TypeManager::GetTypes(const ValueType& type, std::list<const Da
 reflection::TypeManager& reflection::TypeManager::GetInstance()
 {
 	return m_typeManagerHolder.GetTypeManager();
+}
+
+void reflection::TypeManager::RegisterGeneratedType(const BaseObjectMeta& meta, const DataDef& type)
+{
+	m_generatedTypeMetas.push_back(&meta);
+	m_generatedTypes.push_back(&type);
 }

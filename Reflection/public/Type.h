@@ -34,8 +34,8 @@ namespace reflection
 		DataDef(const DataDef& other) = delete;
 		DataDef& operator=(const DataDef& other) = delete;
 
-		virtual ~DataDef();
 	public:
+		virtual ~DataDef();
 
 		void SetName(const std::string& name);
 		void SetValueType(const ValueType& valueType);
@@ -72,7 +72,7 @@ namespace reflection
 		std::list<Property> m_properties;
 
 	public:
-		StructType(const BaseObjectMeta& meta);
+		StructType(const BaseObjectMeta& meta, const std::string& id);
 		Property& AddProperty();
 	};
 
@@ -80,6 +80,6 @@ namespace reflection
 	{
 		const BaseObjectMeta& m_meta;
 
-		ClassType(const BaseObjectMeta& meta);
+		ClassType(const BaseObjectMeta& meta, const std::string& id);
 	};
 }

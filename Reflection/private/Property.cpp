@@ -1,5 +1,7 @@
 #include "Property.h"
 
+#include "utils.h"
+
 #include <Windows.h>
 #include <sstream>
 
@@ -17,6 +19,26 @@ void reflection::Property::SetDataType(const DataDef& dataType)
 	m_dataType = &dataType;
 }
 
+void reflection::Property::SetMapValueDataType(const DataDef& dataType)
+{
+    m_mapValueDataType = &dataType;
+}
+
+void reflection::Property::SetAccessType(const AccessType& accessType)
+{
+    m_accessType = accessType;
+}
+
+void reflection::Property::SetStructureType(const StructureType& structureType)
+{
+    m_structureType = structureType;
+}
+
+void reflection::Property::SetAddressAccessor(const std::function<void* (BaseObject&)>& accessor)
+{
+    m_addressAccessor = accessor;
+}
+
 const std::string& reflection::Property::GetID() const
 {
 	return m_id;
@@ -32,35 +54,28 @@ const reflection::DataDef& reflection::Property::GetDataType() const
 	return *m_dataType;
 }
 
+const reflection::DataDef& reflection::Property::GetMapValueDataType() const
+{
+    return *m_mapValueDataType;
+}
+
+const reflection::AccessType& reflection::Property::GetAccessType() const
+{
+    return m_accessType;
+}
+
+const reflection::StructureType& reflection::Property::GetStructureType() const
+{
+    return m_structureType;
+}
+
 void reflection::Property::Init()
 {
-	GUID guid;
-	HRESULT hCreateGuid = CoCreateGuid(&guid);
+    m_id = GetNewId();
+}
 
-	std::stringstream ss;
-	
-    ss << std::uppercase;
-    ss.width(8);
-    ss << std::hex << guid.Data1 << '-';
-
-    ss.width(4);
-    ss << std::hex << guid.Data2 << '-';
-
-    ss.width(4);
-    ss << std::hex << guid.Data3 << '-';
-
-    ss.width(2);
-    ss << std::hex
-        << static_cast<short>(guid.Data4[0])
-        << static_cast<short>(guid.Data4[1])
-        << '-'
-        << static_cast<short>(guid.Data4[2])
-        << static_cast<short>(guid.Data4[3])
-        << static_cast<short>(guid.Data4[4])
-        << static_cast<short>(guid.Data4[5])
-        << static_cast<short>(guid.Data4[6])
-        << static_cast<short>(guid.Data4[7]);
-    ss << std::nouppercase;
-
-    m_id = ss.str();
+void* reflection::Property::GetAddress(BaseObject& object) const
+{
+    void* address = m_addressAccessor(object);
+    return address;
 }

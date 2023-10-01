@@ -60,15 +60,15 @@ reflection::StringType::StringType() :
 	SetValueType(ValueType::String);
 }
 
-reflection::StructType::StructType(const BaseObjectMeta& meta) :
-	DataDef("8AA14012-9528-4B7B-94DE-D0FA54C44D7B"),
+reflection::StructType::StructType(const BaseObjectMeta& meta, const std::string& id) :
+	DataDef(id),
 	m_meta(meta)
 {
 	SetValueType(ValueType::Struct);
 }
 
-reflection::ClassType::ClassType(const BaseObjectMeta& meta) :
-	DataDef("3FE53B6A-31F1-4042-A427-7962E24E19BC"),
+reflection::ClassType::ClassType(const BaseObjectMeta& meta, const std::string& id) :
+	DataDef(id),
 	m_meta(meta)
 {
 	SetValueType(ValueType::Class);
