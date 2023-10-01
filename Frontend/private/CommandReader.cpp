@@ -20,8 +20,8 @@ std::string frontend::CommandReader::ProcessMessage(const std::string& message)
 	{
 		reflection::TypeManager& typeManager = reflection::TypeManager::GetInstance();
 
-		std::list<const reflection::DataType*> types;
-		typeManager.GetTypes(reflection::DataType::Int, types);
+		std::list<const reflection::DataDef*> types;
+		typeManager.GetTypes(reflection::ValueType::Int, types);
 
 		std::stringstream ss;
 		for (auto it = types.begin(); it != types.end(); ++it)

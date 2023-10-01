@@ -9,97 +9,68 @@
 
 namespace reflection
 {
-	struct DataType : public ObjectWithID
+	enum ValueType
 	{
-	public:
-		enum Type
-		{
-			None,
-			Int,
-			Float,
-			String,
-			Struct,
-			Class,
-		};
+		Bool,
+		Int,
+		Float,
+		String,
+		Struct,
+		Class,
+	};
 
+	struct DataDef : public ObjectWithID
+	{
 	private:
 		std::string m_id;
-		Type m_type;
+		ValueType m_type;
 		std::string m_name;
 
 	protected:
-		DataType(const std::string& id, const Type& type);
+		DataDef(const std::string& id);
 
-		DataType(const DataType& other) = delete;
-		DataType& operator=(const DataType& other) = delete;
+		DataDef(const DataDef& other) = delete;
+		DataDef& operator=(const DataDef& other) = delete;
 
-		virtual ~DataType();
+		virtual ~DataDef();
 	public:
-		const std::string& GetID() const override;
 
 		void SetName(const std::string& name);
-		const std::string& GetName() const;
+		void SetValueType(const ValueType& valueType);
 
-		const Type& GetType() const;
+		const std::string& GetID() const override;
+		const std::string& GetName() const;
+		const ValueType& GetValueType() const;
 	};
 
-	struct Property : public ObjectWithID
+	struct BoolType : public DataDef
 	{
-	public:
-		enum Accessibility
-		{
-			Public,
-			Protected,
-			Private
-		};
-
-	private:
-		std::string m_id;
-		std::string m_name;
-		Accessibility m_accessibility;
-		const DataType& m_type;
-		std::function<void* (BaseObject*)> m_accessor;
-
-	public:
-		Property(
-			const std::string& id,
-			const DataType& dataType,
-			const Accessibility& accessibility,
-			const std::function<void* (BaseObject*)>);
-
-		const std::string& GetID() const override;
-
-		void* GetMemoryAddess(BaseObject* object);
-
-		void SetName(const std::string& name);
-		const std::string& GetName() const;
+		BoolType();
 	};
 
-	struct IntType : public DataType
+	struct IntType : public DataDef
 	{
 		IntType();
 	};
 
-	struct FloatType : public DataType
+	struct FloatType : public DataDef
 	{
 		FloatType();
 	};
 
-	struct StringType : public DataType
+	struct StringType : public DataDef
 	{
 		StringType();
 	};
 
-	struct StructType : public DataType
+	struct StructType : public DataDef
 	{
 		const BaseObjectMeta& m_meta;
 
 		StructType(const BaseObjectMeta& meta);
-
-		std::list<Property> m_properties;
 	};
 
-	struct ClassType : public DataType
+	struct ClassType : public DataDef
 	{
 		const BaseObjectMeta& m_meta;
 

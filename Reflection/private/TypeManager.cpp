@@ -32,12 +32,12 @@ namespace
 	TypeManagerHolder m_typeManagerHolder;
 }
 
-void reflection::TypeManager::RegisterType(const DataType& type)
+void reflection::TypeManager::RegisterType(const DataDef& type)
 {
 	m_types[type.GetID()] = &type;
 }
 
-const reflection::DataType* reflection::TypeManager::GetType(const std::string& id) const
+const reflection::DataDef* reflection::TypeManager::GetType(const std::string& id) const
 {
 	auto it = m_types.find(id);
 
@@ -49,11 +49,11 @@ const reflection::DataType* reflection::TypeManager::GetType(const std::string& 
 	return it->second;
 }
 
-void reflection::TypeManager::GetTypes(const DataType::Type& type, std::list<const DataType*>& outTypes) const
+void reflection::TypeManager::GetTypes(const ValueType& type, std::list<const DataDef*>& outTypes) const
 {
 	for (auto it = m_types.begin(); it != m_types.end(); ++it)
 	{
-		if (it->second->GetType() == type)
+		if (it->second->GetValueType() == type)
 		{
 			outTypes.push_back(it->second);
 		}

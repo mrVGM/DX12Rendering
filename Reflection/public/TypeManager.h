@@ -10,13 +10,13 @@ namespace reflection
 	class TypeManager
 	{
 	private:
-		std::map<std::string, const DataType*> m_types;
+		std::map<std::string, const DataDef*> m_types;
 
 	public:
-		void RegisterType(const DataType& type);
+		void RegisterType(const DataDef& type);
 
-		const DataType* GetType(const std::string& id) const;
-		void GetTypes(const DataType::Type& type, std::list<const DataType*>& outTypes) const;
+		const DataDef* GetType(const std::string& id) const;
+		void GetTypes(const ValueType& type, std::list<const DataDef*>& outTypes) const;
 
 		static TypeManager& GetInstance();
 	};
