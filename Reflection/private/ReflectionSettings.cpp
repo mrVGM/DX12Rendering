@@ -5,6 +5,7 @@
 #include "AppSettings.h"
 
 #include "XMLReader.h"
+#include "XMLWriter.h"
 #include "DataLib.h"
 #include "AppEntryPoint.h"
 #include "AppEntryPointMeta.h"
@@ -14,6 +15,10 @@
 
 #include "BaseObjectContainer.h"
 
+#include "DataLib.h"
+
+#include <fstream>
+
 reflection::ReflectionSettings::ReflectionSettings() :
 	SettingsReader(reflection::ReflectionSettingsMeta::GetInstance())
 {
@@ -22,6 +27,43 @@ reflection::ReflectionSettings::ReflectionSettings() :
 
 reflection::ReflectionSettings::~ReflectionSettings()
 {
+}
+
+void reflection::ReflectionSettings::StoreSettings()
+{
+	settings::AppSettings* appSettings = settings::AppSettings::GetAppSettings();
+	const settings::AppSettings::Settings& settings = appSettings->GetSettings();
+
+	std::string settingsFile = settings.m_otherSettings.find("scripting_lib")->second;
+
+	xml_writer::Node settingsNode;
+	settingsNode.m_tagName = "settings";
+	
+	xml_writer::Node& dirNode = settingsNode.m_children.emplace_back();
+	dirNode.m_tagName = "dir";
+	dirNode.m_content = xml_writer::EncodeAsString(m_settings.m_dirPath);
+
+	xml_writer::Node& filesNode = settingsNode.m_children.emplace_back();
+	filesNode.m_tagName = "files";
+	
+	for (auto it = m_settings.m_files.begin(); it != m_settings.m_files.end(); ++it)
+	{
+		xml_writer::Node& fileNode = filesNode.m_children.emplace_back();
+		fileNode.m_tagName = "file";
+		fileNode.m_tagProps["id"] = it->first;
+		fileNode.m_content = xml_writer::EncodeAsString(it->second);
+	}
+
+
+	{
+		std::string xml = settingsNode.ToString();
+		std::string reflectionSettingsFilePath = data::GetLibrary().GetRootDir() + settingsFile;
+
+		std::ofstream materialsFile(reflectionSettingsFilePath);
+		materialsFile << xml;
+	}
+
+	bool t = true;
 }
 
 void reflection::ReflectionSettings::ReadSettingFile()
@@ -61,12 +103,12 @@ void reflection::ReflectionSettings::ReadSettingFile()
 		for (auto it = filesNode->m_children.begin(); it != filesNode->m_children.end(); ++it)
 		{
 			xml_reader::Node* cur = *it;
-			m_settings.m_files[cur->m_tagName] = cur->m_data.front()->m_symbolData.m_string;
+			m_settings.m_files[cur->m_tagProps["id"]] = cur->m_data.front()->m_symbolData.m_string;
 		}
 	}
 }
 
-const reflection::ReflectionSettings::Settings& reflection::ReflectionSettings::GetSettings() const
+reflection::ReflectionSettings::Settings& reflection::ReflectionSettings::GetSettings()
 {
 	return m_settings;
 }

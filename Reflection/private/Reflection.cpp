@@ -27,13 +27,15 @@ void reflection::Boot()
 	{
 		void Do()
 		{
-			new ReflectionSettings();
+			ReflectionSettings* settings = new ReflectionSettings();
+			CreateTestStruct();
+
+			settings->StoreSettings();
 		}
 	};
 
 	RunMain(new BootJob());
 
-	CreateTestStruct();
 }
 
 void reflection::CreateTestStruct()
@@ -49,4 +51,7 @@ void reflection::CreateTestStruct()
 
 	TypeManager& typeManager = TypeManager::GetInstance();
 	typeManager.RegisterGeneratedType(*structMeta, *testStruct);
+
+	ReflectionSettings* reflectionSettings = GetReflectionSettings();
+	reflectionSettings->GetSettings().m_files[testStruct->GetID()] = reflectionSettings->GetSettings().m_dirPath + testStruct->GetID() + ".bp";
 }

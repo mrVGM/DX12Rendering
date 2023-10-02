@@ -131,3 +131,21 @@ std::string xml_writer::Node::ToString()
 	ss << res;
 	return ss.str();
 }
+
+std::string xml_writer::EncodeAsString(const std::string& str)
+{
+	std::stringstream ss;
+	ss << '\"';
+	for (auto it = str.begin(); it != str.end(); ++it)
+	{
+		char cur = *it;
+		if (cur == '\\' || cur == '\"')
+		{
+			ss << '\\';
+		}
+		ss << cur;
+	}
+	ss << '\"';
+
+	return ss.str();
+}

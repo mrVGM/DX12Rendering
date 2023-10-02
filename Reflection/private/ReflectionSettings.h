@@ -23,6 +23,8 @@ namespace reflection
 		ReflectionSettings();
 		virtual ~ReflectionSettings();
 
-		const Settings& GetSettings() const;
+		void StoreSettings();
+
+		Settings& GetSettings();
 	};
 }

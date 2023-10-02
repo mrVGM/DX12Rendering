@@ -17,4 +17,6 @@ namespace xml_writer
 
 		std::string ToString();
 	};
+
+	std::string EncodeAsString(const std::string& str);
 }

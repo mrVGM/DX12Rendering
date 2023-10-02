@@ -2,6 +2,10 @@
 
 #include "Jobs.h"
 
+#include "ReflectionSettingsMeta.h"
+
+#include "BaseObjectContainer.h"
+
 #include <Windows.h>
 #include <sstream>
 
@@ -37,6 +41,20 @@ std::string reflection::GetNewId()
 
     std::string res = ss.str();
     return res;
+}
+
+reflection::ReflectionSettings* reflection::GetReflectionSettings()
+{
+    BaseObjectContainer& container = BaseObjectContainer::GetInstance();
+
+    BaseObject* obj = container.GetObjectOfClass(reflection::ReflectionSettingsMeta::GetInstance());
+    if (!obj)
+    {
+        throw "Can't find Reflection Settings!";
+    }
+
+    reflection::ReflectionSettings* reflectionSettings = static_cast<reflection::ReflectionSettings*>(obj);
+    return reflectionSettings;
 }
 
 void reflection::RunMain(jobs::Job* job)
