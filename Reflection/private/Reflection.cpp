@@ -8,6 +8,10 @@
 #include "GeneratedObjectMeta.h"
 #include "ScriptingStructMeta.h"
 
+#include "Job.h"
+
+#include "ReflectionSettings.h"
+
 #include "utils.h"
 
 namespace
@@ -19,6 +23,16 @@ namespace
 
 void reflection::Boot()
 {
+	class BootJob : public jobs::Job
+	{
+		void Do()
+		{
+			new ReflectionSettings();
+		}
+	};
+
+	RunMain(new BootJob());
+
 	CreateTestStruct();
 }
 

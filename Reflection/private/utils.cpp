@@ -1,5 +1,7 @@
 #include "utils.h"
 
+#include "Jobs.h"
+
 #include <Windows.h>
 #include <sstream>
 
@@ -35,4 +37,9 @@ std::string reflection::GetNewId()
 
     std::string res = ss.str();
     return res;
+}
+
+void reflection::RunMain(jobs::Job* job)
+{
+    jobs::GetMainJobSystem()->ScheduleJob(job);
 }

@@ -9,5 +9,6 @@
 		<renderer>"renderer.xml"</renderer>
 		<outline>"render_settings/outline_settings.xml"</outline>
 		<cascaded_sm>"render_settings/cascaded_sm.xml"</cascaded_sm>
+		<scripting_lib>"scripting_lib.xml"</scripting_lib>
 	</other_settings>
 </settings>
