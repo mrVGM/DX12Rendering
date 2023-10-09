@@ -19,6 +19,10 @@ add_library (Reflection
 	"private/ReflectionSettingsMeta.h"
 	"private/SerializeToStringUtils.h"
 	"private/SerializeToStringUtils.cpp"
+	"private/DataDefReader.cpp"
+	"private/DataDefReaderMeta.cpp"
+	"private/DataDefReader.h"
+	"private/DataDefReaderMeta.h"
 )
 
 target_include_directories(Reflection INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")

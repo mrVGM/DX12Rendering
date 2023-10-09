@@ -93,7 +93,7 @@ void reflection::DataDef::ToXMLTree(xml_writer::Node& rootNode) const
 {
 	using namespace xml_writer;
 
-	rootNode.m_tagName = "data-def";
+	rootNode.m_tagName = "data_def";
 	Node& idNode = rootNode.m_children.emplace_back();
 	idNode.m_tagName = "id";
 	idNode.m_content = EncodeAsString(m_id);
@@ -103,7 +103,7 @@ void reflection::DataDef::ToXMLTree(xml_writer::Node& rootNode) const
 	nameNode.m_content = EncodeAsString(m_name);
 
 	Node& valueTypeNode = rootNode.m_children.emplace_back();
-	valueTypeNode.m_tagName = "value-type";
+	valueTypeNode.m_tagName = "value_type";
 	valueTypeNode.m_content = EncodeAsString(ValueTypeToString(m_type));
 }
 
@@ -130,7 +130,7 @@ void reflection::DataDef::FromXMLTree(const xml_reader::Node& rootNode)
 	});
 
 	const Node* valueTypeNode = FindChildNode(&rootNode, [](const Node* node) {
-		if (node->m_tagName == "value-type")
+		if (node->m_tagName == "value_type")
 		{
 			return true;
 		}
@@ -164,7 +164,7 @@ void reflection::StructType::FromXMLTree(const xml_reader::Node& rootNode)
 {
 	using namespace xml_reader;
 
-	StructType::FromXMLTree(rootNode);
+	DataDef::FromXMLTree(rootNode);
 	
 	const Node* propertiesNode = FindChildNode(&rootNode, [](const Node* node) {
 		if (node->m_tagName == "properties")
@@ -207,4 +207,9 @@ void reflection::DataDef::StoreGeneratedType() const
 	xml_writer::Node tmp;
 	ToXMLTree(tmp);
 	f << tmp.ToString();
+}
+
+const BaseObjectMeta& reflection::StructType::GetMeta() const
+{
+	return m_meta;
 }

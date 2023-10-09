@@ -1,5 +1,10 @@
 #include "TypeManager.h"
 
+#include "SettingsReader.h"
+#include "SettingsReaderMeta.h"
+
+#include "DataDefReader.h"
+
 #include "utils.h"
 
 namespace
@@ -86,4 +91,18 @@ void reflection::TypeManager::RegisterGeneratedType(const BaseObjectMeta& meta, 
 {
 	m_generatedTypeMetas.push_back(&meta);
 	m_generatedTypes.push_back(&type);
+}
+
+void reflection::TypeManager::LoadGeneratedTypes()
+{
+	ReflectionSettings* reflectionSettings = GetReflectionSettings();
+	ReflectionSettings::Settings& settings = reflectionSettings->GetSettings();
+
+	DataDefReader* dataDefReader = new DataDefReader();
+
+	for (auto it = settings.m_files.begin(); it != settings.m_files.end(); ++it)
+	{
+		StructType* structType = dataDefReader->ParseXMLStruct(it->second);
+		RegisterGeneratedType(structType->GetMeta(), *structType);
+	}
 }

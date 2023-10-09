@@ -101,6 +101,8 @@ namespace reflection
 		StructType(const BaseObjectMeta& meta, const std::string& id);
 		Property& AddProperty();
 
+		const BaseObjectMeta& GetMeta() const;
+
 		virtual void ToXMLTree(xml_writer::Node& rootNode) const override;
 		virtual void FromXMLTree(const xml_reader::Node& rootNode) override;
 	};

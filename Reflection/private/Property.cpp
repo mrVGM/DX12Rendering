@@ -108,26 +108,26 @@ void reflection::Property::ToXMLTree(xml_writer::Node& rootNode) const
     
     {
         Node& dataTypeId = rootNode.m_children.emplace_back();
-        dataTypeId.m_tagName = "data-type-id";
+        dataTypeId.m_tagName = "data_type_id";
         dataTypeId.m_content = EncodeAsString(m_dataTypeId);
     }
 
     if (!m_mapValueDataTypeId.empty())
     {
         Node& mapValueDataTypeIdNode = rootNode.m_children.emplace_back();
-        mapValueDataTypeIdNode.m_tagName = "map-value-data-type-id";
+        mapValueDataTypeIdNode.m_tagName = "map_value_data_type_id";
         mapValueDataTypeIdNode.m_content = EncodeAsString(m_mapValueDataTypeId);
     }
 
     {
         Node& structureTypeNode = rootNode.m_children.emplace_back();
-        structureTypeNode.m_tagName = "structure-type";
+        structureTypeNode.m_tagName = "structure_type";
         structureTypeNode.m_content = EncodeAsString(StructureTypeToString(m_structureType));
     }
 
     {
         Node& accessTypeNode = rootNode.m_children.emplace_back();
-        accessTypeNode.m_tagName = "access-type";
+        accessTypeNode.m_tagName = "access_type";
         accessTypeNode.m_content = EncodeAsString(AccessTypeToString(m_accessType));
     }
 
@@ -135,7 +135,7 @@ void reflection::Property::ToXMLTree(xml_writer::Node& rootNode) const
         std::stringstream ss;
 
         Node& objectOffsetNode = rootNode.m_children.emplace_back();
-        objectOffsetNode.m_tagName = "object-offset";
+        objectOffsetNode.m_tagName = "object_offset";
         ss << m_objectOffset;
         objectOffsetNode.m_content = ss.str();
     }
@@ -173,7 +173,7 @@ void reflection::Property::FromXMLTree(const xml_reader::Node& rootNode)
 
     {
         const Node* n = FindChildNode(&rootNode, [](const Node* node) {
-            if (node->m_tagName == "data-type-id")
+            if (node->m_tagName == "data_type_id")
             {
                 return true;
             }
@@ -186,7 +186,7 @@ void reflection::Property::FromXMLTree(const xml_reader::Node& rootNode)
 
     {
         const Node* n = FindChildNode(&rootNode, [](const Node* node) {
-            if (node->m_tagName == "map-value-data-type-id")
+            if (node->m_tagName == "map_value_data_type_id")
             {
                 return true;
             }
@@ -202,7 +202,7 @@ void reflection::Property::FromXMLTree(const xml_reader::Node& rootNode)
 
     {
         const Node* n = FindChildNode(&rootNode, [](const Node* node) {
-            if (node->m_tagName == "structure-type")
+            if (node->m_tagName == "structure_type")
             {
                 return true;
             }
@@ -215,7 +215,7 @@ void reflection::Property::FromXMLTree(const xml_reader::Node& rootNode)
 
     {
         const Node* n = FindChildNode(&rootNode, [](const Node* node) {
-            if (node->m_tagName == "access-type")
+            if (node->m_tagName == "access_type")
             {
                 return true;
             }
@@ -228,7 +228,7 @@ void reflection::Property::FromXMLTree(const xml_reader::Node& rootNode)
 
     {
         const Node* n = FindChildNode(&rootNode, [](const Node* node) {
-            if (node->m_tagName == "object-offset")
+            if (node->m_tagName == "object_offset")
             {
                 return true;
             }

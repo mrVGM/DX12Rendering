@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data_def>
+    <id>"15C15B53-7635-46A3-81A6-315808AF0FF"</id>
+    <name>"My Struct"</name>
+    <value_type>"struct"</value_type>
+    <properties>
+        <property>
+            <id>"1F793A6E-D6F3-4BB0-8465-396AA4BA493B"</id>
+            <name>"Test Prop"</name>
+            <data_type_id>"205822CA-AFE5-4B94-B147-01E054F1C024"</data_type_id>
+            <structure_type>"single"</structure_type>
+            <access_type>"public"</access_type>
+            <object_offset>-1</object_offset>
+        </property>
+    </properties>
+</data_def>

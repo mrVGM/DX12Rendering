@@ -28,9 +28,13 @@ void reflection::Boot()
 		void Do()
 		{
 			ReflectionSettings* settings = new ReflectionSettings();
-			CreateTestStruct();
 
-			settings->StoreSettings();
+			//CreateTestStruct();
+			//settings->StoreSettings();
+
+			TypeManager& typeManager = TypeManager::GetInstance();
+			typeManager.LoadGeneratedTypes();
+			bool t = true;
 		}
 	};
 

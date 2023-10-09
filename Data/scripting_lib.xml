@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <settings>
-	<dir>"scripting\\"</dir>
-	<files/>
+    <dir>"scripting\\"</dir>
+    <files>
+        <file id="15C15B53-7635-46A3-81A6-315808AF0FF">"scripting\\15C15B53-7635-46A3-81A6-315808AF0FF.xml"</file>
+    </files>
 </settings>
