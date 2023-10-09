@@ -37,15 +37,4 @@ client.on('end', function() {
     L('Client: on end');
 })
 
-
-if (!document.app) {
-    document.app = {};
-}
-
-document.app.pipeServer = {
-    sendMessage: function(message) {
-        console.log("No connection!");
-    }
-};
-
 exports.client = client;

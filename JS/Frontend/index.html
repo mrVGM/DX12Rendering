@@ -8,8 +8,13 @@
 <body>
     <p1>Hello Frontend!</p1>
     <script>
-        let client = require('./pipeServer.js');
-        console.log(client);
+        const { ipcRenderer } = require('electron');
+
+        ipcRenderer.on('main_channel', (event, data) => {
+            console.log(data);
+
+            ipcRenderer.send('renderer_channel', 'Hello from Renderer!');
+        });
     </script>
 </body>
 </html>
