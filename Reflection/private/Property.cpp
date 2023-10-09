@@ -2,6 +2,11 @@
 
 #include "utils.h"
 
+#include "XMLReader.h"
+#include "XMLWriter.h"
+
+#include "SerializeToStringUtils.h"
+
 #include <Windows.h>
 #include <sstream>
 
@@ -78,4 +83,156 @@ void* reflection::Property::GetAddress(BaseObject& object) const
 {
     void* address = m_addressAccessor(object);
     return address;
+}
+
+void reflection::Property::ToXMLTree(xml_writer::Node& rootNode) const
+{
+    using namespace xml_writer;
+
+    rootNode.m_tagName = "property";
+
+    {
+        Node& idNode = rootNode.m_children.emplace_back();
+        idNode.m_tagName = "id";
+        idNode.m_content = EncodeAsString(m_id);
+    }
+
+    {
+        Node& nameNode = rootNode.m_children.emplace_back();
+        nameNode.m_tagName = "name";
+        nameNode.m_content = EncodeAsString(m_name);
+    }
+    
+    {
+        Node& dataTypeId = rootNode.m_children.emplace_back();
+        dataTypeId.m_tagName = "data-type-id";
+        dataTypeId.m_content = EncodeAsString(m_dataTypeId);
+    }
+
+    if (!m_mapValueDataTypeId.empty())
+    {
+        Node& mapValueDataTypeIdNode = rootNode.m_children.emplace_back();
+        mapValueDataTypeIdNode.m_tagName = "map-value-data-type-id";
+        mapValueDataTypeIdNode.m_content = EncodeAsString(m_mapValueDataTypeId);
+    }
+
+    {
+        Node& structureTypeNode = rootNode.m_children.emplace_back();
+        structureTypeNode.m_tagName = "structure-type";
+        structureTypeNode.m_content = EncodeAsString(StructureTypeToString(m_structureType));
+    }
+
+    {
+        Node& accessTypeNode = rootNode.m_children.emplace_back();
+        accessTypeNode.m_tagName = "access-type";
+        accessTypeNode.m_content = EncodeAsString(AccessTypeToString(m_accessType));
+    }
+
+    {
+        std::stringstream ss;
+
+        Node& objectOffsetNode = rootNode.m_children.emplace_back();
+        objectOffsetNode.m_tagName = "object-offset";
+        ss << m_objectOffset;
+        objectOffsetNode.m_content = ss.str();
+    }
+}
+
+void reflection::Property::FromXMLTree(const xml_reader::Node& rootNode)
+{
+    using namespace xml_reader;
+
+    {
+        const Node* n = FindChildNode(&rootNode, [](const Node* node) {
+            if (node->m_tagName == "id")
+            {
+                return true;
+            }
+
+            return false;
+        });
+
+        m_id = n->m_data.front()->m_symbolData.m_string;
+    }
+
+    {
+        const Node* n = FindChildNode(&rootNode, [](const Node* node) {
+            if (node->m_tagName == "name")
+            {
+                return true;
+            }
+
+            return false;
+        });
+
+        m_name = n->m_data.front()->m_symbolData.m_string;
+    }
+
+    {
+        const Node* n = FindChildNode(&rootNode, [](const Node* node) {
+            if (node->m_tagName == "data-type-id")
+            {
+                return true;
+            }
+
+            return false;
+        });
+
+        m_dataTypeId = n->m_data.front()->m_symbolData.m_string;
+    }
+
+    {
+        const Node* n = FindChildNode(&rootNode, [](const Node* node) {
+            if (node->m_tagName == "map-value-data-type-id")
+            {
+                return true;
+            }
+
+            return false;
+        });
+
+        if (n) 
+        {
+            m_mapValueDataTypeId = n->m_data.front()->m_symbolData.m_string;
+        }
+    }
+
+    {
+        const Node* n = FindChildNode(&rootNode, [](const Node* node) {
+            if (node->m_tagName == "structure-type")
+            {
+                return true;
+            }
+
+            return false;
+        });
+
+        m_structureType = StructureTypeFromString(n->m_data.front()->m_symbolData.m_string);
+    }
+
+    {
+        const Node* n = FindChildNode(&rootNode, [](const Node* node) {
+            if (node->m_tagName == "access-type")
+            {
+                return true;
+            }
+
+            return false;
+        });
+
+        m_accessType = AccessTypeFromString(n->m_data.front()->m_symbolData.m_string);
+    }
+
+    {
+        const Node* n = FindChildNode(&rootNode, [](const Node* node) {
+            if (node->m_tagName == "object-offset")
+            {
+                return true;
+            }
+
+            return false;
+        });
+
+        m_objectOffset = static_cast<int>(n->m_data.front()->m_symbolData.m_number);
+    }
 }

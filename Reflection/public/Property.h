@@ -25,15 +25,21 @@ namespace reflection
 		ClassDef
 	};
 
-	struct Property : public ObjectWithID
+	struct Property : public ObjectWithID, public XMLSerializable
 	{
 	private:
 		std::string m_id;
 		std::string m_name;
+
+		std::string m_dataTypeId;
 		const DataDef* m_dataType = nullptr;
+		std::string m_mapValueDataTypeId;
 		const DataDef* m_mapValueDataType = nullptr;
+
 		StructureType m_structureType = StructureType::Single;
 		AccessType m_accessType = AccessType::Public;
+
+		int m_objectOffset = -1;
 		std::function<void* (BaseObject&)> m_addressAccessor;
 
 	public:
@@ -59,5 +65,9 @@ namespace reflection
 		void Init();
 
 		void* GetAddress(BaseObject& object) const;
+
+
+		void ToXMLTree(xml_writer::Node& rootNode) const override;
+		void FromXMLTree(const xml_reader::Node& rootNode) override;
 	};
 }

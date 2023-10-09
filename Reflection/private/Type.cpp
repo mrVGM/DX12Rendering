@@ -98,7 +98,7 @@ void reflection::DataDef::ToXMLTree(xml_writer::Node& rootNode) const
 
 	Node& valueTypeNode = rootNode.m_children.emplace_back();
 	valueTypeNode.m_tagName = "value-type";
-	valueTypeNode.m_content = EncodeAsString(VatueTypeToString(m_type));
+	valueTypeNode.m_content = EncodeAsString(ValueTypeToString(m_type));
 }
 
 void reflection::DataDef::FromXMLTree(const xml_reader::Node& rootNode)
@@ -134,5 +134,5 @@ void reflection::DataDef::FromXMLTree(const xml_reader::Node& rootNode)
 
 	m_id = idNode->m_data.front()->m_symbolData.m_string;
 	m_name = nameNode->m_data.front()->m_symbolData.m_string;
-	m_type = VatueTypeFromString(valueTypeNode->m_data.front()->m_symbolData.m_string);
+	m_type = ValueTypeFromString(valueTypeNode->m_data.front()->m_symbolData.m_string);
 }

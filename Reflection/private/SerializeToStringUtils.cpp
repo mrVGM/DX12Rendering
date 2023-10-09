@@ -1,6 +1,6 @@
 #include "SerializeToStringUtils.h"
 
-std::string reflection::VatueTypeToString(const ValueType& valueType)
+std::string reflection::ValueTypeToString(const ValueType& valueType)
 {
 	switch (valueType)
 	{
@@ -26,7 +26,7 @@ std::string reflection::VatueTypeToString(const ValueType& valueType)
 	return "Unknown";
 }
 
-reflection::ValueType reflection::VatueTypeFromString(const std::string& str)
+reflection::ValueType reflection::ValueTypeFromString(const std::string& str)
 {
 	if (str == "bool") {
 		return ValueType::Bool;
@@ -52,4 +52,81 @@ reflection::ValueType reflection::VatueTypeFromString(const std::string& str)
 	}
 
 	return ValueType::Bool;
+}
+
+std::string reflection::AccessTypeToString(const AccessType& accessType)
+{
+	switch (accessType)
+	{
+	case AccessType::Private:
+		return "private";
+
+	case AccessType::Protected:
+		return "protected";
+
+	case AccessType::Public:
+		return "public";
+	}
+
+	return "Unknown";
+}
+
+reflection::AccessType reflection::AccessTypeFromString(const std::string& str)
+{
+	if (str == "private") {
+		return AccessType::Private;
+	}
+	if (str == "protected") {
+		return AccessType::Protected;
+	}
+
+	if (str == "public") {
+		return AccessType::Public;
+	}
+
+	return AccessType::Private;
+}
+
+std::string reflection::StructureTypeToString(const StructureType& structureType)
+{
+	switch (structureType)
+	{
+	case StructureType::Single:
+		return "single";
+
+	case StructureType::Array:
+		return "array";
+	
+	case StructureType::Set:
+		return "set";
+
+	case StructureType::Map:
+		return "map";
+
+	case StructureType::ClassDef:
+		return "class_def";
+	}
+
+	return "Unknown";
+}
+
+reflection::StructureType reflection::StructureTypeFromString(const std::string& str)
+{
+	if (str == "single") {
+		return StructureType::Single;
+	}
+	if (str == "array") {
+		return StructureType::Array;
+	}
+	if (str == "set") {
+		return StructureType::Set;
+	}
+	if (str == "map") {
+		return StructureType::Map;
+	}
+	if (str == "class_def") {
+		return StructureType::ClassDef;
+	}
+
+	return StructureType::Single;
 }
