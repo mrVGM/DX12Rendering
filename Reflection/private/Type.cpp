@@ -3,7 +3,13 @@
 #include "Property.h"
 #include "TypeManager.h"
 
+#include "DataLib.h"
+
 #include "SerializeToStringUtils.h"
+
+#include "utils.h"
+
+#include <fstream>
 
 reflection::DataDef::DataDef(const std::string& id) :
 	m_id(id)
@@ -135,4 +141,70 @@ void reflection::DataDef::FromXMLTree(const xml_reader::Node& rootNode)
 	m_id = idNode->m_data.front()->m_symbolData.m_string;
 	m_name = nameNode->m_data.front()->m_symbolData.m_string;
 	m_type = ValueTypeFromString(valueTypeNode->m_data.front()->m_symbolData.m_string);
+}
+
+void reflection::StructType::ToXMLTree(xml_writer::Node& rootNode) const
+{
+	using namespace xml_writer;
+
+	DataDef::ToXMLTree(rootNode);
+
+	Node& props = rootNode.m_children.emplace_back();
+	props.m_tagName = "properties";
+
+	for (auto it = m_properties.begin(); it != m_properties.end(); ++it)
+	{
+		Node& node = props.m_children.emplace_back();
+		const Property& cur = *it;
+		cur.ToXMLTree(node);
+	}
+}
+
+void reflection::StructType::FromXMLTree(const xml_reader::Node& rootNode)
+{
+	using namespace xml_reader;
+
+	StructType::FromXMLTree(rootNode);
+	
+	const Node* propertiesNode = FindChildNode(&rootNode, [](const Node* node) {
+		if (node->m_tagName == "properties")
+		{
+			return true;
+		}
+
+		return false;
+	});
+
+	std::list<const Node*> properties;
+	FindChildNodes(propertiesNode, [](const Node* node) {
+		if (node->m_tagName == "property")
+		{
+			return true;
+		}
+
+		return false;
+	}, properties);
+
+	for (auto it = properties.begin(); it != properties.end(); ++it)
+	{
+		const Node* cur = *it;
+
+		Property& prop = m_properties.emplace_back();
+		prop.FromXMLTree(*cur);
+	}
+}
+
+void reflection::DataDef::StoreGeneratedType() const
+{
+	data::DataLib& dataLib = data::GetLibrary();
+
+	ReflectionSettings* reflectionSettings = GetReflectionSettings();
+
+	std::string dir = dataLib.GetRootDir() + reflectionSettings->GetSettings().m_dirPath;
+	std::string fileName = GetID() + ".xml";
+	std::ofstream f(dir + fileName);
+
+	xml_writer::Node tmp;
+	ToXMLTree(tmp);
+	f << tmp.ToString();
 }

@@ -7,6 +7,8 @@
 
 #include "SerializeToStringUtils.h"
 
+#include "TypeManager.h"
+
 #include <Windows.h>
 #include <sstream>
 
@@ -22,6 +24,7 @@ void reflection::Property::SetName(const std::string name)
 void reflection::Property::SetDataType(const DataDef& dataType)
 {
 	m_dataType = &dataType;
+    m_dataTypeId = m_dataType->GetID();
 }
 
 void reflection::Property::SetMapValueDataType(const DataDef& dataType)

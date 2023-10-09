@@ -59,8 +59,8 @@ void reflection::ReflectionSettings::StoreSettings()
 		std::string xml = settingsNode.ToString();
 		std::string reflectionSettingsFilePath = data::GetLibrary().GetRootDir() + settingsFile;
 
-		std::ofstream materialsFile(reflectionSettingsFilePath);
-		materialsFile << xml;
+		std::ofstream reflectionFile(reflectionSettingsFilePath);
+		reflectionFile << xml;
 	}
 
 	bool t = true;

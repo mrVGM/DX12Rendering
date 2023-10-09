@@ -43,15 +43,18 @@ void reflection::CreateTestStruct()
 	BaseObjectMeta* structMeta = new GeneratedObjectMeta(scripting::ScriptingStructMeta::GetInstance());
 	StructType* testStruct = new StructType(*structMeta, GetNewId());
 
+	testStruct->SetName("My Struct");
+
 	Property& p = testStruct->AddProperty();
 	p.SetName("Test Prop");
 	p.SetDataType(m_intType);
 	p.SetAccessType(AccessType::Public);
 	p.SetStructureType(StructureType::Single);
 
+	ReflectionSettings* reflectionSettings = GetReflectionSettings();
+	reflectionSettings->GetSettings().m_files[testStruct->GetID()] = reflectionSettings->GetSettings().m_dirPath + testStruct->GetID() + ".xml";
+	testStruct->StoreGeneratedType();
+
 	TypeManager& typeManager = TypeManager::GetInstance();
 	typeManager.RegisterGeneratedType(*structMeta, *testStruct);
-
-	ReflectionSettings* reflectionSettings = GetReflectionSettings();
-	reflectionSettings->GetSettings().m_files[testStruct->GetID()] = reflectionSettings->GetSettings().m_dirPath + testStruct->GetID() + ".bp";
 }

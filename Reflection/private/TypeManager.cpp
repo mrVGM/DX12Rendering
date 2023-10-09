@@ -1,5 +1,7 @@
 #include "TypeManager.h"
 
+#include "utils.h"
+
 namespace
 {
 	class TypeManagerHolder

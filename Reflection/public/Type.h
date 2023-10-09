@@ -67,6 +67,8 @@ namespace reflection
 
 		virtual void ToXMLTree(xml_writer::Node& rootNode) const override;
 		virtual void FromXMLTree(const xml_reader::Node& rootNode) override;
+
+		void StoreGeneratedType() const;
 	};
 
 	struct BoolType : public DataDef
@@ -98,6 +100,9 @@ namespace reflection
 	public:
 		StructType(const BaseObjectMeta& meta, const std::string& id);
 		Property& AddProperty();
+
+		virtual void ToXMLTree(xml_writer::Node& rootNode) const override;
+		virtual void FromXMLTree(const xml_reader::Node& rootNode) override;
 	};
 
 	struct ClassType : public DataDef
