@@ -5,10 +5,31 @@
 #include "BaseObjectMeta.h"
 #include "BaseObject.h"
 
+#include "XMLReader.h"
+#include "XMLWriter.h"
+
 #include <list>
+#include <sstream>
+
+namespace xml_reader
+{
+	struct Node;
+}
+
+namespace xml_writer
+{
+	struct Node;
+}
 
 namespace reflection
 {
+	class XMLSerializable
+	{
+	public:
+		virtual void ToXMLTree(xml_writer::Node& rootNode) const = 0;
+		virtual void FromXMLTree(const xml_reader::Node& rootNode) = 0;
+	};
+
 	struct Property;
 
 	enum ValueType
@@ -21,12 +42,12 @@ namespace reflection
 		Class,
 	};
 
-	struct DataDef : public ObjectWithID
+	struct DataDef : public ObjectWithID, public XMLSerializable
 	{
 	private:
 		std::string m_id;
-		ValueType m_type;
 		std::string m_name;
+		ValueType m_type;
 
 	protected:
 		DataDef(const std::string& id);
@@ -43,6 +64,9 @@ namespace reflection
 		const std::string& GetID() const override;
 		const std::string& GetName() const;
 		const ValueType& GetValueType() const;
+
+		virtual void ToXMLTree(xml_writer::Node& rootNode) const override;
+		virtual void FromXMLTree(const xml_reader::Node& rootNode) override;
 	};
 
 	struct BoolType : public DataDef

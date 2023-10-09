@@ -3,6 +3,8 @@
 #include "Property.h"
 #include "TypeManager.h"
 
+#include "SerializeToStringUtils.h"
+
 reflection::DataDef::DataDef(const std::string& id) :
 	m_id(id)
 {
@@ -79,4 +81,58 @@ reflection::Property& reflection::StructType::AddProperty()
 	Property& prop = m_properties.emplace_back();
 	prop.Init();
 	return prop;
+}
+
+void reflection::DataDef::ToXMLTree(xml_writer::Node& rootNode) const
+{
+	using namespace xml_writer;
+
+	rootNode.m_tagName = "data-def";
+	Node& idNode = rootNode.m_children.emplace_back();
+	idNode.m_tagName = "id";
+	idNode.m_content = EncodeAsString(m_id);
+
+	Node& nameNode = rootNode.m_children.emplace_back();
+	nameNode.m_tagName = "name";
+	nameNode.m_content = EncodeAsString(m_name);
+
+	Node& valueTypeNode = rootNode.m_children.emplace_back();
+	valueTypeNode.m_tagName = "value-type";
+	valueTypeNode.m_content = EncodeAsString(VatueTypeToString(m_type));
+}
+
+void reflection::DataDef::FromXMLTree(const xml_reader::Node& rootNode)
+{
+	using namespace xml_reader;
+
+	const Node* idNode = FindChildNode(&rootNode, [](const Node* node) {
+		if (node->m_tagName == "id")
+		{
+			return true;
+		}
+
+		return false;
+	});
+
+	const Node* nameNode = FindChildNode(&rootNode, [](const Node* node) {
+		if (node->m_tagName == "name")
+		{
+			return true;
+		}
+
+		return false;
+	});
+
+	const Node* valueTypeNode = FindChildNode(&rootNode, [](const Node* node) {
+		if (node->m_tagName == "value-type")
+		{
+			return true;
+		}
+
+		return false;
+	});
+
+	m_id = idNode->m_data.front()->m_symbolData.m_string;
+	m_name = nameNode->m_data.front()->m_symbolData.m_string;
+	m_type = VatueTypeFromString(valueTypeNode->m_data.front()->m_symbolData.m_string);
 }
