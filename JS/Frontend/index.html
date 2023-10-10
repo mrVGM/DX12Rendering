@@ -10,11 +10,39 @@
     <script>
         const { ipcRenderer } = require('electron');
 
-        ipcRenderer.on('main_channel', (event, data) => {
-            console.log(data);
+        let messageReceived = undefined;
 
-            ipcRenderer.send('renderer_channel', 'Hello from Renderer!');
+        ipcRenderer.on('main_channel', (event, data) => {
+            if (data.subject === 'window_id') {
+                document.windowId = data.id;
+
+                makeRequest(":ping");
+            }
+            else if (data.subject === 'server_response') {
+                if (messageReceived) {
+                    messageReceived(data.message);
+                }
+            }
         });
+
+        async function makeRequest(message) {
+            ipcRenderer.send('renderer_channel', {
+                id: document.windowId,
+                instruction: 'make_request',
+                message: message
+            });
+
+            const prom = new Promise((resolve, reject) => {
+                messageReceived = function (resp) {
+                    resolve(resp);
+                };
+            });
+
+            let resp = await prom;
+
+            console.log(resp);
+        }
+
     </script>
 </body>
 </html>

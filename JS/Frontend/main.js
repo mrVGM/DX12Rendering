@@ -3,7 +3,20 @@ const path = require('path')
 
 let client = require('./pipeServer.js');
 
+async function makeRequestFromWindow(message, id)
+{
+    let resp = await client.makeRequest(message);
+    windowsCreated[id].window.webContents.send('main_channel', {
+        subject: 'server_response',
+        message: resp
+    });
+}
+
 ipcMain.on('renderer_channel', (event, data) => {
+    if (data.instruction === 'make_request') {
+        makeRequestFromWindow(data.message, data.id);
+        return;
+    }
     console.log(data);
 });
 
@@ -26,16 +39,18 @@ function createWindow () {
         windowId: windowId,
         window: win
     };
-    ++windowId;
-    windowsCreated[windowId] = entry;
+    windowsCreated[windowId++] = entry;
 
     win.on("close", () => {
         console.log("window closed!");
         delete windowsCreated[entry.windowId];
     });
 
+    win.webContents.send('main_channel', {
+        subject: 'window_id',
+        id: entry.windowId
+    });
     setTimeout(() => {
-        win.webContents.send('main_channel', 'Hello from Main!');
     }, 5000);
 }
 
