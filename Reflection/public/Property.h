@@ -45,9 +45,6 @@ namespace reflection
 	public:
 		Property();
 
-		Property(const Property& other) = delete;
-		Property& operator=(const Property& other) = delete;
-
 		void SetName(const std::string name);
 		void SetDataType(const DataDef& dataType);
 		void SetMapValueDataType(const DataDef& dataType);
@@ -69,5 +66,7 @@ namespace reflection
 
 		void ToXMLTree(xml_writer::Node& rootNode) const override;
 		void FromXMLTree(const xml_reader::Node& rootNode) override;
+
+		void PostDeserialize();
 	};
 }

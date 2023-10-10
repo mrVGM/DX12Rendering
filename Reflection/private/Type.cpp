@@ -213,3 +213,13 @@ const BaseObjectMeta& reflection::StructType::GetMeta() const
 {
 	return m_meta;
 }
+
+void reflection::StructType::PostDeserialize()
+{
+	TypeManager& typeManager = TypeManager::GetInstance();
+	for (auto it = m_properties.begin(); it != m_properties.end(); ++it)
+	{
+		Property& cur = *it;
+		cur.PostDeserialize();
+	}
+}

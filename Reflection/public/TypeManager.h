@@ -17,6 +17,9 @@ namespace reflection
 	public:
 		static TypeManager& GetInstance();
 
+		TypeManager();
+		TypeManager(const TypeManager& other) = delete;
+		TypeManager& operator=(const TypeManager& other) = delete;
 		~TypeManager();
 
 		void RegisterType(const DataDef& type);

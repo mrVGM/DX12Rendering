@@ -5,6 +5,11 @@
 
 #include "DataDefReader.h"
 
+#include "SerializeToStringUtils.h"
+
+#include "ScriptingStructMeta.h"
+#include "GeneratedObjectMeta.h"
+
 #include "utils.h"
 
 namespace
@@ -87,6 +92,10 @@ reflection::TypeManager& reflection::TypeManager::GetInstance()
 	return m_typeManagerHolder.GetTypeManager();
 }
 
+reflection::TypeManager::TypeManager()
+{
+}
+
 void reflection::TypeManager::RegisterGeneratedType(const BaseObjectMeta& meta, const DataDef& type)
 {
 	m_generatedTypeMetas.push_back(&meta);
@@ -100,9 +109,26 @@ void reflection::TypeManager::LoadGeneratedTypes()
 
 	DataDefReader* dataDefReader = new DataDefReader();
 
+	std::list<StructType*> generated;
+	StructType* structCache = nullptr;
 	for (auto it = settings.m_files.begin(); it != settings.m_files.end(); ++it)
 	{
-		StructType* structType = dataDefReader->ParseXMLStruct(it->second);
-		RegisterGeneratedType(structType->GetMeta(), *structType);
+		StructTypePayload tmp;
+		dataDefReader->ParseXMLStruct(it->second, tmp);
+
+		GeneratedObjectMeta* structTypeMeta = new GeneratedObjectMeta(scripting::ScriptingStructMeta::GetInstance());
+		StructType* structType = new StructType(*structTypeMeta, tmp.m_id);
+		structCache = structType;
+
+		tmp.InitTypeDef(*structType);
+		RegisterGeneratedType(*structTypeMeta, *structType);
+
+		generated.push_back(structType);
+	}
+
+	for (auto it = generated.begin(); it != generated.end(); ++it)
+	{
+		StructType* cur = *it;
+		cur->PostDeserialize();
 	}
 }

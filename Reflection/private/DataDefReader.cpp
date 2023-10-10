@@ -19,7 +19,7 @@ reflection::DataDefReader::~DataDefReader()
 {
 }
 
-reflection::StructType* reflection::DataDefReader::ParseXMLStruct(const std::string& filePath)
+void reflection::DataDefReader::ParseXMLStruct(const std::string& filePath, StructTypePayload& payload)
 {
 	using namespace xml_reader;
 
@@ -37,10 +37,5 @@ reflection::StructType* reflection::DataDefReader::ParseXMLStruct(const std::str
 		}
 	}
 
-	BaseObjectMeta* structMeta = new GeneratedObjectMeta(scripting::ScriptingStructMeta::GetInstance());
-	StructType* resStruct = new StructType(*structMeta, "");
-
-	resStruct->FromXMLTree(*dataDefNode);
-
-	return resStruct;
+	payload.FromXMLTree(*dataDefNode);
 }

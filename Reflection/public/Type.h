@@ -44,6 +44,7 @@ namespace reflection
 
 	struct DataDef : public ObjectWithID, public XMLSerializable
 	{
+		friend struct DataDefPayload;
 	private:
 		std::string m_id;
 		std::string m_name;
@@ -93,6 +94,7 @@ namespace reflection
 
 	struct StructType : public DataDef
 	{
+		friend class StructTypePayload;
 	private:
 		const BaseObjectMeta& m_meta;
 		std::list<Property> m_properties;
@@ -105,6 +107,8 @@ namespace reflection
 
 		virtual void ToXMLTree(xml_writer::Node& rootNode) const override;
 		virtual void FromXMLTree(const xml_reader::Node& rootNode) override;
+
+		void PostDeserialize();
 	};
 
 	struct ClassType : public DataDef

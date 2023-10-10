@@ -239,3 +239,21 @@ void reflection::Property::FromXMLTree(const xml_reader::Node& rootNode)
         m_objectOffset = static_cast<int>(n->m_data.front()->m_symbolData.m_number);
     }
 }
+
+
+void reflection::Property::PostDeserialize()
+{
+    TypeManager& typeManager = TypeManager::GetInstance();
+    m_dataType = typeManager.GetType(m_dataTypeId);
+
+    if (m_structureType == StructureType::Map)
+    {
+        m_mapValueDataType = typeManager.GetType(m_mapValueDataTypeId);
+    }
+
+    m_addressAccessor = [&](BaseObject& obj) {
+        char* address = reinterpret_cast<char*>(&obj);
+        address += m_objectOffset;
+        return address;
+    };
+}

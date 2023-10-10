@@ -4,7 +4,7 @@
 
 #include "BaseObjectMetaTag.h"
 
-#include "Type.h"
+#include "SerializeToStringUtils.h"
 
 #include <string>
 #include <map>
@@ -17,6 +17,6 @@ namespace reflection
 		DataDefReader();
 		virtual ~DataDefReader();
 
-		StructType* ParseXMLStruct(const std::string& filePath);
+		void ParseXMLStruct(const std::string& filePath, StructTypePayload& payload);
 	};
 }
