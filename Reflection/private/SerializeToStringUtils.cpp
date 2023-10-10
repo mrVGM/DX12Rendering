@@ -130,3 +130,34 @@ reflection::StructureType reflection::StructureTypeFromString(const std::string&
 
 	return StructureType::Single;
 }
+
+reflection::ValueType reflection::ReadValueTypeFromXML(const xml_reader::Node* rootNode)
+{
+	using namespace xml_reader;
+	const Node* typeNode = FindChildNode(rootNode, [](const Node* node) {
+		if (node->m_tagName == "value_type")
+		{
+			return true;
+		}
+
+		return false;
+	});
+
+	std::string valueTypeStr = typeNode->m_data.front()->m_symbolData.m_string;
+	return ValueTypeFromString(valueTypeStr);
+}
+
+std::string reflection::ReadIdFromXML(const xml_reader::Node* rootNode)
+{
+	using namespace xml_reader;
+	const Node* idNode = FindChildNode(rootNode, [](const Node* node) {
+		if (node->m_tagName == "id")
+		{
+			return true;
+		}
+
+		return false;
+	});
+
+	return idNode->m_data.front()->m_symbolData.m_string;
+}

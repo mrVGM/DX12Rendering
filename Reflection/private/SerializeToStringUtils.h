@@ -15,4 +15,7 @@ namespace reflection
 
 	std::string StructureTypeToString(const StructureType& structureType);
 	StructureType StructureTypeFromString(const std::string& str);
+
+	ValueType ReadValueTypeFromXML(const xml_reader::Node* rootNode);
+	std::string ReadIdFromXML(const xml_reader::Node* rootNode);
 }
