@@ -47,6 +47,13 @@ const reflection::ValueType& reflection::DataDef::GetValueType() const
 	return m_type;
 }
 
+reflection::BoolType::BoolType() :
+	DataDef("DEB3887A-1D34-4D22-816F-26BE7CE80FC8")
+{
+	SetName("bool");
+	SetValueType(ValueType::Bool);
+}
+
 reflection::IntType::IntType() :
 	DataDef("205822CA-AFE5-4B94-B147-01E054F1C024")
 {

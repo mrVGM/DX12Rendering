@@ -16,6 +16,7 @@
 
 namespace
 {
+	reflection::BoolType m_boolType;
 	reflection::IntType m_intType;
 	reflection::FloatType m_floatType;
 	reflection::StringType m_stringType;
