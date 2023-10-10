@@ -2,7 +2,6 @@ const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('path')
 
 let client = require('./pipeServer.js');
-console.log(client);
 
 ipcMain.on('renderer_channel', (event, data) => {
     console.log(data);

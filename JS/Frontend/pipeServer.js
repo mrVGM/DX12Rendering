@@ -1,40 +1,106 @@
-let net = require('net');
+const net = require('net');
 
-let PIPE_NAME = "mynamedpipe";
-let PIPE_PATH = "\\\\.\\pipe\\" + PIPE_NAME;
+const PIPE_NAME = "mynamedpipe";
+const PIPE_PATH = "\\\\.\\pipe\\" + PIPE_NAME;
 
-let L = console.log;
+const L = console.log;
 
-var client = net.connect(PIPE_PATH, function() {
+const requests = [];
+
+let responseReceived = undefined;
+let requestReceived = undefined;
+
+const client = net.connect(PIPE_PATH, function () {
     L('Client: on connection');
 
-    function ping()
-    {
-        client.write(":ping");
-        setTimeout(() => {
-            ping();
-        }, 1000);
+    async function ping() {
+        let resp = await makeRequest(":ping");
+        L(resp);
+        setTimeout(ping, 1000);
     }
 
     ping();
-
-    setTimeout(() => {
-        client.write(":types");
-    }, 10000);
-})
+});
 
 client.on('data', function (data) {
     let dataStr = data.toString();
-    L('Client: on data:', dataStr);
 
     if (dataStr == ":quit") {
         L("Quitting!")
         client.write(":quit");
     }
+
+    if (responseReceived) {
+        responseReceived(dataStr);
+    }
 });
 
-client.on('end', function() {
+client.on('end', function () {
     L('Client: on end');
-})
+});
 
-exports.client = client;
+async function sendRequestAndWaitForResponse(request)
+{
+    const sendPromise = new Promise((resolve, reject) => {
+        responseReceived = response => {
+            resolve(response);
+        };
+        client.write(request.message);
+    });
+
+    let response = await sendPromise;
+    request.onResponse(response);
+}
+
+function getRequest()
+{
+    const prom = new Promise((resolve, reject) => {
+        if (requests.length > 0) {
+            const req = requests.shift();
+            resolve(req);
+            return;
+        }
+
+        requestReceived = () => {
+            requestReceived = undefined;
+            const req = requests.shift();
+            resolve(req);
+        };
+    });
+
+    return prom;
+}
+
+function makeRequest(request)
+{
+    const prom = new Promise((resolve, reject) => {
+        requests.push({
+            message: request,
+            onResponse: (response) => {
+                resolve(response);
+            }
+        });
+
+        if (requestReceived) {
+            requestReceived();
+        }
+    });
+
+    return prom;
+}
+
+function startProcessing()
+{
+    async function process()
+    {
+        while (true) {
+            const req = await getRequest();
+            sendRequestAndWaitForResponse(req);
+        }
+    }
+    setTimeout(process, 0);
+}
+
+startProcessing();
+
+exports.makeRequest = makeRequest;
