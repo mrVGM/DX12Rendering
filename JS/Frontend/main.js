@@ -3,8 +3,14 @@ const { app, BrowserWindow, ipcMain } = require('electron')
 const client = require('./pipeServer.js');
 const ejsLoader = require('./ejsLoader.js');
 
+let ejsDataReceived = undefined;
+let ejsData = undefined;
+
 ejsLoader.readEJSFiles((data) => {
-    console.log(data);
+    ejsData = data;
+    if (ejsDataReceived) {
+        ejsDataReceived();
+    }
 });
 
 async function makeRequestFromWindow(message, id)
@@ -16,9 +22,38 @@ async function makeRequestFromWindow(message, id)
     });
 }
 
+async function getEJSData(id) {
+    function sendEJSData(data) {
+        windowsCreated[id].window.webContents.send('main_channel', {
+            subject: 'ejs_data',
+            ejsData: data
+        });
+    }
+
+    if (ejsData) {
+        sendEJSData(ejsData);
+        return;
+    }
+
+    const prom = new Promise((resolve, reject) => {
+        ejsDataReceived = () => {
+            ejsDataReceived = undefined;
+            resolve(ejsData);
+        };
+    });
+
+    const data = await prom;
+    sendEJSData(data);
+}
+
 ipcMain.on('renderer_channel', (event, data) => {
+
     if (data.instruction === 'make_request') {
         makeRequestFromWindow(data.message, data.id);
+        return;
+    }
+    if (data.instruction === 'get_ejs_data') {
+        getEJSData(data.id);
         return;
     }
     console.log(data);

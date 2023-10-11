@@ -16,11 +16,16 @@
             if (data.subject === 'window_id') {
                 document.windowId = data.id;
 
-                makeRequest(":ping");
+                requestEJSData();
             }
             else if (data.subject === 'server_response') {
                 if (messageReceived) {
                     messageReceived(data.message);
+                }
+            }
+            else if (data.subject === 'ejs_data') {
+                if (messageReceived) {
+                    messageReceived(data.ejsData);
                 }
             }
         });
@@ -41,6 +46,24 @@
             let resp = await prom;
 
             console.log(resp);
+        }
+
+        async function requestEJSData() {
+            ipcRenderer.send('renderer_channel', {
+                id: document.windowId,
+                instruction: 'get_ejs_data'
+            });
+
+            const prom = new Promise((resolve, reject) => {
+                messageReceived = function (resp) {
+                    resolve(resp);
+                };
+            });
+
+            let ejsData = await prom;
+            document.ejsData = ejsData;
+
+            console.log(ejsData);
         }
 
     </script>
