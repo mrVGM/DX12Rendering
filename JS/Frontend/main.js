@@ -1,7 +1,11 @@
 const { app, BrowserWindow, ipcMain } = require('electron')
-const path = require('path')
 
-let client = require('./pipeServer.js');
+const client = require('./pipeServer.js');
+const ejsLoader = require('./ejsLoader.js');
+
+ejsLoader.readEJSFiles((data) => {
+    console.log(data);
+});
 
 async function makeRequestFromWindow(message, id)
 {
@@ -21,7 +25,7 @@ ipcMain.on('renderer_channel', (event, data) => {
 });
 
 let windowId = 0;
-let windowsCreated = {};
+const windowsCreated = {};
 
 function createWindow () {
     const win = new BrowserWindow({
