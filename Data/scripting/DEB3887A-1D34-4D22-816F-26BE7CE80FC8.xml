@@ -3,4 +3,5 @@
     <id>"DEB3887A-1D34-4D22-816F-26BE7CE80FC8"</id>
     <name>"bool"</name>
     <value_type>"bool"</value_type>
+    <is_native>1</is_native>
 </data_def>

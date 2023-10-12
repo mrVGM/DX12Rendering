@@ -49,6 +49,7 @@ namespace reflection
 		std::string m_id;
 		std::string m_name;
 		ValueType m_type;
+		bool m_isNative = true;
 
 	protected:
 		DataDef(const std::string& id);

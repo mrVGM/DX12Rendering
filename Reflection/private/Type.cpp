@@ -101,17 +101,40 @@ void reflection::DataDef::ToXMLTree(xml_writer::Node& rootNode) const
 	using namespace xml_writer;
 
 	rootNode.m_tagName = "data_def";
-	Node& idNode = rootNode.m_children.emplace_back();
-	idNode.m_tagName = "id";
-	idNode.m_content = EncodeAsString(m_id);
+	{
+		Node& idNode = rootNode.m_children.emplace_back();
+		idNode.m_tagName = "id";
+		idNode.m_content = EncodeAsString(m_id);
+	}
 
-	Node& nameNode = rootNode.m_children.emplace_back();
-	nameNode.m_tagName = "name";
-	nameNode.m_content = EncodeAsString(m_name);
+	{
+		Node& nameNode = rootNode.m_children.emplace_back();
+		nameNode.m_tagName = "name";
+		nameNode.m_content = EncodeAsString(m_name);
+	}
 
-	Node& valueTypeNode = rootNode.m_children.emplace_back();
-	valueTypeNode.m_tagName = "value_type";
-	valueTypeNode.m_content = EncodeAsString(ValueTypeToString(m_type));
+	{
+		Node& valueTypeNode = rootNode.m_children.emplace_back();
+		valueTypeNode.m_tagName = "value_type";
+		valueTypeNode.m_content = EncodeAsString(ValueTypeToString(m_type));
+	}
+
+	{
+		std::stringstream ss;
+
+		Node& nativeTypeNode = rootNode.m_children.emplace_back();
+		nativeTypeNode.m_tagName = "is_native";
+
+		if (m_isNative)
+		{
+			ss << 1;
+		}
+		else
+		{
+			ss << 0;
+		}
+		ss >> nativeTypeNode.m_content;
+	}
 }
 
 void reflection::DataDef::FromXMLTree(const xml_reader::Node& rootNode)
@@ -145,9 +168,19 @@ void reflection::DataDef::FromXMLTree(const xml_reader::Node& rootNode)
 		return false;
 	});
 
+	const Node* nativeNode = FindChildNode(&rootNode, [](const Node* node) {
+		if (node->m_tagName == "is_native")
+		{
+			return true;
+		}
+
+		return false;
+	});
+
 	m_id = idNode->m_data.front()->m_symbolData.m_string;
 	m_name = nameNode->m_data.front()->m_symbolData.m_string;
 	m_type = ValueTypeFromString(valueTypeNode->m_data.front()->m_symbolData.m_string);
+	m_isNative = static_cast<int>(nativeNode->m_data.front()->m_symbolData.m_number);
 }
 
 void reflection::StructType::ToXMLTree(xml_writer::Node& rootNode) const

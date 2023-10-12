@@ -3,4 +3,5 @@
     <id>"A5935EC8-E57C-4F54-8C1A-AF4058247271"</id>
     <name>"float"</name>
     <value_type>"float"</value_type>
+    <is_native>1</is_native>
 </data_def>

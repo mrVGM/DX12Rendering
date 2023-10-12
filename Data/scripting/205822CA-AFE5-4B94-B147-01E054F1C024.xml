@@ -3,4 +3,5 @@
     <id>"205822CA-AFE5-4B94-B147-01E054F1C024"</id>
     <name>"int"</name>
     <value_type>"int"</value_type>
+    <is_native>1</is_native>
 </data_def>
