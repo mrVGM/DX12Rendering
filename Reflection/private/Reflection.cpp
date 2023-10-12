@@ -12,6 +12,8 @@
 
 #include "ReflectionSettings.h"
 
+#include "ReflectionEntryPoint.h"
+
 #include "utils.h"
 
 namespace
@@ -62,4 +64,9 @@ void reflection::CreateTestStruct()
 
 	TypeManager& typeManager = TypeManager::GetInstance();
 	typeManager.RegisterGeneratedType(*structMeta, *testStruct);
+}
+
+void reflection::RegisterLib()
+{
+	new ReflectionEntryPoint();
 }

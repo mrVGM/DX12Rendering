@@ -44,10 +44,8 @@ int main(int args, const char** argv)
 	settings::AppEntryPoint* entryPoint = app::BootApp();
 
 	reflection::Boot();
-	frontend::Boot();
-
+	
 	std::cin.get();
-	frontend::Shutdown();
 	entryPoint->Shutdown();
 
 	std::cin.get();

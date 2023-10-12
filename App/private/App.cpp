@@ -2,9 +2,11 @@
 
 #include "Renderer.h"
 #include "SceneConverter.h"
+#include "Reflection.h"
 
 #include "RendererEntryPointMetaTag.h"
 #include "SceneConverterEntryPointMetaTag.h"
+#include "ReflectionEntryPointMetaTag.h"
 
 #include "BaseObjectContainer.h"
 
@@ -27,9 +29,11 @@ namespace
 	{
 		rendering::RegisterLib();
 		scene_converter::RegisterLib();
+		reflection::RegisterLib();
 
 		m_appEntryPoints["Renderer"] = &settings::RendererEntryPointMetaTag::GetInstance();
 		m_appEntryPoints["SceneConverter"] = &settings::SceneConverterEntryPointMetaTag::GetInstance();
+		m_appEntryPoints["Reflection"] = &settings::ReflectionEntryPointMetaTag::GetInstance();
 	}
 }
 

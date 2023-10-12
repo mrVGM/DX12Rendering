@@ -13,4 +13,6 @@ namespace reflection
 	void Boot();
 
 	void CreateTestStruct();
+
+	void RegisterLib();
 }

@@ -23,7 +23,11 @@ add_library (Reflection
 	"private/DataDefReaderMeta.cpp"
 	"private/DataDefReader.h"
 	"private/DataDefReaderMeta.h"
-)
+	"private/ReflectionEntryPointMeta.cpp"
+	"private/ReflectionEntryPointMeta.h"
+	"private/ReflectionEntryPoint.cpp"
+	"private/ReflectionEntryPoint.h"
+ )
 
 target_include_directories(Reflection INTERFACE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/public")
 target_include_directories(Reflection PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private")
