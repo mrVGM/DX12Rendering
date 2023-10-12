@@ -35,8 +35,7 @@ async function init()
         });
 
         let resp = await prom;
-
-        console.log(resp);
+        return resp;
     }
 
     let ejsDataReceived = undefined;
