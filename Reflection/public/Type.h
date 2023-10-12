@@ -69,7 +69,7 @@ namespace reflection
 		virtual void ToXMLTree(xml_writer::Node& rootNode) const override;
 		virtual void FromXMLTree(const xml_reader::Node& rootNode) override;
 
-		void StoreGeneratedType() const;
+		void StoreTypeInfo() const;
 	};
 
 	struct BoolType : public DataDef

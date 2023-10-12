@@ -42,8 +42,6 @@ int main(int args, const char** argv)
 
 	new settings::AppSettings();
 	settings::AppEntryPoint* entryPoint = app::BootApp();
-
-	reflection::Boot();
 	
 	std::cin.get();
 	entryPoint->Shutdown();

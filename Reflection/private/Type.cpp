@@ -201,7 +201,7 @@ void reflection::StructType::FromXMLTree(const xml_reader::Node& rootNode)
 	}
 }
 
-void reflection::DataDef::StoreGeneratedType() const
+void reflection::DataDef::StoreTypeInfo() const
 {
 	data::DataLib& dataLib = data::GetLibrary();
 

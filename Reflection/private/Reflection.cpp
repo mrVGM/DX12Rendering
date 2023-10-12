@@ -47,7 +47,7 @@ void reflection::CreateTestStruct()
 
 	ReflectionSettings* reflectionSettings = GetReflectionSettings();
 	reflectionSettings->GetSettings().m_files[testStruct->GetID()] = reflectionSettings->GetSettings().m_dirPath + testStruct->GetID() + ".xml";
-	testStruct->StoreGeneratedType();
+	testStruct->StoreTypeInfo();
 
 	TypeManager& typeManager = TypeManager::GetInstance();
 	typeManager.RegisterGeneratedType(*structMeta, *testStruct);

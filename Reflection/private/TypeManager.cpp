@@ -12,6 +12,8 @@
 
 #include "utils.h"
 
+#include <iostream>
+
 namespace
 {
 	class TypeManagerHolder
@@ -112,6 +114,11 @@ void reflection::TypeManager::RegisterGeneratedType(const BaseObjectMeta& meta, 
 
 void reflection::TypeManager::StoreTypeInformation()
 {
+	for (auto it = m_types.begin(); it != m_types.end(); ++it)
+	{
+		it->second->StoreTypeInfo();
+		std::cout << it->second->GetName() << " information written" << std::endl;
+	}
 }
 
 void reflection::TypeManager::LoadGeneratedTypes()
