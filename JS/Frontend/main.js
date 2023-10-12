@@ -1,26 +1,18 @@
 const { app, BrowserWindow, ipcMain } = require('electron')
 
-const client = require('./pipeServer.js');
-const ejsLoader = require('./ejsLoader.js');
+const ejsLoader = require('./ejsLoader');
+const definitionsLoader = require('./definitionsLoader');
 
-let ejsDataReceived = undefined;
 let ejsData = undefined;
+let definitions = undefined;
 
-ejsLoader.readEJSFiles((data) => {
+ejsLoader.readEJSFiles(data => {
     ejsData = data;
-    if (ejsDataReceived) {
-        ejsDataReceived();
-    }
 });
 
-async function makeRequestFromWindow(message, id)
-{
-    let resp = await client.makeRequest(message);
-    windowsCreated[id].window.webContents.send('main_channel', {
-        subject: 'server_response',
-        message: resp
-    });
-}
+definitionsLoader.readDefinitions(data => {
+    definitions = data;
+});
 
 async function getEJSData(id) {
     function sendEJSData(data) {
@@ -36,26 +28,76 @@ async function getEJSData(id) {
     }
 
     const prom = new Promise((resolve, reject) => {
-        ejsDataReceived = () => {
-            ejsDataReceived = undefined;
-            resolve(ejsData);
-        };
+        function check() {
+            if (ejsData) {
+                resolve(ejsData);
+                return;
+            }
+
+            setTimeout(check, 100);
+        }
+
+        check();
     });
 
     const data = await prom;
+
+    sendEJSData(data);
+}
+
+async function getDefinitionsData(id) {
+    function sendEJSData(data) {
+        windowsCreated[id].window.webContents.send('main_channel', {
+            subject: 'definitions_data',
+            definitions: data
+        });
+    }
+
+    if (definitions) {
+        sendEJSData(definitions);
+        return;
+    }
+
+    const prom = new Promise((resolve, reject) => {
+        function check() {
+            if (definitions) {
+                resolve(definitions);
+                return;
+            }
+
+            setTimeout(check, 100);
+        }
+
+        check();
+    });
+
+    const data = await prom;
+
     sendEJSData(data);
 }
 
 ipcMain.on('renderer_channel', (event, data) => {
+    if (data.instruction === 'get_init_data') {
+        for (let i in windowsCreated) {
+            windowsCreated[i].window.webContents.send('main_channel', {
+                subject: 'window_id',
+                id: i
+            });
+        }
 
-    if (data.instruction === 'make_request') {
-        makeRequestFromWindow(data.message, data.id);
         return;
     }
+
     if (data.instruction === 'get_ejs_data') {
         getEJSData(data.id);
         return;
     }
+
+    if (data.instruction === 'get_definitions') {
+        getDefinitionsData(data.id);
+        return;
+    }
+
     console.log(data);
 });
 
@@ -84,13 +126,6 @@ function createWindow () {
         console.log("window closed!");
         delete windowsCreated[entry.windowId];
     });
-
-    win.webContents.send('main_channel', {
-        subject: 'window_id',
-        id: entry.windowId
-    });
-    setTimeout(() => {
-    }, 5000);
 }
 
 app.whenReady().then(() => {

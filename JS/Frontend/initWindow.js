@@ -5,68 +5,72 @@ async function init()
     let messageReceived = undefined;
 
     ipcRenderer.on('main_channel', (event, data) => {
-        if (data.subject === 'window_id') {
-            document.windowId = data.id;
-            requestEJSData();
+        if (messageReceived) {
+            messageReceived(data);
+            return;
         }
-        else if (data.subject === 'server_response') {
-            if (messageReceived) {
-                messageReceived(data.message);
-            }
-        }
-        else if (data.subject === 'ejs_data') {
-            if (messageReceived) {
-                messageReceived(data.ejsData);
-            }
-        }
+
+        console.log(data);
     });
 
-    async function makeRequest(message) {
-        ipcRenderer.send('renderer_channel', {
-            id: document.windowId,
-            instruction: 'make_request',
-            message: message
-        });
-
+    async function getMyId() {
         const prom = new Promise((resolve, reject) => {
             messageReceived = function (resp) {
+                messageReceived = undefined;
                 resolve(resp);
             };
         });
 
-        let resp = await prom;
-        return resp;
+        ipcRenderer.send('renderer_channel', {
+            instruction: 'get_init_data'
+        });
+
+        let data = await prom;
+        document.windowId = data.id;
     }
 
-    let ejsDataReceived = undefined;
-
     async function requestEJSData() {
+        const prom = new Promise((resolve, reject) => {
+            messageReceived = function (resp) {
+                messageReceived = undefined;
+                resolve(resp);
+            };
+        });
+
         ipcRenderer.send('renderer_channel', {
             id: document.windowId,
             instruction: 'get_ejs_data'
         });
 
+
+        let data = await prom;
+        document.ejsData = data.ejsData;
+    }
+
+    async function requestDefinitionsData() {
         const prom = new Promise((resolve, reject) => {
             messageReceived = function (resp) {
+                messageReceived = undefined;
                 resolve(resp);
             };
         });
 
-        let ejsData = await prom;
-        document.ejsData = ejsData;
-        ejsDataReceived();
+        ipcRenderer.send('renderer_channel', {
+            id: document.windowId,
+            instruction: 'get_definitions'
+        });
+
+
+        let data = await prom;
+        return data.definitions;
     }
 
-    let initProm = new Promise((resolve, reject) => {
-        ejsDataReceived = () => {
-            resolve({
-                makeRequest: makeRequest
-            });
-        };
-    });
+    await getMyId();
+    await requestEJSData();
 
-    const res = await initProm;
-    return res;
+    return {
+        requestDefinitionsData: requestDefinitionsData
+    };
 }
 
 exports.init = init;
