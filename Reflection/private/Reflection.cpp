@@ -26,23 +26,10 @@ namespace
 
 void reflection::Boot()
 {
-	class BootJob : public jobs::Job
-	{
-		void Do()
-		{
-			ReflectionSettings* settings = new ReflectionSettings();
+	ReflectionSettings* settings = new ReflectionSettings();
+	TypeManager& typeManager = TypeManager::GetInstance();
 
-			//CreateTestStruct();
-			//settings->StoreSettings();
-
-			TypeManager& typeManager = TypeManager::GetInstance();
-			typeManager.LoadGeneratedTypes();
-			bool t = true;
-		}
-	};
-
-	RunMain(new BootJob());
-
+	typeManager.StoreTypeInformation();
 }
 
 void reflection::CreateTestStruct()

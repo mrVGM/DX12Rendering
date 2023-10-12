@@ -76,6 +76,14 @@ const reflection::DataDef* reflection::TypeManager::GetType(const std::string& i
 	return it->second;
 }
 
+void reflection::TypeManager::GetTypes(std::list<const DataDef*>& outTypes) const
+{
+	for (auto it = m_types.begin(); it != m_types.end(); ++it)
+	{
+		outTypes.push_back(it->second);
+	}
+}
+
 void reflection::TypeManager::GetTypes(const ValueType& type, std::list<const DataDef*>& outTypes) const
 {
 	for (auto it = m_types.begin(); it != m_types.end(); ++it)
@@ -100,6 +108,10 @@ void reflection::TypeManager::RegisterGeneratedType(const BaseObjectMeta& meta, 
 {
 	m_generatedTypeMetas.push_back(&meta);
 	m_generatedTypes.push_back(&type);
+}
+
+void reflection::TypeManager::StoreTypeInformation()
+{
 }
 
 void reflection::TypeManager::LoadGeneratedTypes()

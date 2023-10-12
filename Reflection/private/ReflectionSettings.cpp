@@ -62,8 +62,6 @@ void reflection::ReflectionSettings::StoreSettings()
 		std::ofstream reflectionFile(reflectionSettingsFilePath);
 		reflectionFile << xml;
 	}
-
-	bool t = true;
 }
 
 void reflection::ReflectionSettings::ReadSettingFile()

@@ -26,8 +26,12 @@ namespace reflection
 
 		const DataDef* GetType(const std::string& id) const;
 		void GetTypes(const ValueType& type, std::list<const DataDef*>& outTypes) const;
+		void GetTypes(std::list<const DataDef*>& outTypes) const;
+		
 
 		void RegisterGeneratedType(const BaseObjectMeta& meta, const DataDef& type);
 		void LoadGeneratedTypes();
+
+		void StoreTypeInformation();
 	};
 }
