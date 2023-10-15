@@ -6,64 +6,19 @@ html, body {
     bottom: 0%;
 }
 
-.full-size {
-    position: relative;
-    width: 100%;
-    height: 100%;
-}
-
-
 .window {
     position: absolute;
     width: 100%;
     height: 100%;
 }
 
-.window-header {
-    background-color: aliceblue;
+.general-button {
     user-select: none;
+    background-color: azure;
 }
-
-.window-creation-button {
-    height: 10px;
-    width: 10px;
-    padding: 2px;
-    margin: 3px;
+.general-button:hover {
+    background-color: aquamarine;
 }
-
-.window-creation-button:hover {
-    background-color: orange;
-}
-
-.window-sepatator {
-    position: absolute;
-    background-color: green;
-    user-select: none;
-}
-
-.window-sepatator:hover {
-    position: absolute;
-    background-color: orange;
-    user-select: none;
-}
-
-.dir-entry:hover {
-    background-color: rgba(255,125,0,0.5);
-}
-
-.dir-entry-selected {
-    background-color: #F8AFA6;
-}
-
-.window-mode-button {
-    padding-left: 2px;
-    padding-right: 2px;
-}
-
-.window-mode-button:hover {
-    background-color: orange;
-}
-
-.selected {
-    background-color: #F8AFA6;
+.general-button-selected {
+    background-color: aqua;
 }
