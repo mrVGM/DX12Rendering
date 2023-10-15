@@ -19,7 +19,7 @@ const loadContent = require('./loadContent');
 
     defs.forEach(def => {
         const fileEntry = loadContent.LoadContentElement('fileEntry.ejs');
-        fileEntry.tagged.name.innerHTML = 'asd';
+        fileEntry.tagged.name.innerHTML = def.name;
         files.appendChild(fileEntry.element);
     });
     
