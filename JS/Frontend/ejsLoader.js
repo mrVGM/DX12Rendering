@@ -60,4 +60,14 @@ function readEJSFiles(onReady) {
     });
 }
 
-exports.readEJSFiles = readEJSFiles;
+async function loadEJSData() {
+    const prom = new Promise((resolve, reject) => {
+        readEJSFiles((data) => {
+            resolve(data);
+        });
+    });
+
+    return prom;
+}
+
+exports.loadEJSData = loadEJSData;

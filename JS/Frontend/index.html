@@ -6,17 +6,22 @@
     <link rel="stylesheet" type="text/css" href="main.css">
 </head>
 <body>
-    <div id="content"></div>
+    <div id="content">
+        <div id="header" style="display:flex; overflow:scroll"></div>
+        <div id="content"></div>
+    </div>
     <script>
         {
-            async function start() {
+            async function boot() {
                 const initWindow = require('./initWindow');
-                document.serverAPI = await initWindow.init();
+                let data = await initWindow.init();
+
+                document.appData = data;
 
                 require('./dom/contentBrowser');
             }
 
-            start();
+            boot();
         }
     </script>
 </body>

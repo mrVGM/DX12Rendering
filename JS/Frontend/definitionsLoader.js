@@ -1,3 +1,4 @@
+const { resolve } = require('dns/promises');
 const fs = require('fs');
 const path = require('path')
 
@@ -35,4 +36,14 @@ function readDefinitions(onReady) {
     });
 }
 
-exports.readDefinitions = readDefinitions;
+async function loadDefinitions() {
+    const prom = new Promise((resolve, reject) => {
+        readDefinitions(defs => {
+            resolve(defs);
+        });
+    });
+
+    return prom;
+}
+
+exports.loadDefinitions = loadDefinitions;
