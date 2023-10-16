@@ -37,6 +37,7 @@ html, body {
     background-color: var(--row-hover);
 }
 .general-row-selected {
+    user-select: none;
     background-color: var(--row-selected);
 }
 
@@ -60,7 +61,6 @@ html, body {
     border-width: 2px;
     border-bottom: none;
 }
-
 
 .expand-button-collapsed {
     transform: rotate(-90deg);

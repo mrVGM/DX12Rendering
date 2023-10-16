@@ -11,19 +11,10 @@ const controller = contentBrowserController.getContentBrowserController();
 
     let selectedFileEntryElement = undefined;
     
+    const button = loadContent.LoadContentElement('button.ejs');
     {
-        const button = loadContent.LoadContentElement('button.ejs');
         button.tagged.name.innerHTML = 'Add';
-        buttons.appendChild(button.element);
-        
-        const controller = contentBrowserController.getContentBrowserController();
-        button.element.addEventListener('click', event => {
-            const newFile = controller.addFile();
-            
-            const fileEntry = loadContent.LoadContentElement('fileEntry.ejs');
-            fileEntry.tagged.name.innerHTML = newFile.name;
-            files.appendChild(fileEntry.element);
-        });
+        buttons.appendChild(button.element);   
     }
 
     function createCategory(name) {
@@ -104,6 +95,13 @@ const controller = contentBrowserController.getContentBrowserController();
 
             const newFileEntry = createFileEntry(def);
             generatedCategory.tagged.nested.appendChild(newFileEntry.element);
+        });
+
+        button.element.addEventListener('click', event => {
+            const newFile = controller.addFile();
+            const fileEntry = createFileEntry(newFile);
+            
+            generatedCategory.tagged.nested.appendChild(fileEntry.element);
         });
 
         files.appendChild(generatedCategory.element);

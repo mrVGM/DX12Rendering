@@ -4,22 +4,17 @@ const controller = contentBrowserController.getContentBrowserController();
 
 {
     const content = controller.contentBrowser;
-
-    const detailsPanel = loadContent.LoadContentElement('fileDetails.ejs');
-    content.tagged.details.appendChild(detailsPanel.element);
-
-    const id = detailsPanel.tagged.id;
-    const name = detailsPanel.tagged.name;
-    const changeName = detailsPanel.tagged.change_name;
-    const valueType = detailsPanel.tagged.value_type;
-    const isNative = detailsPanel.tagged.is_native;
-
-    function hideDetails() {
-
-    }
-
+    
     function showDetails(def, api) {
-        console.log(api);
+        content.tagged.details.innerHTML = '';
+        const detailsPanel = loadContent.LoadContentElement('fileDetails.ejs');
+        content.tagged.details.appendChild(detailsPanel.element);
+
+        const id = detailsPanel.tagged.id;
+        const name = detailsPanel.tagged.name;
+        const changeName = detailsPanel.tagged.change_name;
+        const valueType = detailsPanel.tagged.value_type;
+        const isNative = detailsPanel.tagged.is_native;
 
         id.innerHTML = def.id;
         name.innerHTML = def.name;
@@ -38,11 +33,12 @@ const controller = contentBrowserController.getContentBrowserController();
             }
 
             api.renameFile(changeName.value);
-            
-            changeName.style.display = 'none';
-            name.style.display = '';
             controller.showDetails(def, api);
         });
+    }
+
+    function hideDetails() {
+
     }
 
     controller.hideDetails = hideDetails;
