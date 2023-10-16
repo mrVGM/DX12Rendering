@@ -56,7 +56,8 @@ const contentBrowserController = require('./contentBrowserController');
         const initialDisplay = category.tagged.nested.style.display;
 
         category.tagged.name.innerHTML = name;
-        category.element.addEventListener('click', event => {
+        
+        category.tagged.name_row.addEventListener('click', event => {
             if (expanded) {
                 category.tagged.nested.style.display = 'none';
                 expandIcon.classList.remove('expand-button-expanded');
