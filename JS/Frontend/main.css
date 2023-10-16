@@ -1,3 +1,11 @@
+:root {
+    --row-hover: rgba(255, 214, 224, 1);
+    --row-selected: rgba(144, 241, 239, 1);
+    --button-idle: rgba(255, 239, 159, 1);
+    --button-hovered: rgba(193, 251, 164, 1);
+    --button-selected: rgba(123, 241, 168, 1);
+}
+
 html, body {
     position: absolute;
     left: 0%;
@@ -14,11 +22,49 @@ html, body {
 
 .general-button {
     user-select: none;
-    background-color: azure;
+    border-style: solid;
+    border-width: 1px;
+    background-color: rgba(250, 250, 250, 1);
 }
 .general-button:hover {
-    background-color: aquamarine;
+    background-color: rgba(240, 240, 240, 1);
 }
-.general-button-selected {
-    background-color: aqua;
+
+.general-row {
+    user-select: none;
+}
+.general-row:hover {
+    background-color: var(--row-hover);
+}
+.general-row-selected {
+    background-color: var(--row-selected);
+}
+
+.tab-button {
+    background-color: rgba(250, 250, 250, 1);
+    user-select: none;
+}
+
+.tab-button:hover {
+    background-color: rgba(240, 240, 240, 1);
+    user-select: none;
+}
+
+.tab-button-idle {
+    border-bottom: solid 2px;
+}
+
+.tab-button-selected {
+    background-color: rgba(255, 255, 255, 1);
+    border-style: solid;
+    border-width: 2px;
+    border-bottom: none;
+}
+
+
+.expand-button-collapsed {
+    transform: rotate(-90deg);
+}
+.expand-button-expanded {
+    transform: rotate(0deg);
 }
