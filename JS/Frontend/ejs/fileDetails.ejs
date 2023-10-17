@@ -1,20 +1,20 @@
-<div app-id="file_details" style="margin-top: 10px; margin-left: 10px;">
-    <div style="display: flex;">
+<div app-id="file_details" style="display: flex; flex-direction: column; margin-top: 10px; margin-left: 10px;">
+    <div class="general-row" style="display: flex;">
         ID:
         <div app-id="id" style="margin-left: 10px;"></div>
     </div>
-    <div style="display: flex;">
+    <div class="general-row" style="display: flex;">
         Name:
         <div style="margin-left: 10px;">
             <div app-id="name"></div>
             <input app-id="change_name" type="text" style="display: none;"/>
         </div>
     </div>
-    <div style="display: flex;">
+    <div class="general-row" style="display: flex;">
         Value Type:
         <div app-id="value_type" style="margin-left: 10px;"></div>
     </div>
-    <div style="display: flex;">
+    <div class="general-row" style="display: flex;">
         Native?:
         <div app-id="is_native" style="margin-left: 10px;"></div>
     </div>
