@@ -11,10 +11,15 @@ const controller = contentBrowserController.getContentBrowserController();
 
     let selectedFileEntryElement = undefined;
     
-    const button = loadContent.LoadContentElement('button.ejs');
+    const addStructButton = loadContent.LoadContentElement('button.ejs');
+    const addClassButton = loadContent.LoadContentElement('button.ejs');
     {
-        button.tagged.name.innerHTML = 'Add';
-        buttons.appendChild(button.element);   
+        addStructButton.tagged.name.innerHTML = 'Add Struct';
+        buttons.appendChild(addStructButton.element);
+
+        addClassButton.element.style['margin-left'] = '10px';
+        addClassButton.tagged.name.innerHTML = 'Add Class';
+        buttons.appendChild(addClassButton.element);
     }
 
     function createCategory(name) {
@@ -97,8 +102,15 @@ const controller = contentBrowserController.getContentBrowserController();
             generatedCategory.tagged.nested.appendChild(newFileEntry.element);
         });
 
-        button.element.addEventListener('click', event => {
-            const newFile = controller.addFile();
+        addStructButton.element.addEventListener('click', event => {
+            const newFile = controller.addStructFile();
+            const fileEntry = createFileEntry(newFile);
+            
+            generatedCategory.tagged.nested.appendChild(fileEntry.element);
+        });
+
+        addClassButton.element.addEventListener('click', event => {
+            const newFile = controller.addClassFile();
             const fileEntry = createFileEntry(newFile);
             
             generatedCategory.tagged.nested.appendChild(fileEntry.element);

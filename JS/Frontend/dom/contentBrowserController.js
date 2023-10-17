@@ -4,10 +4,10 @@ function init() {
     const controller = controllersAPI.getControllers().contentBrowser;
     const defs = document.appData.defsData;
 
-    function addFile() {
+    function addStructFile() {
         const newFile = {
             id: crypto.randomUUID(),
-            name: 'New File',
+            name: 'New Struct',
             valueType: 'struct',
             isNative: false
         };
@@ -17,7 +17,21 @@ function init() {
         return newFile;
     }
 
-    controller.addFile = addFile;
+    function addClassFile() {
+        const newFile = {
+            id: crypto.randomUUID(),
+            name: 'New Class',
+            valueType: 'class',
+            isNative: false
+        };
+
+        defs.push(newFile);
+        
+        return newFile;
+    }
+
+    controller.addStructFile = addStructFile;
+    controller.addClassFile = addClassFile;
 }
 
 function getContentBrowserController() {
