@@ -20,18 +20,18 @@ function create() {
         const category = loadContent.LoadContentElement('category.ejs');
         const expandIcon = category.tagged.expand_icon;
 
-        const initialDisplay = category.tagged.nested.style.display;
+        const initialDisplay = category.tagged.nested_root.style.display;
 
         category.tagged.name.innerHTML = name;
 
         category.tagged.name_row.addEventListener('click', event => {
             if (expanded) {
-                category.tagged.nested.style.display = 'none';
+                category.tagged.nested_root.style.display = 'none';
                 expandIcon.classList.remove('expand-button-expanded');
                 expandIcon.classList.add('expand-button-collapsed');
             }
             else {
-                category.tagged.nested.style.display = initialDisplay;
+                category.tagged.nested_root.style.display = initialDisplay;
                 expandIcon.classList.remove('expand-button-collapsed');
                 expandIcon.classList.add('expand-button-expanded');
             }
@@ -61,7 +61,7 @@ function create() {
             let curCat = parentCat.data.subcategories[cat];
             if (!curCat) {
                 curCat = createCategory(cat);
-                parentCat.tagged.nested.appendChild(curCat.element);
+                parentCat.tagged.nested_categories.appendChild(curCat.element);
                 parentCat.data.subcategories[cat] = curCat;
                 ++parentCat.data.subelements;
                 curCat.data.parentCat = parentCat;
