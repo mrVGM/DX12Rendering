@@ -81,6 +81,16 @@ async function loadDefinitions() {
             }
         }
 
+        {
+            res.category = '';
+            const categoryList = dataDef.getElementsByTagName('category');
+            if (categoryList.length > 0) {
+                const category = categoryList[0];
+                const categoryString = valueType.innerHTML.substring(1, category.innerHTML.length - 1);
+                res.category = categoryString;
+            }
+        }
+
         return res;
     });
 

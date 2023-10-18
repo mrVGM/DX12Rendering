@@ -1,5 +1,7 @@
 const loadContent = require('./loadContent');
 const contentBrowserController = require('./contentBrowserController');
+const categorizedDataPanel = require('./categorizedDataPanel');
+
 const controller = contentBrowserController.getContentBrowserController();
 
 {
@@ -22,47 +24,26 @@ const controller = contentBrowserController.getContentBrowserController();
         buttons.appendChild(addClassButton.element);
     }
 
-    function createCategory(name) {
-        let expanded = true;
-        const category = loadContent.LoadContentElement('fileCategory.ejs');
-        const expandIcon = category.tagged.expand_icon;
+    const filesPanel = categorizedDataPanel.create();
+    files.appendChild(filesPanel.element);
 
-        const initialDisplay = category.tagged.nested.style.display;
+    const nativeCategoryName = 'Native';
+    const generatedCategoryName = 'Generated';
 
-        category.tagged.name.innerHTML = name;
-        
-        category.tagged.name_row.addEventListener('click', event => {
-            if (expanded) {
-                category.tagged.nested.style.display = 'none';
-                expandIcon.classList.remove('expand-button-expanded');
-                expandIcon.classList.add('expand-button-collapsed');
-            }
-            else {
-                category.tagged.nested.style.display = initialDisplay;
-                expandIcon.classList.remove('expand-button-collapsed');
-                expandIcon.classList.add('expand-button-expanded');
-            }
-
-            expanded = !expanded;
-        });
-
-        return category;
-    }
-
-    {
-        const nativeCategory = createCategory('Native');
-        
+    {   
         defs.forEach(def => {
             if (!def.isNative) {
                 return;
             }
 
+            const slot = filesPanel.data.addSlot(nativeCategoryName + '/' + def.category);
             const fileEntry = loadContent.LoadContentElement('fileEntry.ejs');
+            fileEntry.data = {
+                slotId: slot.slotId
+            };
             fileEntry.tagged.name.innerHTML = def.name;
-            nativeCategory.tagged.nested.appendChild(fileEntry.element);
+            slot.parentCat.tagged.nested.appendChild(fileEntry.element);
         });
-
-        files.appendChild(nativeCategory.element);
     }
 
     {
@@ -84,6 +65,15 @@ const controller = contentBrowserController.getContentBrowserController();
                     renameFile: newName => {
                         def.name = newName;
                         fileEntry.tagged.name.innerHTML = newName;
+                    },
+                    changeCategory: newCategory => {
+                        const slotId = fileEntry.data.slotId;
+                        filesPanel.data.removeSlot(slotId);
+                        const newSlot = filesPanel.data.addSlot(generatedCategoryName + '/' + newCategory);
+                        fileEntry.element.remove();
+                        newSlot.parentCat.tagged.nested.appendChild(fileEntry.element);
+                        fileEntry.data.slotId = newSlot.slotId;
+                        def.category = newCategory;
                     }
                 });
             });
@@ -91,32 +81,41 @@ const controller = contentBrowserController.getContentBrowserController();
             return fileEntry;
         }
 
-        const generatedCategory = createCategory('Generated');
         
         defs.forEach(def => {
             if (def.isNative) {
                 return;
             }
 
-            const newFileEntry = createFileEntry(def);
-            generatedCategory.tagged.nested.appendChild(newFileEntry.element);
+            const slot = filesPanel.data.addSlot(generatedCategoryName + '/' + def.category);
+            const fileEntry = createFileEntry(def);
+            fileEntry.data = {
+                slotId: slot.slotId
+            };
+            slot.parentCat.tagged.nested.appendChild(fileEntry.element);
         });
-
+        
         addStructButton.element.addEventListener('click', event => {
             const newFile = controller.addStructFile();
+
+            const slot = filesPanel.data.addSlot(generatedCategoryName + '/' + newFile.category);
             const fileEntry = createFileEntry(newFile);
-            
-            generatedCategory.tagged.nested.appendChild(fileEntry.element);
+            fileEntry.data = {
+                slotId: slot.slotId
+            };
+            slot.parentCat.tagged.nested.appendChild(fileEntry.element);
         });
 
         addClassButton.element.addEventListener('click', event => {
             const newFile = controller.addClassFile();
-            const fileEntry = createFileEntry(newFile);
             
-            generatedCategory.tagged.nested.appendChild(fileEntry.element);
+            const slot = filesPanel.data.addSlot(generatedCategoryName + '/' + newFile.category);
+            const fileEntry = createFileEntry(newFile);
+            fileEntry.data = {
+                slotId: slot.slotId
+            };
+            slot.parentCat.tagged.nested.appendChild(fileEntry.element);
         });
-
-        files.appendChild(generatedCategory.element);
     }
 
     document.getElementById('content').appendChild(contents.element);

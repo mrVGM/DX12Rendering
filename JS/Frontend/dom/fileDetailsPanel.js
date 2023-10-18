@@ -15,11 +15,13 @@ const controller = contentBrowserController.getContentBrowserController();
         const changeName = detailsPanel.tagged.change_name;
         const valueType = detailsPanel.tagged.value_type;
         const isNative = detailsPanel.tagged.is_native;
+        const category = detailsPanel.tagged.category;
 
         id.innerHTML = def.id;
         name.innerHTML = def.name;
         valueType.innerHTML = def.valueType;
         isNative.innerHTML = def.isNative;
+        category.value = def.category;
 
         name.addEventListener('click', event => {
             changeName.value = def.name;
@@ -34,6 +36,10 @@ const controller = contentBrowserController.getContentBrowserController();
 
             api.renameFile(changeName.value);
             controller.showDetails(def, api);
+        });
+
+        category.addEventListener('change', event => {
+            api.changeCategory(category.value);
         });
     }
 

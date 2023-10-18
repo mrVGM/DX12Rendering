@@ -9,7 +9,8 @@ function init() {
             id: crypto.randomUUID(),
             name: 'New Struct',
             valueType: 'struct',
-            isNative: false
+            isNative: false,
+            category: ''
         };
 
         defs.push(newFile);
@@ -22,7 +23,8 @@ function init() {
             id: crypto.randomUUID(),
             name: 'New Class',
             valueType: 'class',
-            isNative: false
+            isNative: false,
+            category: ''
         };
 
         defs.push(newFile);

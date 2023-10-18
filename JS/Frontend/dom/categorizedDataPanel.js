@@ -74,7 +74,7 @@ function create() {
         itemCategory[itemId] = parentCat;
 
         return {
-            itemId: itemId++,
+            slotId: itemId++,
             parentCat: parentCat,
         };
     }
@@ -86,7 +86,7 @@ function create() {
         }
 
         category.element.remove();
-        delete parentCat[category.data.name];
+        delete parentCat.data.subcategories[category.data.name];
         parentCat.data.subelements--;
 
         if (parentCat.data.subelements === 0) {
