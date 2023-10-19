@@ -35,6 +35,10 @@ function init() {
         tabs[active].data.deactivate();
         active = undefined;
     };
+
+    controller.hasTab = id => {
+        return !!tabs[id];
+    };
 }
 
 function getTabsController() {

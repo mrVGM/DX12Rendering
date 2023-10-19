@@ -75,7 +75,12 @@ const controller = contentBrowserController.getContentBrowserController();
                         fileEntry.data.slotId = newSlot.slotId;
                         def.category = newCategory;
                     }
-                });
+                }); 
+            });
+
+            fileEntry.element.addEventListener('dblclick', event => {
+                controller.openFile(def);
+                console.log('open file!');
             });
 
             return fileEntry;
