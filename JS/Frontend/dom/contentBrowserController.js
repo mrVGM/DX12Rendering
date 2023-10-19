@@ -45,6 +45,9 @@ function init() {
             return;
         }
 
+        const { createStructEditor } = require('./structEditor');
+        const editor = createStructEditor(def);
+
         const button = loadContent.LoadContentElement('tabButton.ejs');
         tabsController.registerTab(tabKey, button);
         button.data = {
@@ -52,7 +55,7 @@ function init() {
                 button.element.classList.remove('tab-button-idle');
                 button.element.classList.add('tab-button-selected');
 
-                document.getElementById('content').innerHTML = 'File Opened!';
+                document.getElementById('content').appendChild(editor.element);
             },
             deactivate: () => {
                 button.element.classList.remove('tab-button-selected');
