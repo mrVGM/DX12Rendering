@@ -117,6 +117,4 @@ const controller = contentBrowserController.getContentBrowserController();
             slot.parentCat.tagged.nested.appendChild(fileEntry.element);
         });
     }
-
-    document.getElementById('content').appendChild(contents.element);
 }

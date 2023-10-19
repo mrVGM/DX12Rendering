@@ -45,11 +45,6 @@ function create() {
             subelements: 0,
         };
 
-        if (!document.cats) {
-            document.cats = [];
-        }
-        document.cats.push(category);
-
         return category;
     }
 
