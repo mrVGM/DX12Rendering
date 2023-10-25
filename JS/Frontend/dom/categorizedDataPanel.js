@@ -11,9 +11,10 @@ function create() {
     dummyCategory.data = {
         name: '',
         subcategories: {},
-        subelements: 0
+        subelements: 0,
+        hidden: 0
     };
-    panel.element.appendChild(dummyCategory.element);
+    panel.tagged.contents.appendChild(dummyCategory.element);
 
     function createCategory(name) {
         let expanded = true;
@@ -43,6 +44,7 @@ function create() {
             name: name,
             subcategories: {},
             subelements: 0,
+            hidden: 0
         };
 
         return category;
@@ -125,8 +127,66 @@ function create() {
             item.data = {};
         }
 
+        function hideCategories(cat) {
+            if (cat.data.hidden < cat.data.subelements) {
+                cat.element.style.display = '';
+                return;
+            }
+
+            cat.element.style.display = 'none';
+            const parentCat = cat.data.parentCat;
+            if (parentCat) {
+                ++parentCat.data.hidden;
+                hideCategories(parentCat);
+            }
+        }
+
+        function showCategories(cat) {
+            if (cat.data.hidden === cat.data.subelements) {
+                cat.element.style.display = 'none';
+                return;
+            }
+
+            cat.element.style.display = '';
+            const parentCat = cat.data.parentCat;
+            if (parentCat) {
+                --parentCat.data.hidden;
+                showCategories(parentCat);
+            }
+        }
+
+        function hide() {
+            if (item.style.display === 'none') {
+                return;
+            }
+
+            item.style.display = 'none';
+
+            const slotId = item.data.slotId;
+            const cat = itemCategory[slotId];
+
+            ++cat.data.hidden;
+            hideCategories();
+        }
+
+        function show() {
+            if (item.style.display === '') {
+                return;
+            }
+
+            item.style.display = '';
+
+            const slotId = item.data.slotId;
+            const cat = itemCategory[slotId];
+
+            --cat.data.hidden;
+            showCategories();
+        }
+
         item.data.slotId = slotId;
         item.data.itemName = name;
+        item.data.hide = hide;
+        item.data.show = show;
 
         const cat = itemCategory[slotId];
 
@@ -137,8 +197,8 @@ function create() {
         else {
             let nextElem = undefined;
             for (let i = 0; i < elem.childElementCount; ++i) {
-                const curElem = elem.childNodes[i].data.itemName;
-                if (name.toUpperCase() < curElem.toUpperCase()) {
+                const curName = elem.childNodes[i].data.itemName;
+                if (name.toUpperCase() < curName.toUpperCase()) {
                     nextElem = elem.childNodes[i];
                     break;
                 }
