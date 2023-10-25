@@ -13,6 +13,35 @@ function createStructEditor(def) {
         const defaultValue = prop.tagged.default_value;
         const categoryInput = prop.tagged.category_input;
 
+        {
+            const propName = prop.tagged.name;
+            const changeName = prop.tagged.change_name;
+
+            propName.addEventListener('click', event => {
+                propName.style.display = 'none';
+                changeName.style.display = '';
+                changeName.value = propDef.name;
+            });
+
+            changeName.addEventListener('change', event => {
+                const newName = changeName.value.trim();
+
+                if (newName.length > 0) {
+                    propDef.name = newName;
+                    propName.innerHTML = newName;
+
+                    propName.style.display = '';
+                    changeName.style.display = 'none';
+
+
+                    categorizedPropertiesPanel.data.removeSlot(prop.element.data.slotId);
+                    const slot = categorizedPropertiesPanel.data.addSlot('Properties/' + propDef.category);
+                    prop.data.slot = slot;
+                    categorizedPropertiesPanel.data.addItem(prop.element, propDef.name, slot.slotId);
+                }
+            });
+        }
+
         const category = LoadContentElement('category.ejs');
         defaultValue.appendChild(category.element);
 
@@ -44,6 +73,7 @@ function createStructEditor(def) {
             prop.element.remove();
             categorizedPropertiesPanel.data.removeSlot(prop.data.slot.slotId);
 
+            propDef.category = categoryInput.value;
             const slot = categorizedPropertiesPanel.data.addSlot('Properties/' + categoryInput.value);
             prop.data.slot = slot;
             categorizedPropertiesPanel.data.addItem(prop.element, propDef.name, slot.slotId);
@@ -84,7 +114,7 @@ function createStructEditor(def) {
     }
 
     def.properties.forEach(propDef => {
-        const slot = categorizedPropertiesPanel.data.addSlot('');
+        const slot = categorizedPropertiesPanel.data.addSlot('Properties/' + propDef.category);
         const prop = createProp();
         categorizedPropertiesPanel.data.addItem(prop.element, propDef.name, slot.slotId);
         prop.data = {
