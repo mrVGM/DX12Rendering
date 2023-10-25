@@ -69,3 +69,7 @@ html, body {
 .expand-button-expanded {
     transform: rotate(0deg);
 }
+
+.modal-popup {
+    background-color: rgba(230, 230, 230, 1);
+}

@@ -32,7 +32,9 @@ function create() {
 
                 if (words.length > 0) {
                     const cat = itemCategory[item.data.slotId];
-                    cat.data.expandChain();
+                    if (cat.data.expandChain) {
+                        cat.data.expandChain();
+                    }
                 }
             });
 

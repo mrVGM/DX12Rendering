@@ -1,6 +1,6 @@
 const { LoadContentElement } = require('./loadContent');
 const { create: createCategorizedDataPanel  } = require('./categorizedDataPanel');
-
+const { showModal } = require('./modalUtils');
 function createStructEditor(def) {
     const editor = LoadContentElement('structEditor.ejs');
     const categorizedPropertiesPanel = createCategorizedDataPanel();
@@ -18,9 +18,33 @@ function createStructEditor(def) {
             const changeName = prop.tagged.change_name;
 
             propName.addEventListener('click', event => {
+                {
+                    const rect = propName.getBoundingClientRect();
+                    const bodyRect = document.body.getBoundingClientRect();
+
+                    const w = bodyRect.right - bodyRect.left;
+                    const h = bodyRect.bottom - bodyRect.top;
+
+                    console.log(w, h);
+                    
+
+                    console.log(rect.top / h, rect.right / w, rect.bottom / h, rect.left / w);
+                }
+
                 propName.style.display = 'none';
                 changeName.style.display = '';
                 changeName.value = propDef.name;
+
+                showModal([
+                    {
+                        category: '',
+                        name: 'a'
+                    },
+                    {
+                        category: '',
+                        name: 'b'
+                    }
+                ]);
             });
 
             changeName.addEventListener('change', event => {
