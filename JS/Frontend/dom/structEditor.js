@@ -46,6 +46,8 @@ function createStructEditor(def) {
         const defaultValue = prop.tagged.default_value;
         const categoryInput = prop.tagged.category_input;
         const type = prop.tagged.type;
+        const access = prop.tagged.access;
+        const structure = prop.tagged.structure;
 
         {
             const propName = prop.tagged.name;
@@ -76,14 +78,67 @@ function createStructEditor(def) {
             });
         }
 
-        type.innerHTML = defsMap[propDef.type].name;
-        type.addEventListener('click', async event => {
-            let chosen = await choseType();
-            propDef.type = chosen.id;
+        {
             type.innerHTML = defsMap[propDef.type].name;
+            type.addEventListener('click', async event => {
+                let chosen = await choseType();
+                propDef.type = chosen.id;
+                type.innerHTML = defsMap[propDef.type].name;
 
-            closeModal();
-        });
+                closeModal();
+            });
+        }
+
+        {
+            access.innerHTML = propDef.access;
+
+            function* accessIt(initial) {
+                const accessTypes = [
+                    'private',
+                    'protected',
+                    'public'
+                ];
+                let i = accessTypes.indexOf(initial);
+
+                while (true) {
+                    i = (i + 1) % accessTypes.length;
+                    yield accessTypes[i];
+                }
+            }
+
+            const it = accessIt(propDef.access);
+            access.addEventListener('click', event => {
+                const nextAccessType = it.next().value;
+                propDef.access = nextAccessType;
+                access.innerHTML = nextAccessType;
+            });
+        }
+
+        {
+            structure.innerHTML = propDef.structure;
+
+            function* structureIt(initial) {
+                const structureTypes = [
+                    'single',
+                    'array',
+                    'set',
+                    'map'
+                ];
+                let i = structureTypes.indexOf(initial);
+
+                while (true) {
+                    i = (i + 1) % structureTypes.length;
+                    yield structureTypes[i];
+                }
+            }
+
+            const it = structureIt(propDef.structure);
+            structure.addEventListener('click', event => {
+                const nextStructureType = it.next().value;
+                propDef.structure = nextStructureType;
+                structure.innerHTML = propDef.structure;
+            });
+        }
 
         const category = LoadContentElement('category.ejs');
         defaultValue.appendChild(category.element);
