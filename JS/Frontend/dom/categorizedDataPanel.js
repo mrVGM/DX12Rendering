@@ -29,6 +29,11 @@ function create() {
                     return;
                 }
                 item.data.show();
+
+                if (words.length > 0) {
+                    const cat = itemCategory[item.data.slotId];
+                    cat.data.expandChain();
+                }
             });
 
             for (let key in cat.data.subcategories) {
@@ -48,7 +53,7 @@ function create() {
 
         category.tagged.name.innerHTML = name;
 
-        category.tagged.name_row.addEventListener('click', event => {
+        function toggleChildren() {
             if (expanded) {
                 category.tagged.nested_root.style.display = 'none';
                 expandIcon.classList.remove('expand-button-expanded');
@@ -61,13 +66,43 @@ function create() {
             }
 
             expanded = !expanded;
-        });
+        }
+
+        category.tagged.name_row.addEventListener('click', event => toggleChildren());
 
         category.data = {
             name: name,
             subcategories: {},
             subelements: 0,
-            hidden: 0
+            hidden: 0,
+            collapse: () => {
+                if (!expanded) {
+                    return;
+                }
+
+                toggleChildren();
+            },
+            expand: () => {
+                if (expanded) {
+                    return;
+                }
+
+                toggleChildren();
+            },
+            expandChain: () => {
+                category.data.expand();
+                const parentCat = category.data.parentCat;
+
+                if (!parentCat) {
+                    return;
+                }
+
+                if (!parentCat.data.expandChain) {
+                    return;
+                }
+
+                parentCat.data.expandChain();
+            }
         };
 
         return category;
