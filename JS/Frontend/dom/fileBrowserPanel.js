@@ -42,7 +42,7 @@ const controller = contentBrowserController.getContentBrowserController();
                 slotId: slot.slotId
             };
             fileEntry.tagged.name.innerHTML = def.name;
-            slot.parentCat.tagged.nested.appendChild(fileEntry.element);
+            filesPanel.data.addItem(fileEntry.element, def.name, slot.slotId);
         });
     }
 
@@ -65,14 +65,21 @@ const controller = contentBrowserController.getContentBrowserController();
                     renameFile: newName => {
                         def.name = newName;
                         fileEntry.tagged.name.innerHTML = newName;
+
+                        const slotId = fileEntry.data.slotId;
+                        filesPanel.data.removeSlot(slotId);
+                        const newSlot = filesPanel.data.addSlot(generatedCategoryName + '/' + def.category);
+                        fileEntry.element.remove();
+                        fileEntry.data.slotId = newSlot.slotId;
+                        filesPanel.data.addItem(fileEntry.element, def.name, newSlot.slotId);
                     },
                     changeCategory: newCategory => {
                         const slotId = fileEntry.data.slotId;
                         filesPanel.data.removeSlot(slotId);
                         const newSlot = filesPanel.data.addSlot(generatedCategoryName + '/' + newCategory);
                         fileEntry.element.remove();
-                        newSlot.parentCat.tagged.nested.appendChild(fileEntry.element);
                         fileEntry.data.slotId = newSlot.slotId;
+                        filesPanel.data.addItem(fileEntry.element, def.name, newSlot.slotId);
                         def.category = newCategory;
                     }
                 }); 
@@ -97,7 +104,7 @@ const controller = contentBrowserController.getContentBrowserController();
             fileEntry.data = {
                 slotId: slot.slotId
             };
-            slot.parentCat.tagged.nested.appendChild(fileEntry.element);
+            filesPanel.data.addItem(fileEntry.element, def.name, slot.slotId);
         });
         
         addStructButton.element.addEventListener('click', event => {
@@ -108,7 +115,8 @@ const controller = contentBrowserController.getContentBrowserController();
             fileEntry.data = {
                 slotId: slot.slotId
             };
-            slot.parentCat.tagged.nested.appendChild(fileEntry.element);
+
+            filesPanel.data.addItem(fileEntry.element, newFile.name, slot.slotId);
         });
 
         addClassButton.element.addEventListener('click', event => {
@@ -119,7 +127,7 @@ const controller = contentBrowserController.getContentBrowserController();
             fileEntry.data = {
                 slotId: slot.slotId
             };
-            slot.parentCat.tagged.nested.appendChild(fileEntry.element);
+            filesPanel.data.addItem(fileEntry.element, newFile.name, slot.slotId);
         });
     }
 }

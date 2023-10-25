@@ -56,7 +56,28 @@ function create() {
             let curCat = parentCat.data.subcategories[cat];
             if (!curCat) {
                 curCat = createCategory(cat);
-                parentCat.tagged.nested_categories.appendChild(curCat.element);
+                const elem = parentCat.tagged.nested_categories;
+                if (elem.childElementCount === 0) {
+                    elem.appendChild(curCat.element);
+                }
+                else {
+                    let nextElem = undefined;
+                    for (let i = 0; i < elem.childElementCount; ++i) {
+                        const curCat = elem.childNodes[i].ejsData.tagged.name.innerHTML;
+                        if (cat.toUpperCase() < curCat.toUpperCase()) {
+                            nextElem = elem.childNodes[i];
+                            break;
+                        }
+                    }
+
+                    if (!nextElem) {
+                        elem.appendChild(curCat.element);
+                    }
+                    else {
+                        elem.insertBefore(curCat.element, nextElem);
+                    }
+                }
+
                 parentCat.data.subcategories[cat] = curCat;
                 ++parentCat.data.subelements;
                 curCat.data.parentCat = parentCat;
@@ -99,9 +120,43 @@ function create() {
         }
     }
 
+    function addItem(item, name, slotId) {
+        if (!item.data) {
+            item.data = {};
+        }
+
+        item.data.slotId = slotId;
+        item.data.itemName = name;
+
+        const cat = itemCategory[slotId];
+
+        const elem = cat.tagged.nested;
+        if (elem.childElementCount === 0) {
+            elem.appendChild(item);
+        }
+        else {
+            let nextElem = undefined;
+            for (let i = 0; i < elem.childElementCount; ++i) {
+                const curElem = elem.childNodes[i].data.itemName;
+                if (name.toUpperCase() < curElem.toUpperCase()) {
+                    nextElem = elem.childNodes[i];
+                    break;
+                }
+            }
+
+            if (!nextElem) {
+                elem.appendChild(item);
+            }
+            else {
+                elem.insertBefore(item, nextElem);
+            }
+        }
+    }
+
     panel.data = {
         addSlot: addSlot,
-        removeSlot: removeSlot
+        removeSlot: removeSlot,
+        addItem: addItem
     };
 
     return panel;

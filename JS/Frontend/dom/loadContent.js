@@ -46,6 +46,8 @@ function LoadContentElement(ejsFile, data) {
         cur = it.next();
     }
 
+    res.element.ejsData = res;
+
     return res;
 }
 
