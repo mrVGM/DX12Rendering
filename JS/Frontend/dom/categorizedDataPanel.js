@@ -2,6 +2,7 @@ const loadContent = require('./loadContent');
 
 function create() {
     const panel = loadContent.LoadContentElement('categorizedDataPanel.ejs');
+    const searchBox = panel.tagged.search_box;
 
     let itemId = 0;
     const itemCategory = {};
@@ -15,6 +16,28 @@ function create() {
         hidden: 0
     };
     panel.tagged.contents.appendChild(dummyCategory.element);
+
+    searchBox.addEventListener('input', event => {
+        const phrase = searchBox.value;
+        const words = phrase.split(' ').filter(x => x !== '');
+
+        function traverse(cat) {
+            cat.tagged.nested.childNodes.forEach(item => {
+                const tmp = words.filter(w => item.data.itemName.toUpperCase().includes(w.toUpperCase()));
+                if (tmp.length < words.length) {
+                    item.data.hide();
+                    return;
+                }
+                item.data.show();
+            });
+
+            for (let key in cat.data.subcategories) {
+                traverse(cat.data.subcategories[key]);
+            }
+        }
+
+        traverse(dummyCategory);
+    });
 
     function createCategory(name) {
         let expanded = true;
@@ -166,7 +189,7 @@ function create() {
             const cat = itemCategory[slotId];
 
             ++cat.data.hidden;
-            hideCategories();
+            hideCategories(cat);
         }
 
         function show() {
@@ -180,7 +203,7 @@ function create() {
             const cat = itemCategory[slotId];
 
             --cat.data.hidden;
-            showCategories();
+            showCategories(cat);
         }
 
         item.data.slotId = slotId;
