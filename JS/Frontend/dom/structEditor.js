@@ -46,7 +46,7 @@ function createStructEditor(def) {
 
             const slot = categorizedPropertiesPanel.data.addSlot('Properties/' + categoryInput.value);
             prop.data.slot = slot;
-            slot.parentCat.tagged.nested.appendChild(prop.element);
+            categorizedPropertiesPanel.data.addItem(prop.element, propDef.name, slot.slotId);
         });
 
         return prop;
@@ -68,7 +68,8 @@ function createStructEditor(def) {
             let cat = 'Properties';
             const slot = categorizedPropertiesPanel.data.addSlot(cat);
             const prop = createProp(propDef);
-            slot.parentCat.tagged.nested.appendChild(prop.element);
+
+            categorizedPropertiesPanel.data.addItem(prop.element, propDef.name, slot.slotId);
             prop.data = {
                 slot: slot
             };
@@ -85,7 +86,7 @@ function createStructEditor(def) {
     def.properties.forEach(propDef => {
         const slot = categorizedPropertiesPanel.data.addSlot('');
         const prop = createProp();
-        slot.parentCat.tagged.nested.appendChild(prop.element);
+        categorizedPropertiesPanel.data.addItem(prop.element, propDef.name, slot.slotId);
         prop.data = {
             slot: slot
         };
