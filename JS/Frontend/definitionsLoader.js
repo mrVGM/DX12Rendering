@@ -1,4 +1,3 @@
-const { resolve } = require('dns/promises');
 const fs = require('fs');
 const path = require('path')
 

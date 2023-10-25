@@ -8,9 +8,16 @@ async function init() {
     const ejsData = await ejsDataPr;
     const defsData = await defsDataPr;
 
+    const defsMap = {};
+
+    defsData.forEach(def => {
+        defsMap[def.id] = def;
+    });
+
     return {
         ejsData: ejsData,
-        defsData: defsData
+        defsData: defsData,
+        defsMap: defsMap
     };
 }
 

@@ -1,7 +1,7 @@
 const { LoadContentElement } = require('./loadContent');
 const modalSpace = document.getElementById('modal_space');
 
-function showModal(entries) {
+function openModal(entries) {
     const selectionMenu = LoadContentElement('selectionMenu.ejs');
 
     modalSpace.style.display = '';
@@ -19,7 +19,14 @@ function showModal(entries) {
         const selectionEntry = LoadContentElement('selectionEntry.ejs');
         selectionEntry.tagged.name.innerHTML = entry.name;
         categorizedDataPanel.data.addItem(selectionEntry.element, entry.name, slot.slotId);
+        selectionEntry.element.addEventListener('click', event => { entry.chosen(); });
     });
 }
 
-exports.showModal = showModal;
+function closeModal() {
+    modalSpace.innerHTML = '';
+    modalSpace.style.display = 'none';
+}
+
+exports.openModal = openModal;
+exports.closeModal = closeModal;

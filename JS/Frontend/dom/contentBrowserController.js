@@ -4,7 +4,7 @@ const loadContent = require('./loadContent');
 
 function init() {
     const controller = controllersAPI.getControllers().contentBrowser;
-    const defs = document.appData.defsData;
+    const { defsData, defsMap } = document.appData;
 
     function addStructFile() {
         const newFile = {
@@ -15,7 +15,8 @@ function init() {
             category: ''
         };
 
-        defs.push(newFile);
+        defsData.push(newFile);
+        defsMap[newFile.id] = newFile;
         
         return newFile;
     }
@@ -29,7 +30,9 @@ function init() {
             category: ''
         };
 
-        defs.push(newFile);
+        defsData.push(newFile);
+
+
         
         return newFile;
     }

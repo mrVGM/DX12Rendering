@@ -1,6 +1,6 @@
 const { LoadContentElement } = require('./loadContent');
-const { create: createCategorizedDataPanel  } = require('./categorizedDataPanel');
-const { showModal } = require('./modalUtils');
+const { create: createCategorizedDataPanel } = require('./categorizedDataPanel');
+const { openModal, closeModal } = require('./modalUtils');
 function createStructEditor(def) {
     const editor = LoadContentElement('structEditor.ejs');
     const categorizedPropertiesPanel = createCategorizedDataPanel();
@@ -8,43 +8,53 @@ function createStructEditor(def) {
     const properties = editor.tagged.properties;
     const buttons = editor.tagged.buttons;
 
+    const { defsData, defsMap } = document.appData;
+
+    function choseType() {
+        let onChosen;
+
+        const entries = defsData.map(def => {
+            let cat = 'Generated/';
+            if (def.isNative) {
+                cat = 'Native/';
+            }
+            
+            const entry = {
+                category: cat + def.category,
+                name: def.name,
+                chosen: () => {
+                    onChosen(def);
+                }
+            };
+
+            return entry;
+        });
+
+        const prom = new Promise((resolve, reject) => {
+            onChosen = def => {
+                resolve(def);
+            };
+        });
+
+        openModal(entries);
+
+        return prom;
+    }
+
     function createProp(propDef) {
         const prop = LoadContentElement('property.ejs');
         const defaultValue = prop.tagged.default_value;
         const categoryInput = prop.tagged.category_input;
+        const type = prop.tagged.type;
 
         {
             const propName = prop.tagged.name;
             const changeName = prop.tagged.change_name;
 
             propName.addEventListener('click', event => {
-                {
-                    const rect = propName.getBoundingClientRect();
-                    const bodyRect = document.body.getBoundingClientRect();
-
-                    const w = bodyRect.right - bodyRect.left;
-                    const h = bodyRect.bottom - bodyRect.top;
-
-                    console.log(w, h);
-                    
-
-                    console.log(rect.top / h, rect.right / w, rect.bottom / h, rect.left / w);
-                }
-
                 propName.style.display = 'none';
                 changeName.style.display = '';
                 changeName.value = propDef.name;
-
-                showModal([
-                    {
-                        category: '',
-                        name: 'a'
-                    },
-                    {
-                        category: '',
-                        name: 'b'
-                    }
-                ]);
             });
 
             changeName.addEventListener('change', event => {
@@ -65,6 +75,15 @@ function createStructEditor(def) {
                 }
             });
         }
+
+        type.innerHTML = defsMap[propDef.type].name;
+        type.addEventListener('click', async event => {
+            let chosen = await choseType();
+            propDef.type = chosen.id;
+            type.innerHTML = defsMap[propDef.type].name;
+
+            closeModal();
+        });
 
         const category = LoadContentElement('category.ejs');
         defaultValue.appendChild(category.element);
@@ -110,12 +129,16 @@ function createStructEditor(def) {
         const addPropertyButton = LoadContentElement('button.ejs');
         addPropertyButton.tagged.name.innerHTML = 'Add Property';
 
-        addPropertyButton.element.addEventListener('click', event => {
+        addPropertyButton.element.addEventListener('click', async event => {
+            const type = await choseType();
+            closeModal();
+
             const propDef = {
                 id: crypto.randomUUID(),
                 name: 'New Property',
                 category: '',
                 access: 'private',
+                type: type.id,
                 structure: 'single'
             };
 
