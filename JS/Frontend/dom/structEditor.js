@@ -46,6 +46,8 @@ function createStructEditor(def) {
         const defaultValue = prop.tagged.default_value;
         const categoryInput = prop.tagged.category_input;
         const type = prop.tagged.type;
+        const secondaryType = prop.tagged.secondary_type;
+        const arrow = prop.tagged.arrow;
         const access = prop.tagged.access;
         const structure = prop.tagged.structure;
 
@@ -90,6 +92,17 @@ function createStructEditor(def) {
         }
 
         {
+            secondaryType.innerHTML = defsMap[propDef.secondaryType].name;
+            secondaryType.addEventListener('click', async event => {
+                let chosen = await choseType();
+                propDef.secondaryType = chosen.id;
+                secondaryType.innerHTML = defsMap[propDef.secondaryType].name;
+
+                closeModal();
+            });
+        }
+
+        {
             access.innerHTML = propDef.access;
 
             function* accessIt(initial) {
@@ -116,6 +129,8 @@ function createStructEditor(def) {
 
         {
             structure.innerHTML = propDef.structure;
+            secondaryType.style.display = propDef.structure === 'map' ? '' : 'none';
+            arrow.style.display = propDef.structure === 'map' ? '' : 'none';
 
             function* structureIt(initial) {
                 const structureTypes = [
@@ -137,6 +152,9 @@ function createStructEditor(def) {
                 const nextStructureType = it.next().value;
                 propDef.structure = nextStructureType;
                 structure.innerHTML = propDef.structure;
+
+                secondaryType.style.display = propDef.structure === 'map' ? '' : 'none';
+                arrow.style.display = propDef.structure === 'map' ? '' : 'none';
             });
         }
 
@@ -194,6 +212,7 @@ function createStructEditor(def) {
                 category: '',
                 access: 'private',
                 type: type.id,
+                secondaryType: type.id,
                 structure: 'single'
             };
 
