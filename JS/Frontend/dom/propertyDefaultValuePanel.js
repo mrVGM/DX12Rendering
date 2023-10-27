@@ -2,7 +2,7 @@ const { LoadContentElement } = require('./loadContent');
 
 function create(propDef) {
     const panel = LoadContentElement('propertyDefaultValuePanel.ejs');
-    const { expand_icon: expandIcon } = panel.tagged;
+    const { expand_icon: expandIcon, default_value: defaultValue } = panel.tagged;
 
     let expanded = true;
 
@@ -23,6 +23,11 @@ function create(propDef) {
     panel.tagged.name_row.addEventListener('click', event => { toggle(); });
 
     toggle();
+
+    const { create } = require('./propertyDefaultValueEditor');
+    const editor = create(propDef);
+
+    defaultValue.appendChild(editor.element);
 
     return panel;
 }
