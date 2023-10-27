@@ -87,6 +87,8 @@ function createStructEditor(def) {
                 type.innerHTML = defsMap[propDef.type].name;
 
                 closeModal();
+
+                createDefaultValuePanel();
             });
         }
 
@@ -98,6 +100,8 @@ function createStructEditor(def) {
                 secondaryType.innerHTML = defsMap[propDef.secondaryType].name;
 
                 closeModal();
+
+                createDefaultValuePanel();
             });
         }
 
@@ -154,13 +158,16 @@ function createStructEditor(def) {
 
                 secondaryType.style.display = propDef.structure === 'map' ? '' : 'none';
                 arrow.style.display = propDef.structure === 'map' ? '' : 'none';
+
+                createDefaultValuePanel();
             });
         }
 
-        {
+        function createDefaultValuePanel() {
             const { create } = require('./propertyDefaultValuePanel');
             const panel = create(propDef);
 
+            defaultValue.innerHTML = '';
             defaultValue.appendChild(panel.element);
 
             const category = panel.tagged.category;
@@ -174,6 +181,8 @@ function createStructEditor(def) {
                 categorizedPropertiesPanel.data.addItem(prop.element, propDef.name, slot.slotId);
             });
         }
+
+        createDefaultValuePanel();
 
         return prop;
     }
