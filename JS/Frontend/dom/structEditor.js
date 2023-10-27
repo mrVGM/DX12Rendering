@@ -44,7 +44,6 @@ function createStructEditor(def) {
     function createProp(propDef) {
         const prop = LoadContentElement('property.ejs');
         const defaultValue = prop.tagged.default_value;
-        const categoryInput = prop.tagged.category_input;
         const type = prop.tagged.type;
         const secondaryType = prop.tagged.secondary_type;
         const arrow = prop.tagged.arrow;
@@ -158,42 +157,23 @@ function createStructEditor(def) {
             });
         }
 
-        const category = LoadContentElement('category.ejs');
-        defaultValue.appendChild(category.element);
+        {
+            const { create } = require('./propertyDefaultValuePanel');
+            const panel = create(propDef);
 
-        category.tagged.name.innerHTML = 'Default Value';
-        const expandIcon = category.tagged.expand_icon;
+            defaultValue.appendChild(panel.element);
 
-        const propCat = prop.tagged.category;
-        category.tagged.nested.appendChild(propCat);
+            const category = panel.tagged.category;
+            category.addEventListener('change', event => {
+                prop.element.remove();
+                categorizedPropertiesPanel.data.removeSlot(prop.data.slot.slotId);
 
-        let expanded = true;
-        function toggle() {
-            if (expanded) {
-                category.tagged.nested_root.style.display = 'none';
-                expandIcon.classList.remove('expand-button-expanded');
-                expandIcon.classList.add('expand-button-collapsed');
-            }
-            else {
-                category.tagged.nested_root.style.display = '';
-                expandIcon.classList.remove('expand-button-collapsed');
-                expandIcon.classList.add('expand-button-expanded');
-            }
-            expanded = !expanded;
+                propDef.category = category.value;
+                const slot = categorizedPropertiesPanel.data.addSlot('Properties/' + category.value);
+                prop.data.slot = slot;
+                categorizedPropertiesPanel.data.addItem(prop.element, propDef.name, slot.slotId);
+            });
         }
-
-        toggle();
-        category.tagged.name_row.addEventListener('click', event => { toggle(); });
-
-        categoryInput.addEventListener('change', event => {
-            prop.element.remove();
-            categorizedPropertiesPanel.data.removeSlot(prop.data.slot.slotId);
-
-            propDef.category = categoryInput.value;
-            const slot = categorizedPropertiesPanel.data.addSlot('Properties/' + categoryInput.value);
-            prop.data.slot = slot;
-            categorizedPropertiesPanel.data.addItem(prop.element, propDef.name, slot.slotId);
-        });
 
         return prop;
     }
